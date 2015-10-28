@@ -97,27 +97,36 @@ public class login extends Activity {
 
     //Check if user is logged in already. If they are, then return true, else false.
     public boolean isLoggedIn(){
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        System.out.println("Current access token: " + accessToken.getToken());
-        return accessToken != null;
+        if(AccessToken.getCurrentAccessToken() != null) {
+            AccessToken accessToken = AccessToken.getCurrentAccessToken();
+            return accessToken != null;
+        }
+        else {
+            return false;
+        }
     }
 
     //Tracking Access Tokens to confirm whether or not we are logged in.
     public boolean trackAccessToken(){
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
-            @Override
-            protected void onCurrentAccessTokenChanged(
-                    AccessToken oldAccessToken,
-                    AccessToken currentAccessToken) {
-                // Set the access token using
-                // currentAccessToken when it's loaded or set.
-                //accessToken = currentAccessToken;
+        if(AccessToken.getCurrentAccessToken() != null) {
+            AccessToken accessToken = AccessToken.getCurrentAccessToken();
+            AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
+                @Override
+                protected void onCurrentAccessTokenChanged(
+                        AccessToken oldAccessToken,
+                        AccessToken currentAccessToken) {
+                    // Set the access token using
+                    // currentAccessToken when it's loaded or set.
+                    //accessToken = currentAccessToken;
                 }
             };
             accessToken = AccessToken.getCurrentAccessToken();
-        // If the access token is available already assign it.
+            // If the access token is available already assign it.
             return accessToken != null;
+        }
+        else {
+            return false;
+        }
     }
 
     public void getFacebookData(AccessToken accessToken){
