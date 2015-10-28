@@ -3,9 +3,8 @@ package com.test.tabs.tabs;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -18,6 +17,8 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.view.View;
+import com.facebook.appevents.AppEventsLogger;
 
 public class news_feed extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -167,4 +168,19 @@ public class news_feed extends AppCompatActivity
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Logs 'install' and 'app activate' App Events.
+        AppEventsLogger.activateApp(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Logs 'app deactivate' App Event.
+        AppEventsLogger.deactivateApp(this);
+    }
 }
