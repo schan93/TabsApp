@@ -11,7 +11,24 @@
     <android.support.design.widget.NavigationView android:id="@+id/nav_view"
         android:layout_width="wrap_content" android:layout_height="match_parent"
         android:layout_gravity="start" android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header_news_feed"
-        app:menu="@menu/activity_news_feed_drawer" />
+        app:headerLayout="@layout/nav_header_news_feed">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <include layout="@layout/nav_header_news_feed"
+                android:id="@+id/navigation_header"/>
+
+            <ListView
+                android:id="@+id/friends_list"
+                android:layout_weight="7"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"></ListView>
+
+        </LinearLayout>
+
+    </android.support.design.widget.NavigationView>
 
 </android.support.v4.widget.DrawerLayout>

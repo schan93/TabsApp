@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import android.view.View;
 import com.facebook.appevents.AppEventsLogger;
+import com.test.tabs.tabs.com.tabs.database.friends.Friend;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
 
 public class news_feed extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -26,6 +29,14 @@ public class news_feed extends AppCompatActivity
     private FeedListAdapter newsFeedListAdapter;
     private List<FeedItem> feedItems;
     private String[] newsFeedNames = {"Silvia", "Kevin", "Stephen", "Chrisdere", "Jwang", "Nathaneil", "TED  "};
+
+    //Friends list values
+    private ListView friendsList;
+    private FriendsListAdapter friendsAdapter;
+    //Local Database for storing friends
+    private FriendsDataSource datasource;
+    private List<Friend> friendItems;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +49,15 @@ public class news_feed extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                System.out.println("Fab!");
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
+
+        //Listen for navigation evens
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -49,8 +65,11 @@ public class news_feed extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        //Open DB and get freinds from db.
+        datasource = new FriendsDataSource(this);
+        datasource.open();
+
+        populateFriendsList();
 
         populateNewsFeedList();
     }
@@ -77,6 +96,7 @@ public class news_feed extends AppCompatActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        System.out.println("Selected item" + item.getItemId());
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -93,26 +113,28 @@ public class news_feed extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camara) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        System.out.println("Item: " + item);
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
+//        if (id == R.id.nav_camara) {
+//            // Handle the camera action
+//        } else if (id == R.id.nav_gallery) {
+//
+//        } else if (id == R.id.nav_slideshow) {
+//
+//        } else if (id == R.id.nav_manage) {
+//
+//        } else if (id == R.id.nav_share) {
+//
+//        } else if (id == R.id.nav_send) {
+//
+//        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    public void populateNewsFeedList(){
+    private void populateNewsFeedList(){
         newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
         feedItems = new ArrayList<FeedItem>();
 
@@ -132,6 +154,22 @@ public class news_feed extends AppCompatActivity
         }
         //newsFeedListAdapter.notifyDataSetChanged();
         // ************************************************
+    }
+
+    private void populateFriendsList() {
+        friendsList = (ListView) findViewById(R.id.friends_list);
+        friendItems = new ArrayList<Friend>();
+
+        friendsAdapter = new FriendsListAdapter(this, friendItems);
+        friendsList.setAdapter(friendsAdapter);
+
+        for(int i = 0; i < datasource.getAllFriends().size(); i++) {
+            Friend item = new Friend();
+            item.setName("Name");
+            item.setEmail("Email");
+
+            friendItems.add(item);
+        }
     }
 
     class UpdateNewsFeedListTask extends AsyncTask<Void,String, Void>

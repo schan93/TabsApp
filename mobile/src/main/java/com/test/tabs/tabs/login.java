@@ -22,8 +22,11 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.facebook.login.widget.ProfilePictureView;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendsDB;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Arrays;
@@ -41,7 +44,8 @@ public class login extends Activity {
     //Manage callbacks in app
     private CallbackManager callbackManager;
 
-    private LoginManager loginManager;
+    //Local Database for storing friends
+    private FriendsDataSource datasource;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,6 +57,10 @@ public class login extends Activity {
         setContentView(R.layout.activity_login);
         info = (TextView)findViewById(R.id.info);
         loginButton = (LoginButton)findViewById(R.id.login_button);
+
+        //Initialize the datasource so we can begin storage
+        datasource = new FriendsDataSource(this);
+        datasource.open();
 
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
@@ -74,7 +82,7 @@ public class login extends Activity {
                 public void onSuccess(LoginResult loginResult) {
                     //Login successful. Now instead of setting text, we want to pass data into the next Activity (namely the news feed activity)
                     //So that the user can view their friends and so forth after they login.
-                    //info.setText("User ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + loginResult.getAccessToken().getToken());
+                    //info.setText("FriendsDB ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + loginResult.getAccessToken().getToken());
                     //We use an asynchronous task so that as we are logging in, we can grab data from the login and put it into news feed.
                     getFacebookData(loginResult.getAccessToken());
                 }
@@ -143,6 +151,8 @@ public class login extends Activity {
                                     JSONObject jsonObject,
                                     GraphResponse response) {
                                 // Application code for user
+                                // TODO: Set up Google Cloud SQL so that we can store the user information into the global DB
+                                // as long as that id doesn't exist already.
                             }
                         }),
                 GraphRequest.newMyFriendsRequest(
@@ -153,7 +163,17 @@ public class login extends Activity {
                                     JSONArray jsonArray,
                                     GraphResponse response) {
                                 // Application code for users friends
-                                System.out.println("Friends: " + jsonArray);
+                                // Insert into our local DB
+                                try {
+                                    for (int i = 0; i < jsonArray.length(); i++) {
+                                        JSONObject row = jsonArray.getJSONObject(i);
+                                        datasource.createFriend(row.getString("name"), row.getString("email"));
+                                    }
+                                }
+                                catch(JSONException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                System.out.println("FriendsDB: " + jsonArray);
                             }
                         })
         );

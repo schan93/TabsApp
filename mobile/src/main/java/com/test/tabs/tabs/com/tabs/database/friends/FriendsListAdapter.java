@@ -1,50 +1,46 @@
-package com.test.tabs.tabs;
-
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-
-import java.util.List;
+package com.test.tabs.tabs.com.tabs.database.friends;
 
 import android.app.Activity;
 import android.content.Context;
-import android.text.Html;
-import android.text.TextUtils;
-import android.text.format.DateUtils;
-import android.text.method.LinkMovementMethod;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mikhaellopez.circularimageview.CircularImageView;
+import com.test.tabs.tabs.FeedItem;
+import com.test.tabs.tabs.R;
 
-import java.security.BasicPermission;
+import java.util.List;
 
 /**
- * Created by Chiharu on 10/26/2015.
+ * Created by schan on 10/31/15.
  */
-public class FeedListAdapter extends BaseAdapter {
+public class FriendsListAdapter extends BaseAdapter{
 
     private Activity activity;
     private LayoutInflater inflater;
-    private List<FeedItem> feedItems;
+    private List<Friend> friendItems;
     //ImageLoader imageLoader = AppController.getInstance().getImageLoader();
 
-    public FeedListAdapter(Activity activity, List<FeedItem> feedItems) {
+    public FriendsListAdapter(Activity activity, List<Friend> friendItems) {
         this.activity = activity;
-        this.feedItems = feedItems;
+        this.friendItems = friendItems;
     }
 
     @Override
     public int getCount() {
-        return feedItems.size();
+        return friendItems.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return feedItems.get(position);
+        return friendItems.get(position);
     }
 
     @Override
@@ -58,25 +54,22 @@ public class FeedListAdapter extends BaseAdapter {
             inflater = (LayoutInflater) activity
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null)
-            convertView = inflater.inflate(R.layout.news_feed_item, null);
+            convertView = inflater.inflate(R.layout.friend_item, null);
 
         //if (imageLoader == null)
         //    imageLoader = AppController.getInstance().getImageLoader();
 
-        TextView name = (TextView) convertView.findViewById(R.id.txt_name);
-        TextView timestamp = (TextView)convertView.findViewById(R.id.txt_timestamp);
-        TextView statusMsg = (TextView)convertView.findViewById(R.id.txt_statusMsg);
+        TextView name = (TextView) convertView.findViewById(R.id.friend_name);
+        //ImageView image = (ImageView) convertView.findViewById(R.id.image_friend_pic);
+
         CircularImageView circularImageView = (CircularImageView)convertView.findViewById(R.id.friend_image);
-
-
         //Set the views
-        FeedItem item = feedItems.get(position);
+        Friend item = friendItems.get(position);
         name.setText(item.getName());
-        timestamp.setText(item.getTimeStamp());
-        statusMsg.setText((item.getStatus()));
 
         //TODO: set the other data fields in FeedItem
 
         return convertView;
     }
+
 }

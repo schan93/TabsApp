@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -24,11 +25,23 @@
             android:paddingLeft="@dimen/feed_item_padding_left_right"
             android:paddingRight="@dimen/feed_item_padding_left_right">
 
+            <com.mikhaellopez.circularimageview.CircularImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@mipmap/blank_prof_pic"
+                app:border_color="#EEEEEE"
+                app:border_width="2dp"
+                app:shadow="true"
+                app:shadow_radius="10"
+                android:id="@+id/image_profile_pic"
+                app:shadow_color="#000000"/>
+            <!--
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/image_profile_pic"
                 android:src="@mipmap/blank_prof_pic" />
+             -->
 
             <LinearLayout
                 android:layout_width="fill_parent"
