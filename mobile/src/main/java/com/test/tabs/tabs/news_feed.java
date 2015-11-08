@@ -1,5 +1,12 @@
 package com.test.tabs.tabs;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -12,13 +19,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.List;
 import android.view.View;
+import android.widget.Toast;
+
+import com.facebook.AccessToken;
+import com.facebook.Profile;
 import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.widget.ProfilePictureView;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
@@ -55,7 +68,7 @@ public class news_feed extends AppCompatActivity
             }
         });
 
-        //Listen for navigation evens
+        //Listen for navigation events
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -69,9 +82,22 @@ public class news_feed extends AppCompatActivity
         datasource = new FriendsDataSource(this);
         datasource.open();
 
+        //Set things such as facebook profile picture, facebook friends photos, etc.
+        setHeaderPicture();
+
         populateFriendsList();
 
         populateNewsFeedList();
+    }
+
+    private void setHeaderPicture() {
+        Profile profile = Profile.getCurrentProfile();
+        System.out.println("Profile Id: " + profile.getId());
+        ProfilePictureView profilePictureView = (ProfilePictureView) findViewById(R.id.profile_image);
+        if(profilePictureView != null) {
+            profilePictureView.setProfileId(profile.getId());
+            System.out.println("Not null.");
+        }
     }
 
     @Override
@@ -158,18 +184,15 @@ public class news_feed extends AppCompatActivity
 
     private void populateFriendsList() {
         friendsList = (ListView) findViewById(R.id.friends_list);
-        friendItems = new ArrayList<Friend>();
+        friendItems = new ArrayList<>();
 
         friendsAdapter = new FriendsListAdapter(this, friendItems);
         friendsList.setAdapter(friendsAdapter);
 
-        for(int i = 0; i < datasource.getAllFriends().size(); i++) {
-            Friend item = new Friend();
-            item.setName("Name");
-            item.setEmail("Email");
-
-            friendItems.add(item);
+        for(Friend i: datasource.getAllFriends()){
+            friendItems.add(i);
         }
+
     }
 
     class UpdateNewsFeedListTask extends AsyncTask<Void,String, Void>

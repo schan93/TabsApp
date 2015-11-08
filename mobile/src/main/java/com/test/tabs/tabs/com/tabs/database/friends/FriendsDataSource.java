@@ -38,21 +38,22 @@ public class FriendsDataSource {
         dbHelper.close();
     }
 
-    public void createFriend(String name, String email) {
+    public void createFriend(String name, String id) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         values.put(FriendsDB.COLUMN_NAME, name);
-        values.put(FriendsDB.COLUMN_EMAIL, email);
+        values.put(FriendsDB.COLUMN_ID, id);
+        values.put(FriendsDB.COLUMN_EMAIL, "email");
         //Insert into the database
         long insertId = database.insert(FriendsDB.TABLE_FRIENDS, null,
                 values);
         return;
     }
 
-    public Friend getFriend(String email) {
+    public Friend getFriend(String id) {
         //Get the values from the database, querying by email
         Cursor cursor = database.query(FriendsDB.TABLE_FRIENDS,
-                allColumns, FriendsDB.COLUMN_EMAIL + " = " + email, null,
+                allColumns, FriendsDB.COLUMN_ID + " = " + id, null,
                 null, null, null);
         cursor.moveToFirst();
         Friend newFriend = cursorToFriend(cursor);
@@ -75,8 +76,8 @@ public class FriendsDataSource {
                 + " = " + id, null);
     }
 
-    public List<String> getAllFriends() {
-        List<String> friends = new ArrayList<String>();
+    public List<Friend> getAllFriends() {
+        List<Friend> friends = new ArrayList<Friend>();
 
         Cursor cursor = database.query(FriendsDB.TABLE_FRIENDS,
                 allColumns, null, null, null, null, null);
@@ -84,7 +85,7 @@ public class FriendsDataSource {
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             Friend friend = cursorToFriend(cursor);
-            friends.add(friend.getName());
+            friends.add(friend);
             cursor.moveToNext();
         }
         // make sure to close the cursor

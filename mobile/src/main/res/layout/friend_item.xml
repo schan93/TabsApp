@@ -41,8 +41,15 @@
                     android:id="@+id/friend_name"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="@dimen/feed_item_profile_name"
-                    android:textStyle="bold" />
+                    android:textSize="@dimen/feed_item_profile_name" />
+
+                <CheckBox
+                    android:id="@+id/friend_checkbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:layout_gravity="right"
+                    android:focusableInTouchMode="false" />
 
                 </LinearLayout>
 

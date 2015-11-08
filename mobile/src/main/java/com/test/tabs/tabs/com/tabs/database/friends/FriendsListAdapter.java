@@ -8,9 +8,12 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.test.tabs.tabs.FeedItem;
@@ -63,8 +66,23 @@ public class FriendsListAdapter extends BaseAdapter{
         //ImageView image = (ImageView) convertView.findViewById(R.id.image_friend_pic);
 
         CircularImageView circularImageView = (CircularImageView)convertView.findViewById(R.id.friend_image);
+
+        CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.friend_checkbox);
+        checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(((CheckBox) v).isChecked()){
+                    //Display their posts to the newsfeed
+                    System.out.println("Checked.");
+                }
+                else {
+                    //Remove posts from newsfeed. Probably need some sort of loader icon thing.
+                }
+            }
+        });
         //Set the views
         Friend item = friendItems.get(position);
+
         name.setText(item.getName());
 
         //TODO: set the other data fields in FeedItem

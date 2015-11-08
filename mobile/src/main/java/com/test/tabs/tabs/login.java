@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import android.os.Parcelable;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
@@ -18,6 +19,7 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphRequestAsyncTask;
 import com.facebook.GraphRequestBatch;
 import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
@@ -62,6 +64,9 @@ public class login extends Activity {
         datasource = new FriendsDataSource(this);
         datasource.open();
 
+        //loginButton.setPublishPermissions(Arrays.asList("user_friends", "public_profile", "email"));
+        loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile", "email"));
+
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
             //Go to Activity
@@ -70,7 +75,6 @@ public class login extends Activity {
             //What we need to do here though is to
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
             getFacebookData(accessToken);
-            System.out.println("Not logged in yet.");
         }
         else {
             System.out.println("Logging in.");
@@ -84,6 +88,8 @@ public class login extends Activity {
                     //So that the user can view their friends and so forth after they login.
                     //info.setText("FriendsDB ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + loginResult.getAccessToken().getToken());
                     //We use an asynchronous task so that as we are logging in, we can grab data from the login and put it into news feed.
+                    String accessToken = loginResult.getAccessToken().getToken();
+                    System.out.println("Access Token: " + accessToken);
                     getFacebookData(loginResult.getAccessToken());
                 }
 
@@ -137,14 +143,25 @@ public class login extends Activity {
         }
     }
 
-    public void getFacebookData(AccessToken accessToken){
+    public void getFacebookData(final AccessToken accessToken){
         //newMeRequest = My own data
         //myFriendsRequest = my mutual friends who have the app downloaded
         //Basically make 2 requests to one's Facebook info and return the names, links, id, and picture of the individual
+
+        AccessToken accesstoken = AccessToken.getCurrentAccessToken();
+        GraphRequest.newMyFriendsRequest(accesstoken,
+                new GraphRequest.GraphJSONArrayCallback() {
+                    @Override
+                    public void onCompleted(JSONArray jsonArray, GraphResponse response) {
+                        System.out.println("jsonArray FRIEND: " + jsonArray);
+                        System.out.println("GraphResponse FRIEND: " + response);
+                    }
+                }).executeAsync();
+
         JSONArray friends = new JSONArray();
         GraphRequestBatch batch = new GraphRequestBatch(
                 GraphRequest.newMeRequest(
-                        accessToken,
+                        AccessToken.getCurrentAccessToken(),
                         new GraphRequest.GraphJSONObjectCallback() {
                             @Override
                             public void onCompleted(
@@ -156,26 +173,26 @@ public class login extends Activity {
                             }
                         }),
                 GraphRequest.newMyFriendsRequest(
-                        accessToken,
+                        AccessToken.getCurrentAccessToken(),
                         new GraphRequest.GraphJSONArrayCallback() {
                             @Override
-                            public void onCompleted(
-                                    JSONArray jsonArray,
-                                    GraphResponse response) {
+                            public void onCompleted(JSONArray jsonArray,
+                                                    GraphResponse response) {
                                 // Application code for users friends
                                 // Insert into our local DB
+                                Toast.makeText(login.this, "" + response.toString(), Toast.LENGTH_SHORT).show();
                                 try {
                                     for (int i = 0; i < jsonArray.length(); i++) {
                                         JSONObject row = jsonArray.getJSONObject(i);
-                                        datasource.createFriend(row.getString("name"), row.getString("email"));
+                                        datasource.createFriend(row.getString("name"), row.getString("id"));
                                     }
-                                }
-                                catch(JSONException e) {
+                                } catch (JSONException e) {
                                     throw new RuntimeException(e);
                                 }
                                 System.out.println("FriendsDB: " + jsonArray);
                             }
-                        })
+                        }
+                )
         );
         batch.addCallback(new GraphRequestBatch.Callback() {
             @Override
@@ -193,6 +210,7 @@ public class login extends Activity {
         if(intent != null) {
             ProfilePictureView profilePictureView =  new  ProfilePictureView(getApplicationContext());
             intent.putExtras(parameters);
+            System.out.println("Passing Id: " + AccessToken.getCurrentAccessToken().getUserId());
             startActivity(intent);
         }
     }

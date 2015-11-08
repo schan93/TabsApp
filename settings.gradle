@@ -1,1 +1,1 @@
-include ':mobile', ':wear', ':samples:SwitchUserSample', ':tests', ':samples:Scrumptious', ':samples:Iconicus', ':samples:RPSSample', ':junitTests', ':facebook', ':samples:HelloFacebookSample', ':samples:ShareIt', ':samples:MessengerSendSample'
+include ':mobile', ':wear', ':facebook'

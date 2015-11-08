@@ -27,7 +27,7 @@ public class FriendsDB extends SQLiteOpenHelper{
     private static final String DATABASE_CREATE = "create table "
             + TABLE_FRIENDS + "(" + COLUMN_ID
             + " integer primary key autoincrement, " + COLUMN_NAME
-            + " text not null, " + COLUMN_EMAIL + " text not null);";
+            + " text not null, " + COLUMN_EMAIL + " text);";
 
     //SQLiteOpenHelper methods
     public FriendsDB(Context context) {
@@ -36,7 +36,16 @@ public class FriendsDB extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase database) {
+        if(database != null){
+            //Delete the
+            System.out.println("Delete db");
+            database.execSQL("delete from " + DATABASE_NAME);
+        }
+        else {
+            System.out.println("Create DB");
+        }
         database.execSQL(DATABASE_CREATE);
+
     }
 
     @Override
