@@ -26,6 +26,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -83,14 +84,14 @@ public class news_feed extends AppCompatActivity
         datasource.open();
 
         //Set things such as facebook profile picture, facebook friends photos, etc.
-        setHeaderPicture();
+        drawerSetup();
 
         populateFriendsList();
 
         populateNewsFeedList();
     }
 
-    private void setHeaderPicture() {
+    private void drawerSetup() {
         Profile profile = Profile.getCurrentProfile();
         System.out.println("Profile Id: " + profile.getId());
         ProfilePictureView profilePictureView = (ProfilePictureView) findViewById(R.id.profile_image);
@@ -98,6 +99,8 @@ public class news_feed extends AppCompatActivity
             profilePictureView.setProfileId(profile.getId());
             System.out.println("Not null.");
         }
+        TextView headerName = (TextView) findViewById(R.id.user_name);
+        headerName.setText(profile.getFirstName() + " " + profile.getLastName());
     }
 
     @Override
