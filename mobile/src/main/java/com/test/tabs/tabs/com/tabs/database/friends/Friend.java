@@ -5,8 +5,8 @@ package com.test.tabs.tabs.com.tabs.database.friends;
  */
 public class Friend {
     private long id;
+    private String user_id;
     private String name;
-    private String email;
 
     public long getId(){
         return id;
@@ -16,8 +16,8 @@ public class Friend {
         return name;
     }
 
-    public String getEmail(){
-        return email;
+    public String getUserId() {
+        return user_id;
     }
 
     public void setId(long id){
@@ -28,7 +28,5 @@ public class Friend {
         this.name = name;
     }
 
-    public void setEmail(String email){
-        this.email = email;
-    }
+    public void setUserId(String user_id) {this.user_id = user_id; }
 }

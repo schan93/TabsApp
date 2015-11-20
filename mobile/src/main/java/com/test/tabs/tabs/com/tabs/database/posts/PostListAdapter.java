@@ -1,4 +1,4 @@
-package com.test.tabs.tabs;
+package com.test.tabs.tabs.com.tabs.database.posts;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,43 +8,39 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
-import android.text.Html;
-import android.text.TextUtils;
-import android.text.format.DateUtils;
-import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.mikhaellopez.circularimageview.CircularImageView;
-
-import java.security.BasicPermission;
+import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
 /**
  * Created by Chiharu on 10/26/2015.
  */
-public class FeedListAdapter extends BaseAdapter {
+public class PostListAdapter extends BaseAdapter {
 
     private Activity activity;
     private LayoutInflater inflater;
-    private List<FeedItem> feedItems;
-    //ImageLoader imageLoader = AppController.getInstance().getImageLoader();
+    private List<Post> posts;
 
-    public FeedListAdapter(Activity activity, List<FeedItem> feedItems) {
+    //Local Database for storing friends
+    private PostsDataSource datasource;
+
+
+    public PostListAdapter(Activity activity, List<Post> posts) {
         this.activity = activity;
-        this.feedItems = feedItems;
+        this.posts = posts;
     }
 
     @Override
     public int getCount() {
-        return feedItems.size();
+        return posts.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return feedItems.get(position);
+        return posts.get(position);
     }
 
     @Override
@@ -60,22 +56,26 @@ public class FeedListAdapter extends BaseAdapter {
         if (convertView == null)
             convertView = inflater.inflate(R.layout.news_feed_item, null);
 
-        //if (imageLoader == null)
-        //    imageLoader = AppController.getInstance().getImageLoader();
+        datasource = new PostsDataSource(parent.getContext());
+        datasource.open();
+//        TextView name = (TextView) convertView.findViewById(R.id.friend_name);
+//        ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.friend_profile_picture);
+//        if(profilePictureView != null) {
+//            profilePictureView.setProfileId(friendItems.get(position).getId());
+//        }
 
         TextView name = (TextView) convertView.findViewById(R.id.txt_name);
         TextView timestamp = (TextView)convertView.findViewById(R.id.txt_timestamp);
         TextView statusMsg = (TextView)convertView.findViewById(R.id.txt_statusMsg);
-        CircularImageView circularImageView = (CircularImageView)convertView.findViewById(R.id.friend_image);
 
 
         //Set the views
-        FeedItem item = feedItems.get(position);
+        Post item = posts.get(position);
         name.setText(item.getName());
         timestamp.setText(item.getTimeStamp());
         statusMsg.setText((item.getStatus()));
 
-        //TODO: set the other data fields in FeedItem
+        //TODO: set the other data fields in Post
 
         return convertView;
     }

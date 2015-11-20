@@ -2,21 +2,14 @@ package com.test.tabs.tabs.com.tabs.database.friends;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.mikhaellopez.circularimageview.CircularImageView;
-import com.test.tabs.tabs.FeedItem;
+import com.facebook.login.widget.ProfilePictureView;
 import com.test.tabs.tabs.R;
 
 import java.util.List;
@@ -30,6 +23,9 @@ public class FriendsListAdapter extends BaseAdapter{
     private LayoutInflater inflater;
     private List<Friend> friendItems;
     //ImageLoader imageLoader = AppController.getInstance().getImageLoader();
+
+    //Local Database for storing friends
+    private FriendsDataSource datasource;
 
     public FriendsListAdapter(Activity activity, List<Friend> friendItems) {
         this.activity = activity;
@@ -59,13 +55,13 @@ public class FriendsListAdapter extends BaseAdapter{
         if (convertView == null)
             convertView = inflater.inflate(R.layout.friend_item, null);
 
-        //if (imageLoader == null)
-        //    imageLoader = AppController.getInstance().getImageLoader();
-
+        datasource = new FriendsDataSource(parent.getContext());
+        datasource.open();
         TextView name = (TextView) convertView.findViewById(R.id.friend_name);
-        //ImageView image = (ImageView) convertView.findViewById(R.id.image_friend_pic);
-
-        CircularImageView circularImageView = (CircularImageView)convertView.findViewById(R.id.friend_image);
+        ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.friend_profile_picture);
+        if(profilePictureView != null) {
+            profilePictureView.setProfileId(friendItems.get(position).getUserId());
+        }
 
         CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.friend_checkbox);
         checkBox.setOnClickListener(new View.OnClickListener() {
@@ -85,7 +81,7 @@ public class FriendsListAdapter extends BaseAdapter{
 
         name.setText(item.getName());
 
-        //TODO: set the other data fields in FeedItem
+        //TODO: set the other data fields in Post
 
         return convertView;
     }

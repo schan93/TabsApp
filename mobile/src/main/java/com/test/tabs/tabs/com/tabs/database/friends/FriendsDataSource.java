@@ -24,10 +24,10 @@ public class FriendsDataSource {
     private SQLiteDatabase database;
     private FriendsDB dbHelper;
     private String[] allColumns = { FriendsDB.COLUMN_ID,
-            FriendsDB.COLUMN_NAME, FriendsDB.COLUMN_EMAIL };
+            FriendsDB.COLUMN_USER_ID, FriendsDB.COLUMN_NAME };
 
     public FriendsDataSource(Context context) {
-        dbHelper = new FriendsDB(context);
+        dbHelper = FriendsDB.getInstance(context);
     }
 
     public void open() throws SQLException {
@@ -38,14 +38,14 @@ public class FriendsDataSource {
         dbHelper.close();
     }
 
-    public void createFriend(String name, String id) {
+    public void createFriend(String name, String id, long i) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
+        values.put(FriendsDB.COLUMN_ID, i);
+        values.put(FriendsDB.COLUMN_USER_ID, id);
         values.put(FriendsDB.COLUMN_NAME, name);
-        values.put(FriendsDB.COLUMN_ID, id);
-        values.put(FriendsDB.COLUMN_EMAIL, "email");
         //Insert into the database
-        long insertId = database.insert(FriendsDB.TABLE_FRIENDS, null,
+        database.insert(FriendsDB.TABLE_FRIENDS, null,
                 values);
         return;
     }
@@ -53,7 +53,7 @@ public class FriendsDataSource {
     public Friend getFriend(String id) {
         //Get the values from the database, querying by email
         Cursor cursor = database.query(FriendsDB.TABLE_FRIENDS,
-                allColumns, FriendsDB.COLUMN_ID + " = " + id, null,
+                allColumns, FriendsDB.COLUMN_USER_ID + " = " + id, null,
                 null, null, null);
         cursor.moveToFirst();
         Friend newFriend = cursorToFriend(cursor);
@@ -63,16 +63,15 @@ public class FriendsDataSource {
 
     private Friend cursorToFriend(Cursor cursor) {
         Friend friend = new Friend();
-        friend.setId(cursor.getLong(0));
-        friend.setName(cursor.getString(1));
-        friend.setEmail(cursor.getString(2));
+        friend.setUserId(cursor.getString(1));
+        friend.setName(cursor.getString(2));
         return friend;
     }
 
     public void deleteFriend(Friend friend) {
-        long id = friend.getId();
-        System.out.println("Comment deleted with id: " + id);
-        database.delete(FriendsDB.TABLE_FRIENDS, FriendsDB.COLUMN_ID
+        String id = friend.getUserId();
+        System.out.println("Comment deleted with user id: " + id);
+        database.delete(FriendsDB.TABLE_FRIENDS, FriendsDB.COLUMN_USER_ID
                 + " = " + id, null);
     }
 
@@ -91,6 +90,20 @@ public class FriendsDataSource {
         // make sure to close the cursor
         cursor.close();
         return friends;
+    }
+
+
+    public boolean isTablePopulated(){
+        String count = "SELECT count(*) FROM friends";
+        Cursor cursor = database.rawQuery(count, null);
+        cursor.moveToFirst();
+        int rowCount = cursor.getInt(0);
+        if(rowCount > 0){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
 }

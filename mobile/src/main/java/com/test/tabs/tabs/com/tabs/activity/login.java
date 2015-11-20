@@ -1,36 +1,36 @@
-package com.test.tabs.tabs;
+package com.test.tabs.tabs.com.tabs.activity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
-import android.os.Parcelable;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
-import com.facebook.FacebookActivity;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
-import com.facebook.GraphRequestAsyncTask;
 import com.facebook.GraphRequestBatch;
 import com.facebook.GraphResponse;
-import com.facebook.HttpMethod;
-import com.facebook.login.LoginManager;
+import com.facebook.cache.disk.DiskCacheConfig;
+import com.facebook.common.internal.Supplier;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
-import com.facebook.login.widget.ProfilePictureView;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsDB;
+import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -61,11 +61,16 @@ public class login extends Activity {
         loginButton = (LoginButton)findViewById(R.id.login_button);
 
         //Initialize the datasource so we can begin storage
+        //This line can just be used if we want to clear and restart our DB
+        this.deleteDatabase("friends.db");
         datasource = new FriendsDataSource(this);
         datasource.open();
 
         //loginButton.setPublishPermissions(Arrays.asList("user_friends", "public_profile", "email"));
-        loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile", "email"));
+        loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile"));
+
+        //Configure Fresco so that image loads quickly
+        configFresco();
 
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
@@ -73,6 +78,7 @@ public class login extends Activity {
             //Not sure if it is efficient to be grabbing data every single time we open the app. However, if we have new friends,
             //we should be able to see them so I will for now, and until we find a more efficient implementation, this will be as is.
             //What we need to do here though is to
+            setContentView(R.layout.loading_panel);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
             getFacebookData(accessToken);
         }
@@ -89,7 +95,6 @@ public class login extends Activity {
                     //info.setText("FriendsDB ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + loginResult.getAccessToken().getToken());
                     //We use an asynchronous task so that as we are logging in, we can grab data from the login and put it into news feed.
                     String accessToken = loginResult.getAccessToken().getToken();
-                    System.out.println("Access Token: " + accessToken);
                     getFacebookData(loginResult.getAccessToken());
                 }
 
@@ -149,15 +154,7 @@ public class login extends Activity {
         //Basically make 2 requests to one's Facebook info and return the names, links, id, and picture of the individual
 
         AccessToken accesstoken = AccessToken.getCurrentAccessToken();
-        GraphRequest.newMyFriendsRequest(accesstoken,
-                new GraphRequest.GraphJSONArrayCallback() {
-                    @Override
-                    public void onCompleted(JSONArray jsonArray, GraphResponse response) {
-                        System.out.println("jsonArray FRIEND: " + jsonArray);
-                        System.out.println("GraphResponse FRIEND: " + response);
-                    }
-                }).executeAsync();
-
+        System.out.println("Access Token: " + accessToken.getToken());
         JSONArray friends = new JSONArray();
         GraphRequestBatch batch = new GraphRequestBatch(
                 GraphRequest.newMeRequest(
@@ -167,6 +164,7 @@ public class login extends Activity {
                             public void onCompleted(
                                     JSONObject jsonObject,
                                     GraphResponse response) {
+                                System.out.println("Response in me: " + response.toString());
                                 // Application code for user
                                 // TODO: Set up Google Cloud SQL so that we can store the user information into the global DB
                                 // as long as that id doesn't exist already.
@@ -180,11 +178,16 @@ public class login extends Activity {
                                                     GraphResponse response) {
                                 // Application code for users friends
                                 // Insert into our local DB
+                                System.out.println("Response: " + response);
+                                System.out.println("JSON ARRAY: " + jsonArray);
                                 Toast.makeText(login.this, "" + response.toString(), Toast.LENGTH_SHORT).show();
                                 try {
                                     for (int i = 0; i < jsonArray.length(); i++) {
                                         JSONObject row = jsonArray.getJSONObject(i);
-                                        datasource.createFriend(row.getString("name"), row.getString("id"));
+                                        System.out.println("Friend: " + row);
+                                        datasource.createFriend(row.getString("name"), row.getString("id"), i);
+                                        System.out.println("Friend Id: " + datasource.getFriend(row.getString("id")).getId());
+                                        System.out.println("Friend Name: " + datasource.getFriend(row.getString("id")).getName());
                                     }
                                 } catch (JSONException e) {
                                     throw new RuntimeException(e);
@@ -203,16 +206,35 @@ public class login extends Activity {
             }
         });
         batch.executeAsync();
-        Bundle parameters = new Bundle();
-        parameters.putString("id", AccessToken.getCurrentAccessToken().getUserId());
 
-        Intent intent = new Intent(login.this, news_feed.class);
-        if(intent != null) {
-            ProfilePictureView profilePictureView =  new  ProfilePictureView(getApplicationContext());
-            intent.putExtras(parameters);
-            System.out.println("Passing Id: " + AccessToken.getCurrentAccessToken().getUserId());
-            startActivity(intent);
-        }
+        //After all batches execute, then we go into the main activity.
+        batch.addCallback(new GraphRequestBatch.Callback(){
+            @Override
+            public void onBatchCompleted(GraphRequestBatch graphRequests){
+                findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                Bundle parameters = new Bundle();
+                //parameters.putString("url", );
+                parameters.putString("id", AccessToken.getCurrentAccessToken().getUserId());
+
+                Intent intent = new Intent(login.this, news_feed.class);
+                if(intent != null) {
+                    //ProfilePictureView profilePictureView =  new  ProfilePictureView(getApplicationContext());
+                    intent.putExtras(parameters);
+                    System.out.println("Passing Id: " + AccessToken.getCurrentAccessToken().getUserId());
+                    startActivity(intent);
+                }
+            }
+        });
+//        Bundle parameters = new Bundle();
+//        parameters.putString("id", AccessToken.getCurrentAccessToken().getUserId());
+//
+//        Intent intent = new Intent(login.this, news_feed.class);
+//        if(intent != null) {
+//            //ProfilePictureView profilePictureView =  new  ProfilePictureView(getApplicationContext());
+//            intent.putExtras(parameters);
+//            System.out.println("Passing Id: " + AccessToken.getCurrentAccessToken().getUserId());
+//            startActivity(intent);
+//        }
     }
     //Tapping the login button starts off a new Activity, which returns a result.
     //To receive and handle the result, override the onActivityResult function.
@@ -220,6 +242,26 @@ public class login extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void configFresco() {
+        Supplier<File> diskSupplier = new Supplier<File>() {
+            @Override
+            public File get() {
+                return getApplicationContext().getCacheDir();
+            }
+        };
+
+        DiskCacheConfig diskCacheConfig = DiskCacheConfig.newBuilder()
+                .setBaseDirectoryName("images")
+                .setBaseDirectoryPathSupplier(diskSupplier)
+                .build();
+
+        ImagePipelineConfig frescoConfig = ImagePipelineConfig.newBuilder(this)
+                .setMainDiskCacheConfig(diskCacheConfig)
+                .build();
+
+        Fresco.initialize(this, frescoConfig);
     }
 
 }
