@@ -40,7 +40,6 @@ public class PostsDataSource {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
-        values.put(PostsDB.COLUMN_ID, 0);
         values.put(PostsDB.COLUMN_POSTER_NAME, posterName);
         values.put(PostsDB.COLUMN_POSTER_USER_ID, posterUserId);
         values.put(PostsDB.COLUMN_STATUS, status);
@@ -105,6 +104,7 @@ public class PostsDataSource {
         cursor.moveToFirst();
         int rowCount = cursor.getInt(0);
         if(rowCount > 0){
+
             return true;
         }
         else{

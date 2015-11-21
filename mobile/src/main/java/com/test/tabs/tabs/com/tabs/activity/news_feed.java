@@ -3,6 +3,7 @@ package com.test.tabs.tabs.com.tabs.activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.PointF;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.ImageReader;
@@ -115,6 +116,7 @@ public class news_feed extends AppCompatActivity
         postsDataSource = new PostsDataSource(this);
         postsDataSource.open();
 
+
         //Set things such as facebook profile picture, facebook friends photos, etc.
         drawerSetup(profile.getId(), profile.getFirstName(), profile.getLastName());
 
@@ -124,14 +126,14 @@ public class news_feed extends AppCompatActivity
     }
 
     private void drawerSetup(String id, String firstName, String lastName) {
-        System.out.println("profiel id: " + id);
-        getImage(id);
-
+        DraweeController controller = getImage(id);
+        SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.avatarImageView);
+        draweeView.setController(controller);
         TextView headerName = (TextView) findViewById(R.id.user_name);
         headerName.setText(firstName  + " " + lastName);
     }
 
-    public void getImage(String userId){
+    public static DraweeController getImage(String userId){
         ControllerListener controllerListener = new BaseControllerListener<ImageInfo>(){
             @Override
             public void onFinalImageSet(
@@ -159,17 +161,13 @@ public class news_feed extends AppCompatActivity
                 FLog.e(getClass(), throwable, "Error loading %s ", id);
             }
         };
-        Uri uri = Uri.parse("http://graph.facebook.com/" + userId + "/picture?type=normal");
-        int width = 100, height = 100;
-        ImageRequest request = ImageRequestBuilder.newBuilderWithSource(uri)
-                .setResizeOptions(new ResizeOptions(width, height))
-                .build();
+        Uri uri = Uri.parse("http://graph.facebook.com/" + userId + "/picture?type=large");
+        System.out.println("Uri: " + uri);
         DraweeController controller = Fresco.newDraweeControllerBuilder()
                 .setControllerListener(controllerListener)
                 .setUri(uri)
                 .build();
-        SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.avatarImageView);
-        draweeView.setController(controller);
+        return controller;
         //draweeView.setImageURI(uri);
     }
 
@@ -212,22 +210,6 @@ public class news_feed extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        System.out.println("Item: " + item);
-
-//        if (id == R.id.nav_camara) {
-//            // Handle the camera action
-//        } else if (id == R.id.nav_gallery) {
-//
-//        } else if (id == R.id.nav_slideshow) {
-//
-//        } else if (id == R.id.nav_manage) {
-//
-//        } else if (id == R.id.nav_share) {
-//
-//        } else if (id == R.id.nav_send) {
-//
-//        }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -260,7 +242,6 @@ public class news_feed extends AppCompatActivity
         friendsAdapter = new FriendsListAdapter(this, friendItems);
         friendsList.setAdapter(friendsAdapter);
 
-        System.out.println("Number of friends: " + datasource.getAllFriends().size());
         if(datasource.isTablePopulated()) {
             for (Friend i : datasource.getAllFriends()) {
                 friendItems.add(i);

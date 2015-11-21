@@ -9,8 +9,12 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.facebook.drawee.interfaces.DraweeController;
+import com.facebook.drawee.interfaces.SimpleDraweeControllerBuilder;
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.login.widget.ProfilePictureView;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.activity.news_feed;
 
 import java.util.List;
 
@@ -58,10 +62,11 @@ public class FriendsListAdapter extends BaseAdapter{
         datasource = new FriendsDataSource(parent.getContext());
         datasource.open();
         TextView name = (TextView) convertView.findViewById(R.id.friend_name);
-        ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.friend_profile_picture);
-        if(profilePictureView != null) {
-            profilePictureView.setProfileId(friendItems.get(position).getUserId());
-        }
+
+        //Set profile picture
+        DraweeController controller = news_feed.getImage(friendItems.get(position).getUserId());
+        SimpleDraweeView draweeView = (SimpleDraweeView) convertView.findViewById(R.id.friend_profile_picture);
+        draweeView.setController(controller);
 
         CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.friend_checkbox);
         checkBox.setOnClickListener(new View.OnClickListener() {

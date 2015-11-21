@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -25,13 +26,26 @@
             android:paddingLeft="@dimen/feed_item_padding_left_right"
             android:paddingRight="@dimen/feed_item_padding_left_right">
 
-            <de.hdodenhof.circleimageview.CircleImageView
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/poster_profile_photo"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:src="@mipmap/blank_prof_pic"
-                app:civ_border_color="#EEEEEE"
-                app:civ_border_width="2dp"
-                android:id="@+id/image_profile_pic" />
+                fresco:placeholderImageScaleType="centerCrop"
+                fresco:placeholderImage="@mipmap/blank_prof_pic"
+                fresco:roundedCornerRadius="5dp"
+                fresco:roundBottomLeft="false"
+                fresco:roundBottomRight="false"
+                fresco:roundingBorderWidth="1dp"
+                fresco:roundAsCircle="true"
+                />
+
+            <!--<de.hdodenhof.circleimageview.CircleImageView-->
+                <!--android:layout_width="60dp"-->
+                <!--android:layout_height="60dp"-->
+                <!--android:src="@mipmap/blank_prof_pic"-->
+                <!--app:civ_border_color="#EEEEEE"-->
+                <!--app:civ_border_width="2dp"-->
+                <!--android:id="@+id/image_profile_pic" />-->
             <!--
             <ImageView
                 android:layout_width="wrap_content"
@@ -71,6 +85,6 @@
             android:paddingRight="@dimen/feed_item_status_pad_left_right"
             android:paddingTop="@dimen/feed_item_status_pad_top" />
 
-    </LinearLayout>
+        </LinearLayout>
 
 </LinearLayout>

@@ -33,12 +33,14 @@
 
     <com.facebook.drawee.view.SimpleDraweeView
         android:id="@+id/avatarImageView"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        fresco:roundedCornerRadius="5dp"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        fresco:actualImageScaleType="focusCrop"
         fresco:placeholderImageScaleType="centerCrop"
         fresco:placeholderImage="@mipmap/blank_prof_pic"
         fresco:roundAsCircle="true"
+        fresco:roundingBorderWidth="4dp"
+        fresco:roundingBorderColor="@color/white"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:paddingBottom="8dp"

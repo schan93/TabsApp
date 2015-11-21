@@ -11,7 +11,10 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.TextView;
 
+import com.facebook.drawee.interfaces.DraweeController;
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.activity.news_feed;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
@@ -67,6 +70,11 @@ public class PostListAdapter extends BaseAdapter {
         TextView name = (TextView) convertView.findViewById(R.id.txt_name);
         TextView timestamp = (TextView)convertView.findViewById(R.id.txt_timestamp);
         TextView statusMsg = (TextView)convertView.findViewById(R.id.txt_statusMsg);
+
+        //Set profile picture
+        DraweeController controller = news_feed.getImage(posts.get(position).getPosterUserId());
+        SimpleDraweeView draweeView = (SimpleDraweeView) convertView.findViewById(R.id.poster_profile_photo);
+        draweeView.setController(controller);
 
 
         //Set the views

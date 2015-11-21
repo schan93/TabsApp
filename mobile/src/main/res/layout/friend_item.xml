@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:facebook="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:fresco="http://schemas.android.com/tools">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,41 +19,54 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp">
 
-            <com.facebook.login.widget.ProfilePictureView
+            <com.facebook.drawee.view.SimpleDraweeView
                 android:id="@+id/friend_profile_picture"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                facebook:com_facebook_preset_size="small"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:paddingBottom="8dp"
-                android:layout_centerInParent="true" />
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                fresco:placeholderImageScaleType="centerCrop"
+                fresco:placeholderImage="@mipmap/blank_prof_pic"
+                fresco:roundedCornerRadius="5dp"
+                fresco:roundAsCircle="true"
+                />
+
+            <!--<com.facebook.login.widget.ProfilePictureView-->
+                <!--android:id="@+id/friend_profile_picture"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--facebook:com_facebook_preset_size="small"-->
+                <!--android:layout_centerHorizontal="true"-->
+                <!--android:layout_centerVertical="true"-->
+                <!--android:paddingBottom="8dp"-->
+                <!--android:layout_centerInParent="true" />-->
 
 
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingLeft="10dp" >
+                android:layout_height="fill_parent"
+                android:orientation="horizontal"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp">
 
                 <TextView
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginTop="14dp"
                     android:id="@+id/friend_name"
-                    android:layout_width="fill_parent"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="@dimen/feed_item_profile_name" />
+                    android:textSize="@dimen/feed_item_profile_name"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentLeft="true" />
 
                 <CheckBox
                     android:id="@+id/friend_checkbox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:focusable="false"
-                    android:layout_gravity="right"
-                    android:focusableInTouchMode="false" />
+                    android:focusableInTouchMode="false"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentEnd="true" />
 
-                </LinearLayout>
+                </RelativeLayout>
 
             </LinearLayout>
 
