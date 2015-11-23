@@ -60,23 +60,34 @@ public class FriendsListAdapter extends BaseAdapter{
             convertView = inflater.inflate(R.layout.friend_item, null);
 
         datasource = new FriendsDataSource(parent.getContext());
-        datasource.open();
         TextView name = (TextView) convertView.findViewById(R.id.friend_name);
 
         //Set profile picture
         DraweeController controller = news_feed.getImage(friendItems.get(position).getUserId());
         SimpleDraweeView draweeView = (SimpleDraweeView) convertView.findViewById(R.id.friend_profile_picture);
+        CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.friend_checkbox);
+        if(friendItems.get(position).getIsFriend() == 1){
+            checkBox.setChecked(true);
+        }
+        else{
+            checkBox.setChecked(false);
+
+        }
         draweeView.setController(controller);
 
-        CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.friend_checkbox);
+        final int itemPosition = position;
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(((CheckBox) v).isChecked()){
-                    //Display their posts to the newsfeed
-                    System.out.println("Checked.");
+                    //Display their posts to the newsfeed and update db
+                    System.out.println("Friend User Id: " + friendItems.get(itemPosition).getUserId());
+                    System.out.println("Friend user: " + friendItems.get(itemPosition).getUser());
+                    datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), 1);
                 }
                 else {
+                    //Update this friend in DB
+                    datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), 0);
                     //Remove posts from newsfeed. Probably need some sort of loader icon thing.
                 }
             }

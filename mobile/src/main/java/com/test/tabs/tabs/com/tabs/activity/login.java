@@ -17,14 +17,19 @@ import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphRequestBatch;
 import com.facebook.GraphResponse;
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.common.internal.Supplier;
 import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.interfaces.DraweeController;
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
+import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,7 +45,6 @@ public class login extends Activity {
 
     private static final String TAG = "Result: ";
     //Widgets
-    private TextView info;
     private LoginButton loginButton;
 
     //Manage callbacks in app
@@ -49,6 +53,13 @@ public class login extends Activity {
     //Local Database for storing friends
     private FriendsDataSource datasource;
 
+    //Local Database for storing posts
+    private PostsDataSource postsDataSource;
+
+    //Boolean to tell us whether or not we are actually logged in already if we are then we show the loading screen
+    Boolean loggedIn = false;
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,21 +67,18 @@ public class login extends Activity {
         FacebookSdk.sdkInitialize(getApplicationContext());
         //Initialize Callback Manager
         callbackManager = CallbackManager.Factory.create();
-        setContentView(R.layout.activity_login);
-        info = (TextView)findViewById(R.id.info);
-        loginButton = (LoginButton)findViewById(R.id.login_button);
-
-        //Initialize the datasource so we can begin storage
-        //This line can just be used if we want to clear and restart our DB
-        this.deleteDatabase("friends.db");
-        datasource = new FriendsDataSource(this);
-        datasource.open();
-
-        //loginButton.setPublishPermissions(Arrays.asList("user_friends", "public_profile", "email"));
-        loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile"));
-
         //Configure Fresco so that image loads quickly
         configFresco();
+        //Initilize DB
+//        this.deleteDatabase("posts.db");
+//        this.deleteDatabase("friends.db");
+        startFriendsDatabase();
+
+        setContentView(R.layout.activity_login);
+        loginButton = (LoginButton)findViewById(R.id.login_button);
+
+        loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile"));
+
 
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
@@ -78,36 +86,59 @@ public class login extends Activity {
             //Not sure if it is efficient to be grabbing data every single time we open the app. However, if we have new friends,
             //we should be able to see them so I will for now, and until we find a more efficient implementation, this will be as is.
             //What we need to do here though is to
+            loggedIn = true;
             setContentView(R.layout.loading_panel);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
+            System.out.println("Now");
             getFacebookData(accessToken);
         }
         else {
-            System.out.println("Logging in.");
+            System.out.println("Later");
+            //I think we want to remove the friends db
+            //This is just because ok lets think about this way: the user somehow logs out of our app
+            //And then signs into another user
+            //If this happens, we have to make sure that the friends db doesn't match up with the previous one. dont think we
+            //want to remove the posts db because the posts db is supposed to just keep getting appended to,
+            //Maybe after some time we will delete the posts db (certain posts after  X time)
+            //TODO: Set up some cache so we can lazily load the friends from cache. Right now we simply purge out the db and recreate it.
             //Since this is an asynchronous process, this access token may tell us that we aren't logged in
             //if we aren't logged in, we have to check via the access token tracker
             //Set layout of activity
             loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+
+                private ProfileTracker profileTracker;
+
                 @Override
                 public void onSuccess(LoginResult loginResult) {
+                    loggedIn = true;
+                    setContentView(R.layout.loading_panel);
+
+                    if(Profile.getCurrentProfile() == null){
+                        profileTracker = new ProfileTracker() {
+                            @Override
+                            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                                profileTracker.stopTracking();
+                            }
+                        };
+                        profileTracker.startTracking();
+                    }
                     //Login successful. Now instead of setting text, we want to pass data into the next Activity (namely the news feed activity)
                     //So that the user can view their friends and so forth after they login.
                     //info.setText("FriendsDB ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + loginResult.getAccessToken().getToken());
                     //We use an asynchronous task so that as we are logging in, we can grab data from the login and put it into news feed.
-                    String accessToken = loginResult.getAccessToken().getToken();
+                    //We have to set the loading view here also because we have the batch request that is in progress
+                    //even if we are or arent in the db. I probably should make this more efficient but can't really think for right now.
                     getFacebookData(loginResult.getAccessToken());
                 }
 
                 @Override
                 public void onCancel() {
                     //Login is cancelled
-                    info.setText("Login attempt canceled.");
                 }
 
                 @Override
                 public void onError(FacebookException e) {
                     //Errors out
-                    info.setText("Login attempt failed.");
                 }
             });
         }
@@ -152,10 +183,6 @@ public class login extends Activity {
         //newMeRequest = My own data
         //myFriendsRequest = my mutual friends who have the app downloaded
         //Basically make 2 requests to one's Facebook info and return the names, links, id, and picture of the individual
-
-        AccessToken accesstoken = AccessToken.getCurrentAccessToken();
-        System.out.println("Access Token: " + accessToken.getToken());
-        JSONArray friends = new JSONArray();
         GraphRequestBatch batch = new GraphRequestBatch(
                 GraphRequest.newMeRequest(
                         AccessToken.getCurrentAccessToken(),
@@ -180,14 +207,15 @@ public class login extends Activity {
                                 // Insert into our local DB
                                 System.out.println("Response: " + response);
                                 System.out.println("JSON ARRAY: " + jsonArray);
-                                Toast.makeText(login.this, "" + response.toString(), Toast.LENGTH_SHORT).show();
+                                String token = AccessToken.getCurrentAccessToken().getUserId();
+
                                 try {
                                     for (int i = 0; i < jsonArray.length(); i++) {
                                         JSONObject row = jsonArray.getJSONObject(i);
                                         System.out.println("Friend: " + row);
-                                        datasource.createFriend(row.getString("name"), row.getString("id"), i);
-                                        System.out.println("Friend Id: " + datasource.getFriend(row.getString("id")).getId());
-                                        System.out.println("Friend Name: " + datasource.getFriend(row.getString("id")).getName());
+                                        datasource.createFriend(row.getString("name"), row.getString("id"), token);
+                                        System.out.println("Friend Id: " + datasource.getFriend(row.getString("id"), token).getId());
+                                        System.out.println("Friend Name: " + datasource.getFriend(row.getString("id"), token).getName());
                                     }
                                 } catch (JSONException e) {
                                     throw new RuntimeException(e);
@@ -211,7 +239,9 @@ public class login extends Activity {
         batch.addCallback(new GraphRequestBatch.Callback(){
             @Override
             public void onBatchCompleted(GraphRequestBatch graphRequests){
-                findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                if(loggedIn){
+                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                }
                 Bundle parameters = new Bundle();
                 //parameters.putString("url", );
                 parameters.putString("id", AccessToken.getCurrentAccessToken().getUserId());
@@ -225,16 +255,6 @@ public class login extends Activity {
                 }
             }
         });
-//        Bundle parameters = new Bundle();
-//        parameters.putString("id", AccessToken.getCurrentAccessToken().getUserId());
-//
-//        Intent intent = new Intent(login.this, news_feed.class);
-//        if(intent != null) {
-//            //ProfilePictureView profilePictureView =  new  ProfilePictureView(getApplicationContext());
-//            intent.putExtras(parameters);
-//            System.out.println("Passing Id: " + AccessToken.getCurrentAccessToken().getUserId());
-//            startActivity(intent);
-//        }
     }
     //Tapping the login button starts off a new Activity, which returns a result.
     //To receive and handle the result, override the onActivityResult function.
@@ -262,6 +282,11 @@ public class login extends Activity {
                 .build();
 
         Fresco.initialize(this, frescoConfig);
+    }
+
+    private void startFriendsDatabase(){
+        datasource = new FriendsDataSource(this);
+        datasource.open();
     }
 
 }

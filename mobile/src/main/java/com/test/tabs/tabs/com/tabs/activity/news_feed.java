@@ -30,6 +30,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.facebook.AccessToken;
+import com.facebook.FacebookSdk;
 import com.facebook.Profile;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.common.logging.FLog;
@@ -44,6 +45,7 @@ import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.image.QualityInfo;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
+import com.facebook.login.LoginManager;
 import com.facebook.login.widget.ProfilePictureView;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
@@ -117,10 +119,11 @@ public class news_feed extends AppCompatActivity
         postsDataSource.open();
 
 
+        String userId = AccessToken.getCurrentAccessToken().getUserId();
         //Set things such as facebook profile picture, facebook friends photos, etc.
-        drawerSetup(profile.getId(), profile.getFirstName(), profile.getLastName());
+        drawerSetup(userId, profile.getFirstName(), profile.getLastName());
 
-        populateFriendsList();
+        populateFriendsList(userId);
 
         populateNewsFeedList();
     }
@@ -190,14 +193,15 @@ public class news_feed extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        System.out.println("Selected item" + item.getItemId());
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+            LoginManager.getInstance().logOut();
+            Intent intent = new Intent(news_feed.this, login.class);
+            if(intent != null) {
+                startActivity(intent);
+            }
             return true;
         }
 
@@ -235,7 +239,7 @@ public class news_feed extends AppCompatActivity
         // ************************************************
     }
 
-    private void populateFriendsList() {
+    private void populateFriendsList(String userId) {
         friendsList = (ListView) findViewById(R.id.friends_list);
         friendItems = new ArrayList<>();
 
@@ -243,7 +247,8 @@ public class news_feed extends AppCompatActivity
         friendsList.setAdapter(friendsAdapter);
 
         if(datasource.isTablePopulated()) {
-            for (Friend i : datasource.getAllFriends()) {
+
+            for (Friend i : datasource.getAllFriends(userId)) {
                 friendItems.add(i);
             }
         }

@@ -26,6 +26,8 @@ public class PostsDataSource {
 
     public PostsDataSource(Context context) {
         dbHelper = PostsDB.getInstance(context);
+//        database = dbHelper.getWritableDatabase();
+
     }
 
     public void open() throws SQLException {
@@ -56,7 +58,7 @@ public class PostsDataSource {
         //Incase we may need it later.
         //Get the values from the database, querying by poster's user id
         Cursor cursor = database.query(PostsDB.TABLE_POSTS,
-                allColumns, PostsDB.COLUMN_POSTER_USER_ID + " = " + id, null,
+                allColumns, PostsDB.COLUMN_POSTER_USER_ID + " = ?", new String[]{id},
                 null, null, null);
         cursor.moveToFirst();
         Post newPost = cursorToPost(cursor);

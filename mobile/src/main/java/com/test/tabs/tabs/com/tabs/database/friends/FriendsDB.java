@@ -11,10 +11,13 @@ import android.util.Log;
 public class FriendsDB extends SQLiteOpenHelper{
 
     //Database constants
+    //One thing to note is that user = the user who is friends with this individual, user_id is the user_id of that actual person (that friend).
     public static final String TABLE_FRIENDS = "friends";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_USER_ID = "user_id";
     public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_USER = "user";
+    public static final String COLUMN_IS_FRIEND = "isFriend";
     //Helper
     private static FriendsDB sInstance;
 
@@ -29,8 +32,8 @@ public class FriendsDB extends SQLiteOpenHelper{
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table "
             + TABLE_FRIENDS + "(" + COLUMN_ID
-            + " integer primary key autoincrement, " +  COLUMN_USER_ID  + " text not null, " + COLUMN_NAME
-            + " text not null);";
+            + " integer primary key autoincrement, " +  COLUMN_USER_ID  + " text not null unique, " + COLUMN_NAME
+            + " text not null, " + COLUMN_USER + " text not null, " + COLUMN_IS_FRIEND + " integer not null);";
 
     //SQLiteOpenHelper methods
     private FriendsDB(Context context) {

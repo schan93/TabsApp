@@ -60,7 +60,6 @@ public class PostListAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.news_feed_item, null);
 
         datasource = new PostsDataSource(parent.getContext());
-        datasource.open();
 //        TextView name = (TextView) convertView.findViewById(R.id.friend_name);
 //        ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.friend_profile_picture);
 //        if(profilePictureView != null) {

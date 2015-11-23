@@ -24,37 +24,42 @@ public class FriendsDataSource {
     private SQLiteDatabase database;
     private FriendsDB dbHelper;
     private String[] allColumns = { FriendsDB.COLUMN_ID,
-            FriendsDB.COLUMN_USER_ID, FriendsDB.COLUMN_NAME };
+            FriendsDB.COLUMN_USER_ID, FriendsDB.COLUMN_NAME,
+            FriendsDB.COLUMN_USER, FriendsDB.COLUMN_IS_FRIEND };
 
     public FriendsDataSource(Context context) {
         dbHelper = FriendsDB.getInstance(context);
+//        database = dbHelper.getWritableDatabase();
     }
 
     public void open() throws SQLException {
         database = dbHelper.getWritableDatabase();
+        System.out.println("Opening DB");
     }
 
     public void close() {
         dbHelper.close();
     }
 
-    public void createFriend(String name, String id, long i) {
+    public void createFriend(String name, String id, String user) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
-        values.put(FriendsDB.COLUMN_ID, i);
         values.put(FriendsDB.COLUMN_USER_ID, id);
         values.put(FriendsDB.COLUMN_NAME, name);
+        values.put(FriendsDB.COLUMN_USER, user);
+        values.put(FriendsDB.COLUMN_IS_FRIEND, 0);
         //Insert into the database
-        database.insert(FriendsDB.TABLE_FRIENDS, null,
-                values);
+        database.insertWithOnConflict(FriendsDB.TABLE_FRIENDS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+//        database.insert(FriendsDB.TABLE_FRIENDS, null,
+//                values);
         return;
     }
 
-    public Friend getFriend(String id) {
+    public Friend getFriend(String id, String user) {
         //Get the values from the database, querying by email
         Cursor cursor = database.query(FriendsDB.TABLE_FRIENDS,
-                allColumns, FriendsDB.COLUMN_USER_ID + " = " + id, null,
-                null, null, null);
+                allColumns, FriendsDB.COLUMN_USER_ID + " = ? AND " + FriendsDB.COLUMN_USER + " = ?",
+                new String[]{id, user}, null, null, null);
         cursor.moveToFirst();
         Friend newFriend = cursorToFriend(cursor);
         cursor.close();
@@ -65,6 +70,8 @@ public class FriendsDataSource {
         Friend friend = new Friend();
         friend.setUserId(cursor.getString(1));
         friend.setName(cursor.getString(2));
+        friend.setUser(cursor.getString(3));
+        friend.setIsFriend(cursor.getInt(4));
         return friend;
     }
 
@@ -75,15 +82,16 @@ public class FriendsDataSource {
                 + " = " + id, null);
     }
 
-    public List<Friend> getAllFriends() {
+    public List<Friend> getAllFriends(String user) {
         List<Friend> friends = new ArrayList<Friend>();
 
         Cursor cursor = database.query(FriendsDB.TABLE_FRIENDS,
-                allColumns, null, null, null, null, null);
+                allColumns, FriendsDB.COLUMN_USER + " = ?", new String[]{user}, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             Friend friend = cursorToFriend(cursor);
+            System.out.println("Friend is friend: " + friend.getIsFriend());
             friends.add(friend);
             cursor.moveToNext();
         }
@@ -104,6 +112,16 @@ public class FriendsDataSource {
         else{
             return false;
         }
+    }
+
+    public void updateFriend(String userId, String user, Integer val){
+        database = dbHelper.getWritableDatabase();
+        ContentValues newValues = new ContentValues();
+        newValues.put(FriendsDB.COLUMN_IS_FRIEND, val);
+
+        String[] args = new String[]{userId, user};
+        System.out.println("Database: " + database);
+        database.update("friends", newValues, "user_id=? AND user=?", args);
     }
 
 }
