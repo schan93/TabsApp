@@ -8,9 +8,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/create_post">
 
+    <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay"
+        android:id="@+id/create_post_appbar">
+
      <android.support.v7.widget.Toolbar android:id="@+id/create_post_toolbar"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary" app:popupTheme="@style/AppTheme.PopupOverlay" />
+        android:background="?attr/colorPrimary" app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    </android.support.design.widget.AppBarLayout>
 
     <!-- Send button -->
     <Button
@@ -23,7 +30,7 @@
         android:textColor="#FFF"
         android:text="Send"
         android:layout_marginBottom="5dp"
-        android:layout_alignBottom="@+id/create_post_toolbar"
+        android:layout_alignBottom="@+id/create_post_appbar"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 

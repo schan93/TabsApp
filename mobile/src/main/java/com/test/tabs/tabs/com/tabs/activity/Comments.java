@@ -48,6 +48,7 @@ public class Comments extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.comments);
 
         final long postId = getPostId();
@@ -80,6 +81,7 @@ public class Comments extends AppCompatActivity {
                 //Make comment blank.
                 comment.setText("");
                 //TODO: fix this because we dont want to query for the entire database every time we get the post
+                //Display post onto layout
                 populateComments(postId);
 
 //                Intent intent = new Intent(Comments.this, news_feed.class);
@@ -120,7 +122,6 @@ public class Comments extends AppCompatActivity {
 
     public void populatePost(long id) {
         post = postsDataSource.getPost(id);
-        System.out.println("Grabbed post: " + post.getName());
         TextView statusMsg = (TextView)findViewById(R.id.view_status);
         statusMsg.setText(post.getStatus());
         //Set profile picture
