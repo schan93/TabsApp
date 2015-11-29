@@ -68,16 +68,8 @@ public class CreatePost extends AppCompatActivity {
                 String id = getIntent().getExtras().getString("id");
                 String name = getIntent().getExtras().getString("name");
 
-                //Get date and time
-                Calendar c = Calendar.getInstance();
-                SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-                String strDate = sdf.format(c.getTime());
-
-                datasource.createPost(id, post.getText().toString(), name, strDate);
+                datasource.createPost(id, post.getText().toString(), name);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
-                System.out.println("Text: " + post.getText().toString());
-                System.out.println("Name: " + name);
-                System.out.println("Date: " + strDate);
 
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
                 if(intent != null) {

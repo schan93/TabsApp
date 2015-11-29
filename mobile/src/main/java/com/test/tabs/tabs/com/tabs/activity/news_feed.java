@@ -20,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.FacebookSdk;
@@ -62,7 +64,6 @@ public class news_feed extends AppCompatActivity
     private ListView newsFeedListView;
     private PostListAdapter postListAdapter;
     private List<Post> posts;
-    private String[] newsFeedNames = {"Silvia", "Kevin", "Stephen", "Chrisdere", "Jwang", "Nathaneil", "TED  "};
 
     //View for navigation header
     private NavigationView navigationView;
@@ -91,7 +92,6 @@ public class news_feed extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Bundle bundle = new Bundle();
-                //parameters.putString("url", );
                 bundle.putString("id", AccessToken.getCurrentAccessToken().getUserId());
                 bundle.putString("name", profile.getFirstName() + " " + profile.getLastName());
                 Intent intent = new Intent(news_feed.this, CreatePost.class);
@@ -99,20 +99,17 @@ public class news_feed extends AppCompatActivity
                     intent.putExtras(bundle);
                     startActivity(intent);
                 }
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //        .setAction("Action", null).show();
             }
         });
 
         //Listen for navigation events
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        //Open DB and get freinds from db.
+        //Open DB and get freinds from db & posts.
         datasource = new FriendsDataSource(this);
         datasource.open();
         postsDataSource = new PostsDataSource(this);
@@ -235,6 +232,24 @@ public class news_feed extends AppCompatActivity
         else{
             System.out.println("Is not populated");
         }
+
+        //Set onclick listener for clicking on post
+        newsFeedListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+
+                Object post  = newsFeedListView.getItemAtPosition(position);
+                Intent intent = new Intent(news_feed.this, Comments.class);
+                Bundle bundle = new Bundle();
+                bundle.putLong("id", ((Post) post).getId());
+                if(intent != null){
+                    intent.putExtras(bundle);
+                    startActivity(intent);
+                }
+            }
+        });
+
         //postListAdapter.notifyDataSetChanged();
         // ************************************************
     }

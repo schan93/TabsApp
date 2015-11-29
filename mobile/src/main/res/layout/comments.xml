@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar android:id="@+id/comments_toolbar"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary" app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+    <LinearLayout
+        android:id="@+id/view_post"
+        android:layout_width="match_parent"
+        android:paddingRight="5dp"
+        android:paddingLeft="5dp"
+        android:layout_height="200dp"
+        android:background="#e6e6e6">
+
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:id="@+id/friend_profile_picture"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="20dp"
+            fresco:placeholderImageScaleType="centerCrop"
+            fresco:placeholderImage="@mipmap/blank_prof_pic"
+            fresco:roundedCornerRadius="5dp"
+            fresco:roundAsCircle="true"
+            />
+
+        <TextView
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/view_status"/>
+
+    </LinearLayout>
+
+            <ListView
+                android:id="@+id/lv_comments_feed"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/send_message"
+                android:layout_below="@+id/view_post">
+            </ListView>
+
+
+
+        <LinearLayout
+            android:id="@+id/send_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal" >
+
+            <EditText
+                android:id="@+id/write_comment"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:layout_weight="5"
+                android:gravity="top|left"
+                android:inputType="textMultiLine"
+                android:scrollHorizontally="false" />
+
+            <Button
+                android:id="@+id/send_comment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:gravity="center"
+                android:text="send"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+</RelativeLayout>

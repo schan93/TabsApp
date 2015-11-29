@@ -70,8 +70,6 @@ public class login extends Activity {
         //Configure Fresco so that image loads quickly
         configFresco();
         //Initilize DB
-//        this.deleteDatabase("posts.db");
-//        this.deleteDatabase("friends.db");
         startFriendsDatabase();
 
         setContentView(R.layout.activity_login);
@@ -124,7 +122,6 @@ public class login extends Activity {
                     }
                     //Login successful. Now instead of setting text, we want to pass data into the next Activity (namely the news feed activity)
                     //So that the user can view their friends and so forth after they login.
-                    //info.setText("FriendsDB ID: " + loginResult.getAccessToken().getUserId() + "\n" + "Auth Token: " + loginResult.getAccessToken().getToken());
                     //We use an asynchronous task so that as we are logging in, we can grab data from the login and put it into news feed.
                     //We have to set the loading view here also because we have the batch request that is in progress
                     //even if we are or arent in the db. I probably should make this more efficient but can't really think for right now.
@@ -220,7 +217,7 @@ public class login extends Activity {
                                 } catch (JSONException e) {
                                     throw new RuntimeException(e);
                                 }
-                                System.out.println("FriendsDB: " + jsonArray);
+                                System.out.println("JSON: " + jsonArray);
                             }
                         }
                 )

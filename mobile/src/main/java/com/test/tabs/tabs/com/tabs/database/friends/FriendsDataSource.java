@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.test.tabs.tabs.com.tabs.database.SQLite.DatabaseHelper;
+
 import org.w3c.dom.Comment;
 
 import java.util.ArrayList;
@@ -22,19 +24,17 @@ public class FriendsDataSource {
 
     // Database fields
     private SQLiteDatabase database;
-    private FriendsDB dbHelper;
-    private String[] allColumns = { FriendsDB.COLUMN_ID,
-            FriendsDB.COLUMN_USER_ID, FriendsDB.COLUMN_NAME,
-            FriendsDB.COLUMN_USER, FriendsDB.COLUMN_IS_FRIEND };
+    private DatabaseHelper dbHelper;
+    private String[] allColumns = { DatabaseHelper.KEY_ID,
+            DatabaseHelper.COLUMN_USER_ID, DatabaseHelper.COLUMN_NAME,
+            DatabaseHelper.COLUMN_USER, DatabaseHelper.COLUMN_IS_FRIEND };
 
     public FriendsDataSource(Context context) {
-        dbHelper = FriendsDB.getInstance(context);
-//        database = dbHelper.getWritableDatabase();
+        dbHelper = DatabaseHelper.getInstance(context);
     }
 
     public void open() throws SQLException {
         database = dbHelper.getWritableDatabase();
-        System.out.println("Opening DB");
     }
 
     public void close() {
@@ -44,21 +44,21 @@ public class FriendsDataSource {
     public void createFriend(String name, String id, String user) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
-        values.put(FriendsDB.COLUMN_USER_ID, id);
-        values.put(FriendsDB.COLUMN_NAME, name);
-        values.put(FriendsDB.COLUMN_USER, user);
-        values.put(FriendsDB.COLUMN_IS_FRIEND, 0);
+        values.put(DatabaseHelper.COLUMN_USER_ID, id);
+        values.put(DatabaseHelper.COLUMN_NAME, name);
+        values.put(DatabaseHelper.COLUMN_USER, user);
+        values.put(DatabaseHelper.COLUMN_IS_FRIEND, 0);
         //Insert into the database
-        database.insertWithOnConflict(FriendsDB.TABLE_FRIENDS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
-//        database.insert(FriendsDB.TABLE_FRIENDS, null,
+        database.insertWithOnConflict(DatabaseHelper.TABLE_FRIENDS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+//        database.insert(DatabaseHelper.TABLE_FRIENDS, null,
 //                values);
         return;
     }
 
     public Friend getFriend(String id, String user) {
         //Get the values from the database, querying by email
-        Cursor cursor = database.query(FriendsDB.TABLE_FRIENDS,
-                allColumns, FriendsDB.COLUMN_USER_ID + " = ? AND " + FriendsDB.COLUMN_USER + " = ?",
+        Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
+                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ? AND " + DatabaseHelper.COLUMN_USER + " = ?",
                 new String[]{id, user}, null, null, null);
         cursor.moveToFirst();
         Friend newFriend = cursorToFriend(cursor);
@@ -78,15 +78,15 @@ public class FriendsDataSource {
     public void deleteFriend(Friend friend) {
         String id = friend.getUserId();
         System.out.println("Comment deleted with user id: " + id);
-        database.delete(FriendsDB.TABLE_FRIENDS, FriendsDB.COLUMN_USER_ID
+        database.delete(DatabaseHelper.TABLE_FRIENDS, DatabaseHelper.COLUMN_USER_ID
                 + " = " + id, null);
     }
 
     public List<Friend> getAllFriends(String user) {
         List<Friend> friends = new ArrayList<Friend>();
 
-        Cursor cursor = database.query(FriendsDB.TABLE_FRIENDS,
-                allColumns, FriendsDB.COLUMN_USER + " = ?", new String[]{user}, null, null, null);
+        Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
+                allColumns, DatabaseHelper.COLUMN_USER + " = ?", new String[]{user}, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -117,7 +117,7 @@ public class FriendsDataSource {
     public void updateFriend(String userId, String user, Integer val){
         database = dbHelper.getWritableDatabase();
         ContentValues newValues = new ContentValues();
-        newValues.put(FriendsDB.COLUMN_IS_FRIEND, val);
+        newValues.put(DatabaseHelper.COLUMN_IS_FRIEND, val);
 
         String[] args = new String[]{userId, user};
         System.out.println("Database: " + database);

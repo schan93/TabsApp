@@ -32,6 +32,15 @@
                 android:value=".com.tabs.activity.news_feed"/>
         </activity>
 
+        <activity android:name=".com.tabs.activity.Comments"
+            android:label="View Post"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize|stateHidden">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".com.tabs.activity.news_feed"/>
+        </activity>
+
 
         <activity android:name=".com.tabs.activity.login"
             android:label="Tabs"
