@@ -9,21 +9,17 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-
-        android:layout_marginLeft="@dimen/feed_item_margin"
-        android:layout_marginRight="@dimen/feed_item_margin"
-        android:layout_marginTop="@dimen/feed_item_margin"
         android:background="@color/white"
-        android:orientation="vertical"
-        android:paddingBottom="@dimen/feed_item_padding_top_bottom"
-        android:paddingTop="@dimen/feed_item_padding_top_bottom" >
+        android:orientation="vertical">
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="10dp"
             android:paddingLeft="@dimen/feed_item_padding_left_right"
-            android:paddingRight="@dimen/feed_item_padding_left_right">
+            android:paddingRight="@dimen/feed_item_padding_left_right"
+            android:paddingBottom="10dp">
 
             <com.facebook.drawee.view.SimpleDraweeView
                 android:id="@+id/commenter_profile_photo"
@@ -38,36 +34,36 @@
                 fresco:roundAsCircle="true"
                 />
 
-            <LinearLayout
-                android:layout_width="fill_parent"
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingLeft="@dimen/feed_item_profile_info_padd" >
 
                 <TextView
                     android:id="@+id/commenter_name"
-                    android:layout_width="fill_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/feed_item_profile_name"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:layout_below="@id/commenter_name"
+                    android:id="@+id/comment_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="5dp" />
+
+                <TextView
+                    android:layout_alignParentRight="true"
                     android:id="@+id/comment_timestamp"
-                    android:layout_width="fill_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/feed_item_timestamp" />
-            </LinearLayout>
+
+            </RelativeLayout>
 
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/comment_message"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="5dp"
-            android:paddingLeft="@dimen/feed_item_status_pad_left_right"
-            android:paddingRight="@dimen/feed_item_status_pad_left_right"
-            android:paddingTop="@dimen/feed_item_status_pad_top" />
 
     </LinearLayout>
 

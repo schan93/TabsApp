@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -15,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
+import com.facebook.login.LoginManager;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
@@ -31,6 +33,9 @@ public class CreatePost extends AppCompatActivity {
     //Local Database for storing posts
     private PostsDataSource datasource;
 
+    //Edit for post
+    private EditText post;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +43,7 @@ public class CreatePost extends AppCompatActivity {
 
         //In bundle, grab userid and name
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.create_post_toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_universal);
         setSupportActionBar(toolbar);
 
         //Open posts database for storage
@@ -50,7 +55,7 @@ public class CreatePost extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         //Pop up keyboard
-        final EditText post = (EditText) findViewById(R.id.type_status);
+        post = (EditText) findViewById(R.id.type_status);
         post.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(post, InputMethodManager.SHOW_IMPLICIT);
@@ -59,25 +64,32 @@ public class CreatePost extends AppCompatActivity {
 
 
         //Button for sending post
-        final Button button = (Button) findViewById(R.id.send_post_button);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //Store into Database the text that the individual writes. For now I will store it my own local DB since I don't have
-                //Google cloud running yet.
-                //Get Id and user name
-                String id = getIntent().getExtras().getString("id");
-                String name = getIntent().getExtras().getString("name");
+//        final Button button = (Button) findViewById(R.id.send_post_button);
+//        button.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                //Store into Database the text that the individual writes. For now I will store it my own local DB since I don't have
+//                //Google cloud running yet.
+//                //Get Id and user name
+//                String id = getIntent().getExtras().getString("id");
+//                String name = getIntent().getExtras().getString("name");
+//
+//                datasource.createPost(id, post.getText().toString(), name);
+//                Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
+//
+//                Intent intent = new Intent(CreatePost.this, news_feed.class);
+//                if(intent != null) {
+//                    startActivity(intent);
+//                }
+//
+//            }
+//        });
+    }
 
-                datasource.createPost(id, post.getText().toString(), name);
-                Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
-
-                Intent intent = new Intent(CreatePost.this, news_feed.class);
-                if(intent != null) {
-                    startActivity(intent);
-                }
-
-            }
-        });
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.create_post_menu, menu);
+        return true;
     }
 
     @Override
@@ -87,9 +99,23 @@ public class CreatePost extends AppCompatActivity {
                 //What happens if you click back
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
+            case R.id.send_post:
+                String postId = getIntent().getExtras().getString("id");
+                String name = getIntent().getExtras().getString("name");
+
+                datasource.createPost(postId, post.getText().toString(), name);
+                Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(CreatePost.this, news_feed.class);
+                if(intent != null) {
+                    startActivity(intent);
+                }
+
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+
     }
 
 

@@ -18,34 +18,56 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_below="@id/comments_appbar"
         android:id="@+id/view_post"
         android:layout_width="match_parent"
         android:paddingRight="5dp"
         android:paddingLeft="5dp"
-        android:layout_height="200dp"
+        android:orientation="horizontal"
+        android:layout_height="175dp"
         android:background="#e6e6e6">
 
         <com.facebook.drawee.view.SimpleDraweeView
-            android:id="@+id/friend_profile_picture"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginLeft="20dp"
-            fresco:placeholderImageScaleType="centerCrop"
+            android:layout_marginTop="15dp"
+            android:id="@+id/poster_picture"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_marginLeft="10dp"
             fresco:placeholderImage="@mipmap/blank_prof_pic"
             fresco:roundedCornerRadius="5dp"
-            fresco:roundAsCircle="true"
             />
 
         <TextView
-            android:layout_marginTop="20dp"
-            android:layout_width="match_parent"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="15dp"
+            android:layout_toRightOf="@id/poster_picture"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/view_status"/>
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:id="@+id/poster_name"/>
 
-    </LinearLayout>
+        <TextView
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="15dp"
+            android:layout_toRightOf="@id/poster_name"
+            android:layout_marginLeft="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:id="@+id/post_date"/>
+
+        <TextView
+            android:layout_marginLeft="5dp"
+            android:layout_toRightOf="@id/poster_picture"
+            android:layout_below="@id/poster_name"
+            android:textSize="20sp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/view_status" />
+
+    </RelativeLayout>
 
             <ListView
                 android:id="@+id/lv_comments_feed"
@@ -54,8 +76,6 @@
                 android:layout_above="@+id/send_message"
                 android:layout_below="@+id/view_post">
             </ListView>
-
-
 
         <LinearLayout
             android:id="@+id/send_message"

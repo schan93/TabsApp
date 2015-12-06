@@ -29,7 +29,10 @@ import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -124,10 +127,19 @@ public class Comments extends AppCompatActivity {
         post = postsDataSource.getPost(id);
         TextView statusMsg = (TextView)findViewById(R.id.view_status);
         statusMsg.setText(post.getStatus());
+
         //Set profile picture
         DraweeController controller = news_feed.getImage(post.getPosterUserId());
-        SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.friend_profile_picture);
+        SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.poster_picture);
         draweeView.setController(controller);
+
+        //Set poster's name
+        TextView posterName = (TextView)findViewById(R.id.poster_name);
+        posterName.setText(post.getName());
+
+        //Set date of when post was created
+        TextView postDate = (TextView) findViewById(R.id.post_date);
+        postDate.setText(convertDate(post.getTimeStamp()));
     }
 
     public void openDatasources(){
@@ -145,6 +157,46 @@ public class Comments extends AppCompatActivity {
             return value;
         }
         return 0;
+    }
+
+    public String convertDate(String timestamp){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+        String dateText = "";
+        Date date = null;
+        try {
+            date = dateFormat.parse(timestamp);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
+        Calendar postDate = Calendar.getInstance();
+        postDate.setTime(date); // your date
+
+        Calendar now = Calendar.getInstance();
+
+        Integer dateOffset = 0;
+
+        if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
+                && now.get(Calendar.DAY_OF_MONTH) == postDate.get(Calendar.DAY_OF_MONTH)
+                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)){
+
+            dateOffset = now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR);
+            dateText = "h";
+        }
+        else if(now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
+                && now.get(Calendar.DAY_OF_MONTH) == postDate.get(Calendar.DAY_OF_MONTH)
+                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)){
+            dateOffset = now.get(Calendar.MINUTE) - postDate.get(Calendar.MINUTE);
+            dateText = "m";
+        }
+        else{
+            dateOffset = now.get(Calendar.DAY_OF_YEAR) - postDate.get(Calendar.DAY_OF_YEAR);
+            dateText = "d";
+        }
+        String newFormat = dateOffset + dateText;
+        return newFormat;
     }
 
 }

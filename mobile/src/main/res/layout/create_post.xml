@@ -5,42 +5,36 @@
     android:layout_height="match_parent"
     xmlns:tool="http://schemas.android.com/tools"
     tool:context=".CreatePost"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/create_post">
 
-    <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
-        android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay"
-        android:id="@+id/create_post_appbar">
+    <include layout="@layout/app_bar" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:id="@+id/create_post_toolbar"/>
 
-     <android.support.v7.widget.Toolbar android:id="@+id/create_post_toolbar"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary" app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
-
-    </android.support.design.widget.AppBarLayout>
+     <!--<android.support.v7.widget.Toolbar android:id="@+id/create_post_toolbar"-->
+        <!--android:layout_width="match_parent" android:layout_height="wrap_content"-->
+        <!--android:background="?attr/colorPrimary" app:popupTheme="@style/AppTheme.PopupOverlay" />-->
 
     <!-- Send button -->
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:id="@+id/send_post_button"
-        android:textSize="18sp"
-        android:background="@null"
-        android:textColor="#FFF"
-        android:text="Send"
-        android:layout_marginBottom="5dp"
-        android:layout_alignBottom="@+id/create_post_appbar"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+    <!--<Button-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="right"-->
+        <!--android:id="@+id/send_post_button"-->
+        <!--android:textSize="18sp"-->
+        <!--android:background="@null"-->
+        <!--android:textColor="#FFF"-->
+        <!--android:text="Send"-->
+        <!--android:layout_marginBottom="5dp"-->
+        <!--android:layout_alignParentRight="true"-->
+        <!--android:layout_alignParentEnd="true" />-->
 
     <!-- Edit text for typing status. Light gray placeholder. -->
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/send_post_button"
         android:textColorHint="#d3d3d3"
+        android:layout_below="@id/create_post_toolbar"
         android:hint="Update your friends!"
         android:padding="10dp"
         android:gravity="top"

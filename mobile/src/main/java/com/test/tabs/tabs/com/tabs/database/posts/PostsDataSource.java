@@ -82,8 +82,6 @@ public class PostsDataSource {
         post.setPosterUserId(cursor.getString(2));
         post.setStatus(cursor.getString(3));
         post.setTimeStamp(cursor.getString(4));
-        System.out.println("First: " + cursor.getLong(0) + " Second: " + cursor.getString(1) + " Third: "
-                + cursor.getString(2) + " Fourth: " + cursor.getString(3) + " Fifth: " + cursor.getString(4));
         return post;
     }
 
@@ -91,7 +89,7 @@ public class PostsDataSource {
         String id = post.getPosterUserId();
         System.out.println("Comment deleted with id: " + id);
         database.delete(DatabaseHelper.TABLE_POSTS, DatabaseHelper.COLUMN_POSTER_USER_ID
-                + " = " + id, null);
+                + " = ?", new String[]{id});
     }
 
     public List<Post> getAllPosts() {
@@ -123,5 +121,16 @@ public class PostsDataSource {
         else{
             return false;
         }
+    }
+
+    public Integer getNumberComments(long postId){
+        Cursor cursor = database.query(DatabaseHelper.TABLE_COMMENTS,
+                new String[]{DatabaseHelper.COLUMN_POST_ID}, DatabaseHelper.COLUMN_POST_ID + " = ?", new String[]{Long.toString(postId)},
+                null, null, null);
+        Integer count = cursor.getCount();
+        //cursor.moveToFirst();
+        //Integer count = cursor.getCount();
+        cursor.close();
+        return count;
     }
 }
