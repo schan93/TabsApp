@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="200dp"
+    android:layout_height="125dp"
+    android:fitsSystemWindows="true"
     xmlns:facebook="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/tools"
     xmlns:fresco="http://schemas.android.com/apk/res-auto"
@@ -14,37 +15,34 @@
     android:orientation="vertical"
     android:gravity="bottom"
     app:showIn="@layout/activity_news_feed">
-
     <!--
     <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:src="@android:drawable/sym_def_app_icon" android:id="@+id/imageView" />
     -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/avatarImageView"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:textSize="14sp"
-        android:id="@+id/user_name"
-        android:layout_alignParentBottom="true"
-        />
 
     <com.facebook.drawee.view.SimpleDraweeView
         android:id="@+id/avatarImageView"
-        android:layout_width="125dp"
-        android:layout_height="125dp"
+        android:paddingTop="8dp"
+        android:layout_width="85dp"
+        android:layout_height="85dp"
         fresco:actualImageScaleType="focusCrop"
         fresco:placeholderImageScaleType="centerCrop"
         fresco:placeholderImage="@mipmap/blank_prof_pic"
         fresco:roundAsCircle="true"
-        fresco:roundingBorderWidth="4dp"
-        fresco:roundingBorderColor="@color/white"
-        android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:paddingBottom="8dp"
-        android:layout_centerInParent="true"
+        android:layout_alignParentLeft="true"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/avatarImageView"
+        android:textSize="18sp"
+        android:id="@+id/user_name"
+        android:textStyle="bold"
+        android:paddingLeft="8dp"
+        android:layout_centerVertical="true"
         />
 
 </RelativeLayout>

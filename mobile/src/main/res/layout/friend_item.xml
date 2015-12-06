@@ -52,7 +52,7 @@
                     android:id="@+id/friend_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="@dimen/feed_item_profile_name"
+                    android:textSize="18dp"
                     android:layout_centerVertical="true"
                     android:layout_alignParentLeft="true" />
 

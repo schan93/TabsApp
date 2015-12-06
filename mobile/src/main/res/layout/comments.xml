@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fresco="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+<RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/comments_layout">
@@ -92,7 +97,9 @@
                 android:layout_gravity="center_vertical|center_horizontal"
                 android:layout_weight="5"
                 android:gravity="top|left"
+                android:hint="Comment back!"
                 android:inputType="textMultiLine"
+                android:background="@color/white"
                 android:scrollHorizontally="false" />
 
             <Button
@@ -106,3 +113,4 @@
         </LinearLayout>
 
 </RelativeLayout>
+    </ScrollView>

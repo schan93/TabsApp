@@ -24,11 +24,13 @@
                 layout="@layout/nav_header_news_feed"
                 android:id="@+id/navigation_header"/>
 
+            <include
+                layout="@layout/add_friends"/>
+
             <ListView
                 android:id="@+id/friends_list"
-                android:layout_weight="7"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"></ListView>
+                android:layout_height="wrap_content"></ListView>
 
         </LinearLayout>
 
