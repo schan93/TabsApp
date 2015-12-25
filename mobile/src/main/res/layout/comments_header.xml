@@ -5,8 +5,8 @@
         android:id="@+id/view_post"
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_width="match_parent"
-        android:paddingRight="5dp"
-        android:paddingLeft="5dp"
+        android:paddingRight="8dp"
+        android:paddingLeft="8dp"
         android:orientation="horizontal"
         android:layout_height="175dp"
         android:background="#e6e6e6">
@@ -23,7 +23,7 @@
             />
 
         <TextView
-            android:layout_marginLeft="8dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
             android:layout_toRightOf="@id/poster_picture"
             android:layout_width="wrap_content"
@@ -43,7 +43,7 @@
             android:id="@+id/post_date"/>
 
         <TextView
-            android:layout_marginLeft="8dp"
+            android:layout_marginLeft="16dp"
             android:layout_toRightOf="@id/poster_picture"
             android:layout_below="@id/poster_name"
             android:textSize="16sp"
