@@ -9,7 +9,7 @@ public class Post {
     private String status;
     private String posterUserId;
     private String timeStamp;
-    /*
+
     public Post(long id, String name, String status, String posterUserId, String timeStamp) {
         super();
         this.id = id;
@@ -18,7 +18,7 @@ public class Post {
         this.posterUserId = posterUserId;
         this.timeStamp = timeStamp;
     }
-    */
+
 
     public long getId() {
         return id;

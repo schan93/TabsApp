@@ -43,7 +43,7 @@ public class CreatePost extends AppCompatActivity {
 
         //In bundle, grab userid and name
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_universal);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.create_post_toolbar);
         setSupportActionBar(toolbar);
 
         //Open posts database for storage

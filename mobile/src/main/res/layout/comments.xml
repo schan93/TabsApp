@@ -1,116 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<android.support.design.widget.CoordinatorLayout
+    xmlns:flatui="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:fresco="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/comments_layout">
+    android:layout_height="match_parent" android:fitsSystemWindows="true"
+    android:id="@+id/comments_coordinator_layout">
 
-    <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
-        android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay"
-        android:id="@+id/comments_appbar">
+    <android.support.design.widget.AppBarLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:theme="@style/AppTheme.AppBarOverlay">
 
-    <android.support.v7.widget.Toolbar android:id="@+id/comments_toolbar"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary" app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/comments_appbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
-
-    <RelativeLayout
-        android:layout_below="@id/comments_appbar"
-        android:id="@+id/view_post"
-        android:layout_width="match_parent"
-        android:paddingRight="5dp"
-        android:paddingLeft="5dp"
-        android:orientation="horizontal"
-        android:layout_height="175dp"
-        android:background="#e6e6e6">
-
-        <com.facebook.drawee.view.SimpleDraweeView
-            android:layout_marginTop="15dp"
-            android:id="@+id/poster_picture"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:layout_marginLeft="10dp"
-            fresco:placeholderImage="@mipmap/blank_prof_pic"
-            fresco:roundedCornerRadius="5dp"
-            />
-
-        <TextView
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="15dp"
-            android:layout_toRightOf="@id/poster_picture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:id="@+id/poster_name"/>
-
-        <TextView
-            android:layout_alignParentRight="true"
-            android:layout_marginTop="15dp"
-            android:layout_toRightOf="@id/poster_name"
-            android:layout_marginLeft="5dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:id="@+id/post_date"/>
-
-        <TextView
-            android:layout_marginLeft="5dp"
-            android:layout_toRightOf="@id/poster_picture"
-            android:layout_below="@id/poster_name"
-            android:textSize="20sp"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/view_status" />
+            android:id="@+id/layout_comments">
 
-    </RelativeLayout>
-
-            <ListView
-                android:id="@+id/lv_comments_feed"
+            <LinearLayout
+                android:id="@+id/send_message"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_above="@+id/send_message"
-                android:layout_below="@+id/view_post">
-            </ListView>
-
-        <LinearLayout
-            android:id="@+id/send_message"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:layout_alignParentBottom="true"
-            android:orientation="horizontal" >
-
-            <EditText
-                android:id="@+id/write_comment"
-                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|center_horizontal"
-                android:layout_weight="5"
-                android:gravity="top|left"
-                android:hint="Comment back!"
-                android:inputType="textMultiLine"
-                android:background="@color/white"
-                android:scrollHorizontally="false" />
+                android:padding="5dp"
+                android:layout_alignParentBottom="true"
+                android:orientation="horizontal" >
 
-            <Button
-                android:id="@+id/send_comment"
-                android:layout_width="wrap_content"
+                <com.cengalabs.flatui.views.FlatEditText
+                    android:id="@+id/write_comment"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="5"
+                    android:paddingLeft="10dp"
+                    android:gravity="bottom|left"
+                    android:cursorVisible="false"
+                    android:hint="Comment back!"
+                    android:inputType="textMultiLine"
+                    flatui:fl_fieldStyle="fl_box"
+                    android:scrollHorizontally="false" />
+
+                <com.cengalabs.flatui.views.FlatButton
+                    android:id="@+id/send_comment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_gravity="center_vertical|center_horizontal"
+                    android:gravity="center"
+                    android:text="send"
+                    flatui:theme="@array/sea"
+                    flatui:fl_textAppearance="fl_light"/>
+            </LinearLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:scrollbars="vertical"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|center_horizontal"
-                android:gravity="center"
-                android:text="send"
-                android:textAppearance="?android:attr/textAppearanceMedium" />
-        </LinearLayout>
+                android:layout_above="@id/send_message"
+                android:id="@+id/view_comments">
+            </android.support.v7.widget.RecyclerView>
+        </RelativeLayout>
 
-</RelativeLayout>
-    </ScrollView>
+</android.support.design.widget.CoordinatorLayout>

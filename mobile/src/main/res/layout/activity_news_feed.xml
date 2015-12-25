@@ -21,11 +21,8 @@
             android:layout_height="match_parent">
 
             <include
-                layout="@layout/nav_header_news_feed"
+                layout="@layout/nav_header_friends_list"
                 android:id="@+id/navigation_header"/>
-
-            <include
-                layout="@layout/add_friends"/>
 
             <ListView
                 android:id="@+id/friends_list"

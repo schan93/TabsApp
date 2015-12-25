@@ -76,12 +76,13 @@ public class PostsDataSource {
     }
 
     private Post cursorToPost(Cursor cursor) {
-        Post post = new Post();
-        post.setId(cursor.getLong(0));
-        post.setName(cursor.getString(1));
-        post.setPosterUserId(cursor.getString(2));
-        post.setStatus(cursor.getString(3));
-        post.setTimeStamp(cursor.getString(4));
+        //List is: 0 = Id, 1 = name, 2 = userid, 3 = status, 4 =timestamp
+        Post post = new Post(cursor.getLong(0), cursor.getString(1), cursor.getString(3), cursor.getString(2), cursor.getString(4));
+//        post.setId(cursor.getLong(0));
+//        post.setName(cursor.getString(1));
+//        post.setPosterUserId(cursor.getString(2));
+//        post.setStatus(cursor.getString(3));
+//        post.setTimeStamp(cursor.getString(4));
         return post;
     }
 

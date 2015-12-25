@@ -17,9 +17,14 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -53,16 +58,14 @@ import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
-import com.test.tabs.tabs.com.tabs.database.posts.PostListAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
+import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
-
-import de.hdodenhof.circleimageview.CircleImageView;
 
 public class news_feed extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    private ListView newsFeedListView;
-    private PostListAdapter postListAdapter;
+    private CardView newsFeedCardView;
+    private PostRecyclerViewAdapter postListAdapter;
     private List<Post> posts;
 
     //View for navigation header
@@ -118,6 +121,15 @@ public class news_feed extends AppCompatActivity
 
         String userId = AccessToken.getCurrentAccessToken().getUserId();
         //Set things such as facebook profile picture, facebook friends photos, etc.
+        //Set up recycler view
+        //ListView listView = (ListView) findViewById(R.id.friends_list);
+
+        //Inflate ListView header
+//        LayoutInflater inflater = getLayoutInflater();
+//        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.add_friends_header, listView,
+//                false);
+//        listView.addHeaderView(header, null, false);
+
         drawerSetup(userId, profile.getFirstName(), profile.getLastName());
 
         populateFriendsList(userId);
@@ -167,6 +179,7 @@ public class news_feed extends AppCompatActivity
                 .setControllerListener(controllerListener)
                 .setUri(uri)
                 .build();
+        System.out.println("Controller: " + controller);
         return controller;
         //draweeView.setImageURI(uri);
     }
@@ -217,38 +230,45 @@ public class news_feed extends AppCompatActivity
     }
 
     private void populateNewsFeedList(){
-        newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
-        posts = new ArrayList<Post>();
-
-
-        postListAdapter = new PostListAdapter(this, posts);
-        newsFeedListView.setAdapter(postListAdapter);
-        if(postsDataSource.isTablePopulated()) {
-            System.out.println("Size: " + postsDataSource.getAllPosts().size());
-            for (Post i : postsDataSource.getAllPosts()) {
-                posts.add(i);
-            }
-        }
-        else{
-            System.out.println("Is not populated");
-        }
+        RecyclerView rv = (RecyclerView)findViewById(R.id.rv_news_feed);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        rv.setLayoutManager(llm);
+        PostRecyclerViewAdapter adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPosts(), this);
+        rv.setAdapter(adapter);
+        //newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
+//        posts = new ArrayList<Post>();
+//
+//
+//        postListAdapter = new PostListAdapter(this, posts);
+//        newsFeedCardView
+//        newsFeedCardView.setAdapter(postListAdapter);
+//        if(postsDataSource.isTablePopulated()) {
+//            System.out.println("Size: " + postsDataSource.getAllPosts().size());
+//            for (Post i : postsDataSource.getAllPosts()) {
+//                System.out.println("Within posts");
+//                posts.add(i);
+//            }
+//        }
+//        else{
+//            System.out.println("Is not populated");
+//        }
 
         //Set onclick listener for clicking on post
-        newsFeedListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-
-                Object post  = newsFeedListView.getItemAtPosition(position);
-                Intent intent = new Intent(news_feed.this, Comments.class);
-                Bundle bundle = new Bundle();
-                bundle.putLong("id", ((Post) post).getId());
-                if(intent != null){
-                    intent.putExtras(bundle);
-                    startActivity(intent);
-                }
-            }
-        });
+//        rv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            public void onItemClick(AdapterView<?> parent, View view,
+//                                    int position, long id) {
+//
+//
+//                Object post  = newsFeedListView.getItemAtPosition(position);
+//                Intent intent = new Intent(news_feed.this, Comments.class);
+//                Bundle bundle = new Bundle();
+//                bundle.putLong("id", ((Post) post).getId());
+//                if(intent != null){
+//                    intent.putExtras(bundle);
+//                    startActivity(intent);
+//                }
+//            }
+//        });
 
         //postListAdapter.notifyDataSetChanged();
         // ************************************************
@@ -273,13 +293,13 @@ public class news_feed extends AppCompatActivity
 
     class UpdateNewsFeedListTask extends AsyncTask<Void,String, Void>
     {
-        ArrayAdapter<String> news_feed_adapter;
+        //ArrayAdapter<String> news_feed_adapter;
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             //TODO keep array that holds strings up to date
-            news_feed_adapter = (ArrayAdapter<String>)newsFeedListView.getAdapter();
+            //news_feed_adapter = (ArrayAdapter<String>)newsFeedListView.getAdapter();
         }
 
         @Override
@@ -296,7 +316,7 @@ public class news_feed extends AppCompatActivity
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             //add input into adapter
-            news_feed_adapter.add(values[0]);
+            //news_feed_adapter.add(values[0]);
         }
 
         @Override

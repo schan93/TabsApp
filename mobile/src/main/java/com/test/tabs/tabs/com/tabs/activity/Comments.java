@@ -2,15 +2,25 @@ package com.test.tabs.tabs.com.tabs.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,7 +32,7 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
-import com.test.tabs.tabs.com.tabs.database.comments.CommentsListAdapter;
+import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
@@ -41,33 +51,69 @@ import java.util.List;
 public class Comments extends AppCompatActivity {
 
     Post post;
-    private ListView commentsList;
     private CommentsDataSource commentsDatasource;
-    private List<Comment> commentItems;
-    private CommentsListAdapter commentsListAdapter;
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
+    private List<Comment> commentItems;
+    private CommentsRecyclerViewAdapter commentsRecyclerViewAdapter;
+    RecyclerView commentsView;
+    Toolbar toolbar;
+    LinearLayoutManager llm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.comments);
-
         final long postId = getPostId();
-        final EditText comment = (EditText) findViewById(R.id.write_comment);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.comments_toolbar);
+        toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         setSupportActionBar(toolbar);
         final Profile profile = Profile.getCurrentProfile();
 
         //Back bar enabled
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+        final EditText comment = (EditText) findViewById(R.id.write_comment);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        commentsView = (RecyclerView) findViewById(R.id.view_comments);
+
+        llm = new LinearLayoutManager(this);
+        //Once we send the post, we want to
+        comment.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+
+            @Override
+            public boolean onEditorAction(TextView v, int actionId,
+                                          KeyEvent event) {
+                comment.setCursorVisible(false);
+                if (event != null&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                    InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    comment.setImeOptions(EditorInfo.IME_ACTION_DONE);
+                    in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+                return false;
+            }
+        });
 
         openDatasources();
-        populatePost(postId);
-        populateComments(postId);
+
+        //Hide the cursor until view is clicked on
+        View.OnClickListener editTextClickListener = new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (v.getId() == comment.getId())
+                {
+                    comment.setCursorVisible(true);
+                }
+                System.out.println("On click");
+                llm.setStackFromEnd(true);
+                commentsView.setLayoutManager(llm);
+            }
+        };
+
+        comment.setOnClickListener(editTextClickListener);
+
 
         final String commenter = profile.getFirstName() + " " + profile.getLastName();
 
@@ -78,23 +124,27 @@ public class Comments extends AppCompatActivity {
                 //Store into Database the text that the individual writes. For now I will store it my own local DB since I don't have
                 //Google cloud running yet.
                 //Get Id and user name
-
-                commentsDatasource.createComment(postId, commenter, comment.getText().toString(), profile.getId());
-                Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
-                //Make comment blank.
-                comment.setText("");
-                //TODO: fix this because we dont want to query for the entire database every time we get the post
-                //Display post onto layout
-                populateComments(postId);
-
-//                Intent intent = new Intent(Comments.this, news_feed.class);
-//                if (intent != null) {
-//                    startActivity(intent);
-//                }
+                //Check if the comment is empty. Don't allow an empty post.
+                if (TextUtils.isEmpty(comment.getText())) {
+                    Toast.makeText(Comments.this, "Please enter in a comment first.", Toast.LENGTH_SHORT).show();
+                } else {
+                    commentsDatasource.createComment(postId, commenter, comment.getText().toString(), profile.getId());
+                    Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
+                    //Make comment blank and set cursor to disappear once again. Also hide keyboard again.
+                    comment.setText("");
+                    InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                    comment.setCursorVisible(false);
+                    //TODO: fix this because we dont want to query for the entire database every time we get the post
+                    //Display post onto layout
+                    populateComments(postId);
+                }
 
             }
         });
 
+        //populatePost(postId);
+        populateComments(postId);
     }
 
     @Override
@@ -110,22 +160,28 @@ public class Comments extends AppCompatActivity {
     }
 
     public void populateComments(long postId) {
-        commentsList = (ListView) findViewById(R.id.lv_comments_feed);
-        commentItems = new ArrayList<>();
-
-        commentsListAdapter = new CommentsListAdapter(this, commentItems);
-        commentsList.setAdapter(commentsListAdapter);
-
-        if(commentsDatasource.isTablePopulated()) {
-            for (Comment i : commentsDatasource.getCommentsForPost(postId)) {
-                commentItems.add(i);
-            }
-        }
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        CommentsRecyclerViewAdapter commentsRecyclerViewAdapter = new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentsDatasource.getCommentsForPost(postId));
+        commentsView.setLayoutManager(llm);
+        commentsView.setAdapter(commentsRecyclerViewAdapter);
     }
+
+    public CommentsHeader getCommentsHeader(long id)
+    {
+        post = postsDataSource.getPost(id);
+        CommentsHeader header = new CommentsHeader();
+        header.setPosterUserId(post.getPosterUserId());
+        header.setPosterName(post.getName());
+        header.setPosterDate(post.getTimeStamp());
+        header.setViewStatus(post.getStatus());
+        return header;
+    }
+
 
     public void populatePost(long id) {
         post = postsDataSource.getPost(id);
         TextView statusMsg = (TextView)findViewById(R.id.view_status);
+        System.out.println("Post: " + post);
         statusMsg.setText(post.getStatus());
 
         //Set profile picture

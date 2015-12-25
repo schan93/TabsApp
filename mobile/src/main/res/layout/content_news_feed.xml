@@ -6,8 +6,11 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/app_bar_news_feed" tools:context=".news_feed">
 
-    <ListView
-        android:id="@+id/lv_news_feed"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"></ListView>
+    <android.support.v7.widget.RecyclerView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/rv_news_feed"
+        />
+
 </RelativeLayout>
+

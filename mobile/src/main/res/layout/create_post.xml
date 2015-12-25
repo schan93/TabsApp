@@ -1,14 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" android:fitsSystemWindows="true">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:id="@+id/create_post_app_bar"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:id="@+id/create_post_toolbar"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+    </android.support.design.widget.AppBarLayout>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_marginTop="?attr/actionBarSize"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_below="@id/create_post_app_bar"
     xmlns:tool="http://schemas.android.com/tools"
     tool:context=".CreatePost"
     android:id="@+id/create_post">
-
-    <include layout="@layout/app_bar" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:id="@+id/create_post_toolbar"/>
 
      <!--<android.support.v7.widget.Toolbar android:id="@+id/create_post_toolbar"-->
         <!--android:layout_width="match_parent" android:layout_height="wrap_content"-->
@@ -34,7 +54,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:textColorHint="#d3d3d3"
-        android:layout_below="@id/create_post_toolbar"
         android:hint="Update your friends!"
         android:padding="10dp"
         android:gravity="top"
@@ -43,3 +62,4 @@
         android:id="@+id/type_status"/>
 
 </RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>

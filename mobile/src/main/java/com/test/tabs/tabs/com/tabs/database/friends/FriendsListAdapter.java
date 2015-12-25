@@ -94,7 +94,7 @@ public class FriendsListAdapter extends BaseAdapter{
         });
         //Set the views
         Friend item = friendItems.get(position);
-
+        System.out.println("Friend");
         name.setText(item.getName());
 
         //TODO: set the other data fields in Post

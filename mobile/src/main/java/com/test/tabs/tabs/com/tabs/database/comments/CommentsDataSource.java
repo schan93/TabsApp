@@ -114,6 +114,7 @@ public class CommentsDataSource {
         }
         // make sure to close the cursor
         cursor.close();
+        System.out.println("Comments: " + comments);
         return comments;
     }
 
