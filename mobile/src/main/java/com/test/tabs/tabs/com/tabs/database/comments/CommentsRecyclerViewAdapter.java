@@ -11,6 +11,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.test.tabs.tabs.R;
@@ -76,8 +77,10 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             commentsHeaderView.name.setText(commentsHeader.getPosterName());
             commentsHeaderView.status.setText(commentsHeader.getViewStatus());
             commentsHeaderView.timeStamp.setText(convertDate(commentsHeader.getPosterDate()));
-            System.out.println("Comments Header Id: " + commentsHeader.getPosterUserId());
             DraweeController controller = news_feed.getImage(commentsHeader.getPosterUserId());
+            RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
+            roundingParams.setRoundAsCircle(true);
+            commentsHeaderView.photo.getHierarchy().setRoundingParams(roundingParams);
             commentsHeaderView.photo.setController(controller);
         }
         else if(commentViewHolder instanceof CommentsViewHolder){
@@ -86,6 +89,9 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             comment.name.setText(currentItem.getCommenter());
             comment.message.setText(currentItem.getComment());
             DraweeController controller = news_feed.getImage(currentItem.getCommenterUserId());
+            RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
+            roundingParams.setRoundAsCircle(true);
+            comment.photo.getHierarchy().setRoundingParams(roundingParams);
             comment.photo.setController(controller);
             comment.timeStamp.setText(convertDate(currentItem.getTimeStamp()));
         }

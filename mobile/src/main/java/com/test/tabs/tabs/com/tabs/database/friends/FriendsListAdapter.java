@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.interfaces.SimpleDraweeControllerBuilder;
 import com.facebook.drawee.view.SimpleDraweeView;
@@ -65,6 +66,9 @@ public class FriendsListAdapter extends BaseAdapter{
         //Set profile picture
         DraweeController controller = news_feed.getImage(friendItems.get(position).getUserId());
         SimpleDraweeView draweeView = (SimpleDraweeView) convertView.findViewById(R.id.friend_profile_picture);
+        RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
+        roundingParams.setRoundAsCircle(true);
+        draweeView.getHierarchy().setRoundingParams(roundingParams);
         CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.friend_checkbox);
         if(friendItems.get(position).getIsFriend() == 1){
             checkBox.setChecked(true);

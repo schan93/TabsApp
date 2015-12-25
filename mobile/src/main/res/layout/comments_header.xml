@@ -12,40 +12,42 @@
         android:background="#e6e6e6">
 
         <com.facebook.drawee.view.SimpleDraweeView
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="16dp"
             android:id="@+id/poster_picture"
             android:layout_width="75dp"
             android:layout_height="75dp"
-            android:layout_marginLeft="10dp"
+            android:layout_marginLeft="16dp"
             fresco:placeholderImage="@mipmap/blank_prof_pic"
             fresco:roundedCornerRadius="5dp"
             fresco:roundAsCircle="true"
             />
 
         <TextView
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="15dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="16dp"
             android:layout_toRightOf="@id/poster_picture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textStyle="bold"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium"
             android:id="@+id/poster_name"/>
 
         <TextView
             android:layout_alignParentRight="true"
-            android:layout_marginTop="15dp"
-            android:layout_marginLeft="5dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif"
             android:id="@+id/post_date"/>
 
         <TextView
-            android:layout_marginLeft="5dp"
+            android:layout_marginLeft="8dp"
             android:layout_toRightOf="@id/poster_picture"
             android:layout_below="@id/poster_name"
-            android:textSize="20sp"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/view_status" />

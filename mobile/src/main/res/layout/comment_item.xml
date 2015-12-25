@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="10dp">
+            android:padding="16dp">
 
             <com.facebook.drawee.view.SimpleDraweeView
                 android:layout_alignParentLeft="true"
@@ -25,12 +25,11 @@
                 android:layout_height="60dp"
                 fresco:placeholderImageScaleType="centerCrop"
                 fresco:placeholderImage="@mipmap/blank_prof_pic"
-                fresco:roundedCornerRadius="5dp"
                 fresco:roundBottomLeft="false"
                 fresco:roundBottomRight="false"
                 fresco:roundingBorderWidth="1dp"
                 fresco:roundAsCircle="true"
-                android:paddingRight="5dp"
+                android:paddingRight="8dp"
                 />
 
             <TextView
@@ -39,8 +38,8 @@
                 android:layout_toRightOf="@id/commenter_profile_photo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/feed_item_profile_name"
-                android:textStyle="bold" />
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium" />
 
             <TextView
                 android:layout_toRightOf="@id/commenter_profile_photo"
@@ -48,14 +47,17 @@
                 android:id="@+id/comment_message"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="5dp" />
+                android:fontFamily="sans-serif"
+                android:textSize="14sp"
+                android:paddingBottom="8dp" />
 
             <TextView
                 android:layout_alignParentRight="true"
                 android:id="@+id/comment_timestamp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/feed_item_timestamp" />
+                android:fontFamily="sans-serif"
+                android:textSize="16sp" />
 
         </RelativeLayout>
 

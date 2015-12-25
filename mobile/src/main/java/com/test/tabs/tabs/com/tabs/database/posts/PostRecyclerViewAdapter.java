@@ -74,12 +74,12 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             postViewHolder.timestamp.setText(convertDate(posts.get(i).getTimeStamp()));
             postViewHolder.statusMsg.setText(posts.get(i).getStatus());
             DraweeController controller = news_feed.getImage(posts.get(i).getPosterUserId());
-            RoundingParams roundingParams = RoundingParams.fromCornersRadius(10f);
-            roundingParams.setCornersRadius(10);
+            RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
+            roundingParams.setRoundAsCircle(true);
             postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
             postViewHolder.posterPhoto.setController(controller);
             postViewHolder.numComments.setText(datasource.getNumberComments(posts.get(i).getId()).toString() + " Comments");
-
+            postViewHolder.numComments.setTextSize(14);
             final Post post = posts.get(i);
 
             postViewHolder.itemView.setOnClickListener(new View.OnClickListener(){

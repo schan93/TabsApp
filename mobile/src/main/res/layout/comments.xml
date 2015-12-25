@@ -30,11 +30,12 @@
                 android:id="@+id/send_message"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="5dp"
+                android:padding="4dp"
                 android:layout_alignParentBottom="true"
                 android:orientation="horizontal" >
 
                 <com.cengalabs.flatui.views.FlatEditText
+                    android:fontFamily="sans-serif"
                     android:id="@+id/write_comment"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -48,6 +49,7 @@
                     android:scrollHorizontally="false" />
 
                 <com.cengalabs.flatui.views.FlatButton
+                    android:fontFamily="sans-serif"
                     android:id="@+id/send_comment"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
