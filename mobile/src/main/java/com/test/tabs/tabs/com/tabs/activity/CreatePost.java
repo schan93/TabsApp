@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -12,8 +13,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.facebook.AccessToken;
 import com.facebook.login.LoginManager;
@@ -36,53 +39,52 @@ public class CreatePost extends AppCompatActivity {
     //Edit for post
     private EditText post;
 
+    //Global variable for privacy
+    Integer privacy = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.create_post);
 
-        //In bundle, grab userid and name
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.create_post_toolbar);
-        setSupportActionBar(toolbar);
+        //Set up action bar
+        setupActionBar();
 
         //Open posts database for storage
         datasource = new PostsDataSource(this);
         datasource.open();
-
-        //Back bar enabled
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         //Pop up keyboard
         post = (EditText) findViewById(R.id.type_status);
         post.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(post, InputMethodManager.SHOW_IMPLICIT);
+    }
 
+    private void setupActionBar(){
+        Toolbar toolbar = (Toolbar) findViewById(R.id.create_post_toolbar);
+        setSupportActionBar(toolbar);
+        //Back bar enabled
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        //Toggle bar enabled
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setCustomView(R.layout.privacy_toggle_layout);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_CUSTOM);
+        ToggleButton privacyToggle = (ToggleButton) findViewById(R.id.actionbar_service_toggle);
 
-
-
-        //Button for sending post
-//        final Button button = (Button) findViewById(R.id.send_post_button);
-//        button.setOnClickListener(new View.OnClickListener() {
-//            public void onClick(View v) {
-//                //Store into Database the text that the individual writes. For now I will store it my own local DB since I don't have
-//                //Google cloud running yet.
-//                //Get Id and user name
-//                String id = getIntent().getExtras().getString("id");
-//                String name = getIntent().getExtras().getString("name");
-//
-//                datasource.createPost(id, post.getText().toString(), name);
-//                Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
-//
-//                Intent intent = new Intent(CreatePost.this, news_feed.class);
-//                if(intent != null) {
-//                    startActivity(intent);
-//                }
-//
-//            }
-//        });
+        //Set listener for clicking on toggle
+        privacyToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // The toggle is enabled, store into DB that it is public, meaning displayed to everyone
+                    privacy = 0;
+                } else {
+                    // The toggle is disabled, store into DB that it is private, meaning only displayed to friends
+                    privacy = 1;
+                }
+            }
+        });
     }
 
     @Override
@@ -103,7 +105,7 @@ public class CreatePost extends AppCompatActivity {
                 String postId = getIntent().getExtras().getString("id");
                 String name = getIntent().getExtras().getString("name");
 
-                datasource.createPost(postId, post.getText().toString(), name);
+                datasource.createPost(postId, post.getText().toString(), name, privacy);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(CreatePost.this, news_feed.class);

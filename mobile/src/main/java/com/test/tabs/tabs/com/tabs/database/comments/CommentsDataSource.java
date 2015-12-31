@@ -54,7 +54,7 @@ public class CommentsDataSource {
         return dateFormat.format(date);
     }
 
-    public void createComment(long postId, String commenter, String comment, String commenterUserId) {
+    public Comment createComment(long postId, String commenter, String comment, String commenterUserId) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COLUMN_POST_ID, postId);
@@ -66,7 +66,8 @@ public class CommentsDataSource {
         System.out.println("Values in create: " + values);
         database.insert(DatabaseHelper.TABLE_COMMENTS, null,
                 values);
-        return;
+        Comment createdComment = new Comment(postId, commenter, comment, commenterUserId, getDateTime());
+        return createdComment;
     }
 
     public Comment getComment(String id) {

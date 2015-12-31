@@ -97,6 +97,17 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         }
     }
 
+    public void add(Comment item, int position){
+        comments.add(item);
+        notifyItemInserted(position);
+    }
+
+    public void remove(Comment item) {
+        int position = comments.indexOf(item);
+        comments.remove(position);
+        notifyItemRemoved(position);
+    }
+
     @Override
     public int getItemViewType(int position) {
         if(isPositionHeader(position))

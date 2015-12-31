@@ -7,6 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.test.tabs.tabs.com.tabs.database.SQLite.DatabaseHelper;
+import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class PostsDataSource {
     private DatabaseHelper dbHelper;
     private String[] allColumns = { DatabaseHelper.KEY_ID, DatabaseHelper.COLUMN_POSTER_NAME,
             DatabaseHelper.COLUMN_POSTER_USER_ID, DatabaseHelper.COLUMN_STATUS,
-            DatabaseHelper.COLUMN_TIME_STAMP };
+            DatabaseHelper.COLUMN_TIME_STAMP, DatabaseHelper.COLUMN_PRIVACY };
 
     public PostsDataSource(Context context) {
         dbHelper = DatabaseHelper.getInstance(context);
@@ -48,7 +49,7 @@ public class PostsDataSource {
         return dateFormat.format(date);
     }
 
-    public void createPost(String posterUserId, String status, String posterName) {
+    public void createPost(String posterUserId, String status, String posterName, Integer privacy) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
@@ -56,6 +57,7 @@ public class PostsDataSource {
         values.put(DatabaseHelper.COLUMN_POSTER_USER_ID, posterUserId);
         values.put(DatabaseHelper.COLUMN_STATUS, status);
         values.put(DatabaseHelper.COLUMN_TIME_STAMP, getDateTime());
+        values.put(DatabaseHelper.COLUMN_PRIVACY, privacy);
         //Insert into the database
         database.insert(DatabaseHelper.TABLE_POSTS, null,
                 values);
@@ -76,8 +78,8 @@ public class PostsDataSource {
     }
 
     private Post cursorToPost(Cursor cursor) {
-        //List is: 0 = Id, 1 = name, 2 = userid, 3 = status, 4 =timestamp
-        Post post = new Post(cursor.getLong(0), cursor.getString(1), cursor.getString(3), cursor.getString(2), cursor.getString(4));
+        //List is: 0 = Id, 1 = name, 2 = userid, 3 = status, 4 =timestamp, 5 = privacy
+        Post post = new Post(cursor.getLong(0), cursor.getString(1), cursor.getString(3), cursor.getString(2), cursor.getString(4), cursor.getInt(5));
 //        post.setId(cursor.getLong(0));
 //        post.setName(cursor.getString(1));
 //        post.setPosterUserId(cursor.getString(2));
@@ -99,6 +101,7 @@ public class PostsDataSource {
         Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
                 allColumns, null, null, null, null, null);
 
+
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             Post post = cursorToPost(cursor);
@@ -109,6 +112,81 @@ public class PostsDataSource {
         cursor.close();
         return posts;
     }
+
+    public List<Post> getAllPublicPosts() {
+        List<Post> posts = new ArrayList<Post>();
+
+        Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
+                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? ", new String[]{Integer.toString(0)}, null, null, null);
+
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            Post post = cursorToPost(cursor);
+            posts.add(post);
+            cursor.moveToNext();
+        }
+        // make sure to close the cursor
+        cursor.close();
+        return posts;
+    }
+
+   public List<Post> getAllPrivatePosts() {
+        List<Post> posts = new ArrayList<Post>();
+
+        Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
+                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? ", new String[]{Integer.toString(1)}, null, null, null);
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            Post post = cursorToPost(cursor);
+            posts.add(post);
+            cursor.moveToNext();
+        }
+        // make sure to close the cursor
+        cursor.close();
+        return posts;
+    }
+
+    public List<Post> getPostsByUser(String userId) {
+        List<Post> posts = new ArrayList<Post>();
+
+        Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
+                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{userId},
+                null, null, null);
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            Post post = cursorToPost(cursor);
+            posts.add(post);
+            cursor.moveToNext();
+        }
+        // make sure to close the cursor
+        cursor.close();
+        return posts;
+    }
+
+    public List<Post> getPostsByFriends(List<Friend> friendsUserIds) {
+        List<Post> posts = new ArrayList<Post>();
+        Cursor cursor = null;
+        for(int i = 0; i < friendsUserIds.size(); i++){
+            cursor = database.query(DatabaseHelper.TABLE_POSTS,
+                    allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{friendsUserIds.get(i).getUserId()},
+                    null, null, null);
+
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                Post post = cursorToPost(cursor);
+                posts.add(post);
+                cursor.moveToNext();
+            }
+        }
+        // make sure to close the cursor
+        if(cursor != null)
+            cursor.close();
+        return posts;
+    }
+
 
     public boolean isTablePopulated(){
         String count = "SELECT count(*) FROM posts";

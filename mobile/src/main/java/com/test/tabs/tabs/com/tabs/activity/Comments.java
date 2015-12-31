@@ -13,6 +13,7 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -74,10 +75,12 @@ public class Comments extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         final EditText comment = (EditText) findViewById(R.id.write_comment);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         commentsView = (RecyclerView) findViewById(R.id.view_comments);
 
         llm = new LinearLayoutManager(this);
+        commentsView.setLayoutManager(llm);
         //Once we send the post, we want to
         comment.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
@@ -97,23 +100,35 @@ public class Comments extends AppCompatActivity {
         openDatasources();
 
         //Hide the cursor until view is clicked on
-        View.OnClickListener editTextClickListener = new View.OnClickListener()
-        {
+        View.OnTouchListener onTouchListener = new View.OnTouchListener(){
             @Override
-            public void onClick(View v)
-            {
-                if (v.getId() == comment.getId())
-                {
+            public boolean onTouch(View v, MotionEvent event) {
+                System.out.println("Touched");
+                if (v.getId() == comment.getId()) {
                     comment.setCursorVisible(true);
                 }
-                System.out.println("On click");
-                llm.setStackFromEnd(true);
-                commentsView.setLayoutManager(llm);
+                commentsView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        commentsView.smoothScrollToPosition(commentsView.getAdapter().getItemCount() - 1);
+                        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
+                    }
+                }, 250);
+                return false;
             }
         };
 
-        comment.setOnClickListener(editTextClickListener);
+//        comment.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//            @Override
+//            public void onFocusChange(View v, boolean hasFocus) {
+//                if(hasFocus){
+//                    commentsView.scrollToPosition(commentsView.getAdapter().getItemCount()-1);
+//                }
+//            }
+//        });
 
+        comment.setOnTouchListener(onTouchListener);
 
         final String commenter = profile.getFirstName() + " " + profile.getLastName();
 
@@ -128,16 +143,16 @@ public class Comments extends AppCompatActivity {
                 if (TextUtils.isEmpty(comment.getText())) {
                     Toast.makeText(Comments.this, "Please enter in a comment first.", Toast.LENGTH_SHORT).show();
                 } else {
-                    commentsDatasource.createComment(postId, commenter, comment.getText().toString(), profile.getId());
-                    Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
+                    Comment createdComment = commentsDatasource.createComment(postId, commenter, comment.getText().toString(), profile.getId());
+                    //Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
                     //Make comment blank and set cursor to disappear once again. Also hide keyboard again.
                     comment.setText("");
                     InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                     comment.setCursorVisible(false);
                     //TODO: fix this because we dont want to query for the entire database every time we get the post
-                    //Display post onto layout
-                    populateComments(postId);
+                    //Display comment onto layout
+                    populateComment(createdComment, commentsView.getAdapter().getItemCount());
                 }
 
             }
@@ -159,9 +174,20 @@ public class Comments extends AppCompatActivity {
         }
     }
 
+    private void populateComment(Comment comment, int position){
+        commentsRecyclerViewAdapter.add(comment, position);
+        commentsView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                commentsView.smoothScrollToPosition(commentsView.getAdapter().getItemCount());
+                //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+
+            }
+        }, 1000);
+    }
+
     public void populateComments(long postId) {
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        CommentsRecyclerViewAdapter commentsRecyclerViewAdapter = new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentsDatasource.getCommentsForPost(postId));
+        commentsRecyclerViewAdapter = new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentsDatasource.getCommentsForPost(postId));
         commentsView.setLayoutManager(llm);
         commentsView.setAdapter(commentsRecyclerViewAdapter);
     }

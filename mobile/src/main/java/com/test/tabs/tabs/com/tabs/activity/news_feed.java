@@ -1,5 +1,6 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -13,8 +14,11 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
@@ -79,13 +83,19 @@ public class news_feed extends AppCompatActivity
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
     private List<Post> postItems;
+    //Adapter for posts
+    PostRecyclerViewAdapter adapter;
+
+    public news_feed(){
+
+    }
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Fresco.initialize(this);
-        setContentView(R.layout.activity_news_feed);
+        setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         final Profile profile = Profile.getCurrentProfile();
@@ -118,23 +128,51 @@ public class news_feed extends AppCompatActivity
         postsDataSource = new PostsDataSource(this);
         postsDataSource.open();
 
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.addTab(tabLayout.newTab().setText("Public"));
+        tabLayout.addTab(tabLayout.newTab().setText("Private"));
+        tabLayout.addTab(tabLayout.newTab().setText("My Tabs"));
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+
+        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        final PagerAdapter adapter = new PagerAdapter
+                (getSupportFragmentManager(), tabLayout.getTabCount());
+        viewPager.setAdapter(adapter);
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+
 
         String userId = AccessToken.getCurrentAccessToken().getUserId();
         //Set things such as facebook profile picture, facebook friends photos, etc.
         //Set up recycler view
-        //ListView listView = (ListView) findViewById(R.id.friends_list);
+        ListView listView = (ListView) findViewById(R.id.friends_list);
 
         //Inflate ListView header
-//        LayoutInflater inflater = getLayoutInflater();
-//        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.add_friends_header, listView,
-//                false);
-//        listView.addHeaderView(header, null, false);
+        LayoutInflater inflater = getLayoutInflater();
+        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.add_friends_header, listView,
+                false);
+        listView.addHeaderView(header, null, false);
 
         drawerSetup(userId, profile.getFirstName(), profile.getLastName());
 
         populateFriendsList(userId);
 
-        populateNewsFeedList();
+        //populateNewsFeedList();
     }
 
     private void drawerSetup(String id, String firstName, String lastName) {
@@ -142,7 +180,7 @@ public class news_feed extends AppCompatActivity
         SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.avatarImageView);
         draweeView.setController(controller);
         TextView headerName = (TextView) findViewById(R.id.user_name);
-        headerName.setText(firstName  + " " + lastName);
+        headerName.setText(firstName + " " + lastName);
     }
 
     public static DraweeController getImage(String userId){
@@ -233,7 +271,7 @@ public class news_feed extends AppCompatActivity
         RecyclerView rv = (RecyclerView)findViewById(R.id.rv_news_feed);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         rv.setLayoutManager(llm);
-        PostRecyclerViewAdapter adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPosts(), this);
+        adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPosts(), this);
         rv.setAdapter(adapter);
         //newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
 //        posts = new ArrayList<Post>();
@@ -290,54 +328,55 @@ public class news_feed extends AppCompatActivity
 
     }
 
-
-    class UpdateNewsFeedListTask extends AsyncTask<Void,String, Void>
-    {
-        //ArrayAdapter<String> news_feed_adapter;
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            //TODO keep array that holds strings up to date
-            //news_feed_adapter = (ArrayAdapter<String>)newsFeedListView.getAdapter();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            //for(String Name : newsFeedString){
-            //    //will invoke onProgressUpdate
-            //    publishProgress(Name);
-            //}
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(String... values) {
-            super.onProgressUpdate(values);
-            //add input into adapter
-            //news_feed_adapter.add(values[0]);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Logs 'install' and 'app activate' App Events.
-        AppEventsLogger.activateApp(this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // Logs 'app deactivate' App Event.
-        AppEventsLogger.deactivateApp(this);
-    }
+//
+//    class UpdateNewsFeedListTask extends AsyncTask<Void,String, Void>
+//    {
+//        //ArrayAdapter<String> news_feed_adapter;
+//
+//        @Override
+//        protected void onPostExecute(Void aVoid) {
+//            super.onPostExecute(aVoid);
+//            //TODO keep array that holds strings up to date
+//            //news_feed_adapter = (ArrayAdapter<String>)newsFeedListView.getAdapter();
+//        }
+//
+//        @Override
+//        protected Void doInBackground(Void... params) {
+//
+//            //for(String Name : newsFeedString){
+//            //    //will invoke onProgressUpdate
+//            //    publishProgress(Name);
+//            //}
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onProgressUpdate(String... values) {
+//            super.onProgressUpdate(values);
+//            //add input into adapter
+//            //news_feed_adapter.add(values[0]);
+//        }
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//        }
+//    }
+//
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//
+//        // Logs 'install' and 'app activate' App Events.
+//        AppEventsLogger.activateApp(this);
+//  //      adapter.notifyDataSetChanged();
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//
+//        // Logs 'app deactivate' App Event.
+//        AppEventsLogger.deactivateApp(this);
+//    }
 }

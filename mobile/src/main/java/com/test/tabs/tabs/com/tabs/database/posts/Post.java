@@ -9,16 +9,22 @@ public class Post {
     private String status;
     private String posterUserId;
     private String timeStamp;
+    //Privacy = 0 means public, 1 = private meaning only between friends
+    private Integer privacy;
 
-    public Post(long id, String name, String status, String posterUserId, String timeStamp) {
+    public Post(long id, String name, String status, String posterUserId, String timeStamp, Integer privacy) {
         super();
         this.id = id;
         this.name = name;
         this.status = status;
         this.posterUserId = posterUserId;
         this.timeStamp = timeStamp;
+        this.privacy = privacy;
     }
 
+    public Integer getPrivacy() { return privacy; }
+
+    public void setPrivacy(Integer privacy) { this.privacy = privacy; }
 
     public long getId() {
         return id;

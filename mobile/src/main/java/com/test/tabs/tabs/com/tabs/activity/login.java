@@ -69,6 +69,8 @@ public class login extends Activity {
         callbackManager = CallbackManager.Factory.create();
         //Configure Fresco so that image loads quickly
         configFresco();
+        //Remove DB first this is because we have to change the schema
+        //deletePostsDatabase();
         //Initilize DB
         startFriendsDatabase();
 
@@ -284,6 +286,10 @@ public class login extends Activity {
     private void startFriendsDatabase(){
         datasource = new FriendsDataSource(this);
         datasource.open();
+    }
+
+    private void deletePostsDatabase(){
+        this.deleteDatabase("databaseManager.db");
     }
 
 }

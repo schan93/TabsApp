@@ -82,11 +82,11 @@ public class FriendsDataSource {
                 + " = " + id, null);
     }
 
-    public List<Friend> getAllFriends(String user) {
+    public List<Friend> getAllFriends(String userId) {
         List<Friend> friends = new ArrayList<Friend>();
 
         Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
-                allColumns, DatabaseHelper.COLUMN_USER + " = ?", new String[]{user}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{userId}, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {

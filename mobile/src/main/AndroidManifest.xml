@@ -36,9 +36,9 @@
             android:label="View Post"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
-                android:windowSoftInputMode="stateHidden"
+                android:windowSoftInputMode="stateAlwaysHidden"
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".com.tabs.activity.news_feed"/>
+                android:value=".com.tabs.activity.Comments"/>
         </activity>
 
 
