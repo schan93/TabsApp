@@ -55,11 +55,11 @@ public class FriendsDataSource {
         return;
     }
 
-    public Friend getFriend(String id, String user) {
+    public Friend getFriend(String id) {
         //Get the values from the database, querying by email
         Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
-                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ? AND " + DatabaseHelper.COLUMN_USER + " = ?",
-                new String[]{id, user}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?",
+                new String[]{id}, null, null, null);
         cursor.moveToFirst();
         Friend newFriend = cursorToFriend(cursor);
         cursor.close();
@@ -86,7 +86,7 @@ public class FriendsDataSource {
         List<Friend> friends = new ArrayList<Friend>();
 
         Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
-                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{userId}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_USER + " = ?", new String[]{userId}, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -106,6 +106,7 @@ public class FriendsDataSource {
         Cursor cursor = database.rawQuery(count, null);
         cursor.moveToFirst();
         int rowCount = cursor.getInt(0);
+        System.out.println("Row Count: " + rowCount);
         if(rowCount > 0){
             return true;
         }

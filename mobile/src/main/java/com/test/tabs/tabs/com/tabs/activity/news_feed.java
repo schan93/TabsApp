@@ -318,14 +318,12 @@ public class news_feed extends AppCompatActivity
 
         friendsAdapter = new FriendsListAdapter(this, friendItems);
         friendsList.setAdapter(friendsAdapter);
-
         if(datasource.isTablePopulated()) {
-
+            System.out.println("Friends data source is populated");
             for (Friend i : datasource.getAllFriends(userId)) {
                 friendItems.add(i);
             }
         }
-
     }
 
 //

@@ -71,7 +71,7 @@ public class login extends Activity {
         configFresco();
         //Remove DB first this is because we have to change the schema
         //deletePostsDatabase();
-        //Initilize DB
+        //Initialize DB
         startFriendsDatabase();
 
         setContentView(R.layout.activity_login);
@@ -213,8 +213,8 @@ public class login extends Activity {
                                         JSONObject row = jsonArray.getJSONObject(i);
                                         System.out.println("Friend: " + row);
                                         datasource.createFriend(row.getString("name"), row.getString("id"), token);
-                                        System.out.println("Friend Id: " + datasource.getFriend(row.getString("id"), token).getId());
-                                        System.out.println("Friend Name: " + datasource.getFriend(row.getString("id"), token).getName());
+                                        System.out.println("Friend Id: " + datasource.getFriend(row.getString("id")).getId());
+                                        System.out.println("Friend Name: " + datasource.getFriend(row.getString("id")).getName());
                                     }
                                 } catch (JSONException e) {
                                     throw new RuntimeException(e);

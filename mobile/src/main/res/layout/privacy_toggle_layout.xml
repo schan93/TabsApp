@@ -1,11 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
-    <ToggleButton
-        android:id="@+id/actionbar_service_toggle"
+    <!--<Switch xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+    <!--/>-->
+<!--
+    <ToggleButton xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textOn="Public"
-        android:textOff="Private" />
-</RelativeLayout>
+        android:textSize="16sp"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif"
+        android:background="@drawable/toggle_widget_background"
+    />
+-->
+
+<!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--android:layout_width="fill_parent"-->
+    <!--android:layout_height="wrap_content">-->
+
+    <RadioGroup
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:checkedButton="@+id/offer"
+        android:id="@+id/privacy_toggle"
+        android:layout_width="125dp"
+        android:layout_height="25dp"
+        android:background="@drawable/pick_out_line"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:padding="2dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_marginLeft="1dp"
+            android:id="@+id/public_toggle"
+            android:background="@drawable/toggle_widget_background"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:button="@null"
+            android:gravity="center"
+            android:text="Public"
+            android:textSize="18sp"
+            android:textColor="@color/white" />
+
+        <RadioButton
+            android:padding="2dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:id="@+id/private_toggle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/toggle_widget_background"
+            android:button="@null"
+            android:gravity="center"
+            android:text="Private"
+            android:checked="true"
+            android:textSize="18sp"
+            android:textColor="@color/white" />
+    </RadioGroup>
+<!--</RelativeLayout>-->
+

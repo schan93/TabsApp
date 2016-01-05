@@ -4,17 +4,33 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".CreatePost">
 
+
     <item
-        android:id="@+id/privacy_toggle"
         android:title=""
+        android:id="@+id/toggle_test"
         app:showAsAction="always"
         android:orderInCategory="1"
-        android:actionLayout="@layout/privacy_toggle_layout" />
+        />
+    <!--
+    <item
+        android:id="@+id/toggle_test"
+        android:title="Private"
+        app:showAsAction="always"
+        android:orderInCategory="1"
+        android:background="@drawable/toggle_widget_background"
+        app:actionViewClass="android.widget.ToggleButton" />
+    -->
+    <!--<item-->
+        <!--android:id="@+id/privacy_toggle"-->
+        <!--android:title=""-->
+        <!--app:showAsAction="always"-->
+        <!--android:orderInCategory="1"-->
+        <!--android:actionLayout="@layout/privacy_toggle_layout" />-->
 
     <item
         android:id="@+id/send_post"
         android:orderInCategory="2"
         android:title="Send"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
 </menu>

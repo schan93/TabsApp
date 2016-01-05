@@ -35,6 +35,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String COLUMN_TIME_STAMP = "time_stamp";
 
     // FRIENDS Table - column nmaes
+    //User = the user id of the person logged in
+    //User_id = the user id of the friend
     public static final String COLUMN_USER_ID = "user_id";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_USER = "user";
@@ -77,8 +79,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
         // creating required tables
+        System.out.println("Creating required tables.");
         db.execSQL(CREATE_TABLE_FRIENDS);
         db.execSQL(CREATE_TABLE_POSTS);
         db.execSQL(CREATE_TABLE_COMMENTS);
@@ -100,6 +102,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         // Use the application context, which will ensure that you
         // don't accidentally leak an Activity's context.
         // See this article for more information: http://bit.ly/6LRzfx
+        System.out.println("Getting DB Context");
         if (sInstance == null) {
             sInstance = new DatabaseHelper(context.getApplicationContext());
         }
