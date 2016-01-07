@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Created by schan on 12/30/15.
  */
-public class Private extends Fragment {
+public class FriendsTab extends Fragment {
 
     private View fragmentView;
     PostRecyclerViewAdapter adapter;
@@ -48,12 +48,18 @@ public class Private extends Fragment {
         return fragmentView;
     }
 
+    @Override
+    public void onResume(){
+        super.onResume();
+        LocationService.getLocationManager(getContext());
+    }
+
     private void populateNewsFeedList(View fragmentView, String userId){
         RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_news_feed);
         LinearLayoutManager llm = new LinearLayoutManager(getContext());
         rv.setLayoutManager(llm);
         List<Friend> friends = datasource.getAllFriends(userId);
-        adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByFriends(friends), getContext());
+        adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByFriends(friends), getContext(), false);
         rv.setAdapter(adapter);
         //newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
 //        posts = new ArrayList<Post>();

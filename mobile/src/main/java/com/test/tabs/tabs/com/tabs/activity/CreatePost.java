@@ -3,6 +3,7 @@ package com.test.tabs.tabs.com.tabs.activity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
@@ -47,7 +48,7 @@ public class CreatePost extends AppCompatActivity {
     private EditText post;
 
     //Global variable for privacy, 0 = public, 1 = private, initialize to private
-    Integer privacy = 1;
+    Integer privacy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +67,9 @@ public class CreatePost extends AppCompatActivity {
         post.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(post, InputMethodManager.SHOW_IMPLICIT);
+
+        //First posts are always private
+        privacy = 1;
     }
 
     private void setupActionBar(){
@@ -159,7 +163,8 @@ public class CreatePost extends AppCompatActivity {
                 }
 
                 System.out.println("Privacy: " + privacy);
-                datasource.createPost(postId, post.getText().toString(), name, privacy);
+                Location location = LocationService.getLastLocation();
+                datasource.createPost(postId, post.getText().toString(), name, privacy, location.getLatitude(), location.getLongitude());
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(CreatePost.this, news_feed.class);

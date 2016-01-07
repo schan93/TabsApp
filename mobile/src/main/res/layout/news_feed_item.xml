@@ -63,13 +63,25 @@
             <TextView
                 android:fontFamily="sans-serif"
                 android:paddingTop="16dp"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:layout_below="@id/txt_statusMsg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/num_comments"
                 android:gravity="center"
                 android:layout_alignParentBottom="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/privacy_status"
+                android:fontFamily="sans-serif"
+                android:textSize="14sp"
+                android:paddingLeft="10dp"
+                android:paddingTop="8dp"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@id/poster_profile_photo"
+                />
 
         </RelativeLayout>
 

@@ -23,7 +23,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter{
                 Public tab1 = new Public();
                 return tab1;
             case 1:
-                Private tab2 = new Private();
+                FriendsTab tab2 = new FriendsTab();
                 return tab2;
             case 2:
                 MyTabs tab3 = new MyTabs();

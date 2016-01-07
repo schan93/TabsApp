@@ -11,8 +11,10 @@ public class Post {
     private String timeStamp;
     //Privacy = 0 means public, 1 = private meaning only between friends
     private Integer privacy;
+    private double longitude;
+    private double latitude;
 
-    public Post(long id, String name, String status, String posterUserId, String timeStamp, Integer privacy) {
+    public Post(long id, String name, String status, String posterUserId, String timeStamp, Integer privacy, double latitude, double longitude) {
         super();
         this.id = id;
         this.name = name;
@@ -20,6 +22,8 @@ public class Post {
         this.posterUserId = posterUserId;
         this.timeStamp = timeStamp;
         this.privacy = privacy;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public Integer getPrivacy() { return privacy; }
@@ -64,6 +68,20 @@ public class Post {
 
     public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
+    }
+
+    public double getLatitude() { return latitude; }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void getLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
 }

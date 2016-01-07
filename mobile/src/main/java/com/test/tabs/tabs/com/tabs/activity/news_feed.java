@@ -130,7 +130,7 @@ public class news_feed extends AppCompatActivity
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("Public"));
-        tabLayout.addTab(tabLayout.newTab().setText("Private"));
+        tabLayout.addTab(tabLayout.newTab().setText("Friends"));
         tabLayout.addTab(tabLayout.newTab().setText("My Tabs"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
@@ -173,6 +173,12 @@ public class news_feed extends AppCompatActivity
         populateFriendsList(userId);
 
         //populateNewsFeedList();
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        LocationService.getLocationManager(this);
     }
 
     private void drawerSetup(String id, String firstName, String lastName) {
@@ -265,51 +271,6 @@ public class news_feed extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    private void populateNewsFeedList(){
-        RecyclerView rv = (RecyclerView)findViewById(R.id.rv_news_feed);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        rv.setLayoutManager(llm);
-        adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPosts(), this);
-        rv.setAdapter(adapter);
-        //newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
-//        posts = new ArrayList<Post>();
-//
-//
-//        postListAdapter = new PostListAdapter(this, posts);
-//        newsFeedCardView
-//        newsFeedCardView.setAdapter(postListAdapter);
-//        if(postsDataSource.isTablePopulated()) {
-//            System.out.println("Size: " + postsDataSource.getAllPosts().size());
-//            for (Post i : postsDataSource.getAllPosts()) {
-//                System.out.println("Within posts");
-//                posts.add(i);
-//            }
-//        }
-//        else{
-//            System.out.println("Is not populated");
-//        }
-
-        //Set onclick listener for clicking on post
-//        rv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            public void onItemClick(AdapterView<?> parent, View view,
-//                                    int position, long id) {
-//
-//
-//                Object post  = newsFeedListView.getItemAtPosition(position);
-//                Intent intent = new Intent(news_feed.this, Comments.class);
-//                Bundle bundle = new Bundle();
-//                bundle.putLong("id", ((Post) post).getId());
-//                if(intent != null){
-//                    intent.putExtras(bundle);
-//                    startActivity(intent);
-//                }
-//            }
-//        });
-
-        //postListAdapter.notifyDataSetChanged();
-        // ************************************************
     }
 
     private void populateFriendsList(String userId) {

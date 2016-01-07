@@ -53,6 +53,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String COLUMN_COMMENTER = "commenter";
     public static final String COLUMN_COMMENT = "comment";
     public static final String COLUMN_COMMENTER_USER_ID = "commenter_user_id";
+    public static final String COLUMN_LATITUDE = "latitude";
+    public static final String COLUMN_LONGITUDE = "longitude";
 
     // Table Create Statements
     private static final String CREATE_TABLE_FRIENDS = "create table "
@@ -65,7 +67,8 @@ public class DatabaseHelper extends SQLiteOpenHelper{
             + TABLE_POSTS + "(" + KEY_ID
             + " integer primary key autoincrement, " + COLUMN_POSTER_USER_ID
             + " text not null, " + COLUMN_POSTER_NAME + " text not null, " + COLUMN_STATUS +
-            " text not null, " + COLUMN_TIME_STAMP + " datetime not null, " + COLUMN_PRIVACY + " integer not null);";
+            " text not null, " + COLUMN_TIME_STAMP + " datetime not null, " + COLUMN_PRIVACY + " integer not null, " +
+            COLUMN_LATITUDE + " real not null, " + COLUMN_LONGITUDE + " real not null);";
 
     // Comments table create statement
     private static final String CREATE_TABLE_COMMENTS = "create table "

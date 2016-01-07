@@ -33,6 +33,7 @@ import com.test.tabs.tabs.com.tabs.database.posts.Post;
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostViewHolder>{
     List<Post> posts;
     Context context;
+    boolean isPublic;
 
     public static class PostViewHolder extends RecyclerView.ViewHolder{
         CardView cardViewPost;
@@ -40,6 +41,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         TextView timestamp;
         TextView statusMsg;
         TextView numComments;
+        TextView privacyStatus;
         SimpleDraweeView posterPhoto;
 
         PostViewHolder(View itemView) {
@@ -50,6 +52,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             statusMsg = (TextView) itemView.findViewById(R.id.txt_statusMsg);
             numComments = (TextView) itemView.findViewById(R.id.num_comments);
             posterPhoto = (SimpleDraweeView) itemView.findViewById(R.id.poster_profile_photo);
+            privacyStatus = (TextView) itemView.findViewById(R.id.privacy_status);
         }
     }
 
@@ -80,6 +83,19 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             postViewHolder.posterPhoto.setController(controller);
             postViewHolder.numComments.setText(datasource.getNumberComments(posts.get(i).getId()).toString() + " Comments");
             postViewHolder.numComments.setTextSize(14);
+            System.out.println("Context: " + context);
+            if(posts.get(i).getPrivacy() == 1 && !isPublic){
+                //If it is a private post, set the text to be "Private"
+                postViewHolder.privacyStatus.setText("Private");
+            }
+            else if(posts.get(i).getPrivacy() == 0 && !isPublic){
+                postViewHolder.privacyStatus.setText("Public");
+                //Set text to be public
+            }
+            else {
+                //We know that it is in the public tab so we don't show it.
+                postViewHolder.privacyStatus.setText("");
+            }
             final Post post = posts.get(i);
 
             postViewHolder.itemView.setOnClickListener(new View.OnClickListener(){
@@ -94,9 +110,10 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             });
         }
 
-        public PostRecyclerViewAdapter(List<Post> posts, Context context){
+        public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic){
             this.posts = posts;
             this.context = context;
+            this.isPublic = isPublic;
         }
 
         @Override

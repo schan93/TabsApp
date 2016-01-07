@@ -44,11 +44,17 @@ public class MyTabs extends Fragment {
         return fragmentView;
     }
 
+    @Override
+    public void onResume(){
+        super.onResume();
+        LocationService.getLocationManager(getContext());
+    }
+
     private void populateNewsFeedList(View fragmentView, String userId){
         RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_news_feed);
         LinearLayoutManager llm = new LinearLayoutManager(getContext());
         rv.setLayoutManager(llm);
-        adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByUser(userId), getContext());
+        adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByUser(userId), getContext(), false);
         rv.setAdapter(adapter);
     }
 }

@@ -1,8 +1,15 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -27,9 +34,13 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -56,10 +67,17 @@ public class login extends Activity {
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
 
+    //Google Location Services API
+    GoogleApiClient googleApiClient;
+    LocationServices lastLocation;
+    Location location;
+    LocationManager locationManager;
+
     //Boolean to tell us whether or not we are actually logged in already if we are then we show the loading screen
     Boolean loggedIn = false;
 
-
+    //Initialize location service
+    LocationService locationService;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +91,9 @@ public class login extends Activity {
         //deletePostsDatabase();
         //Initialize DB
         startFriendsDatabase();
+
+        //Set up location services
+        LocationService.getLocationManager(this);
 
         setContentView(R.layout.activity_login);
         loginButton = (LoginButton)findViewById(R.id.login_button);
@@ -142,6 +163,12 @@ public class login extends Activity {
             });
         }
 
+    }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        LocationService.onStart();
     }
 
     //Check if user is logged in already. If they are, then return true, else false.
@@ -235,10 +262,10 @@ public class login extends Activity {
         batch.executeAsync();
 
         //After all batches execute, then we go into the main activity.
-        batch.addCallback(new GraphRequestBatch.Callback(){
+        batch.addCallback(new GraphRequestBatch.Callback() {
             @Override
-            public void onBatchCompleted(GraphRequestBatch graphRequests){
-                if(loggedIn){
+            public void onBatchCompleted(GraphRequestBatch graphRequests) {
+                if (loggedIn) {
                     findViewById(R.id.loadingPanel).setVisibility(View.GONE);
                 }
                 Bundle parameters = new Bundle();
@@ -246,7 +273,7 @@ public class login extends Activity {
                 parameters.putString("id", AccessToken.getCurrentAccessToken().getUserId());
 
                 Intent intent = new Intent(login.this, news_feed.class);
-                if(intent != null) {
+                if (intent != null) {
                     //ProfilePictureView profilePictureView =  new  ProfilePictureView(getApplicationContext());
                     intent.putExtras(parameters);
                     System.out.println("Passing Id: " + AccessToken.getCurrentAccessToken().getUserId());
