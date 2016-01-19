@@ -1,10 +1,16 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +29,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +37,7 @@ import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
@@ -57,19 +65,27 @@ public class Comments extends AppCompatActivity {
     private PostsDataSource postsDataSource;
     private List<Comment> commentItems;
     private CommentsRecyclerViewAdapter commentsRecyclerViewAdapter;
-    RecyclerView commentsView;
-    Toolbar toolbar;
-    LinearLayoutManager llm;
+    private RecyclerView commentsView;
+    private TextView noCommentsView;
+    private Toolbar toolbar;
+    private LinearLayoutManager llm;
+    private NotificationManager notificationManager;
+    private boolean isNotificationActive;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        userId = AccessToken.getCurrentAccessToken().getUserId();
         setContentView(R.layout.comments);
         final long postId = getPostId();
         toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         setSupportActionBar(toolbar);
         final Profile profile = Profile.getCurrentProfile();
+
+        notificationManager = (NotificationManager)
+                getSystemService(NOTIFICATION_SERVICE);
 
         //Back bar enabled
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -78,6 +94,7 @@ public class Comments extends AppCompatActivity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         commentsView = (RecyclerView) findViewById(R.id.view_comments);
+        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
 
         llm = new LinearLayoutManager(this);
         commentsView.setLayoutManager(llm);
@@ -88,7 +105,7 @@ public class Comments extends AppCompatActivity {
             public boolean onEditorAction(TextView v, int actionId,
                                           KeyEvent event) {
                 comment.setCursorVisible(false);
-                if (event != null&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                if (event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
                     InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     comment.setImeOptions(EditorInfo.IME_ACTION_DONE);
                     in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
@@ -153,6 +170,15 @@ public class Comments extends AppCompatActivity {
                     //TODO: fix this because we dont want to query for the entire database every time we get the post
                     //Display comment onto layout
                     populateComment(createdComment, commentsView.getAdapter().getItemCount());
+                    saveCommentInCloud(createdComment);
+                    if(noCommentsView.getVisibility() == View.VISIBLE){
+                        noCommentsView.setVisibility(View.GONE);
+                    }
+                    //Notify friends that user has posted a comment on their post. Don't get notification if you posted on your own post.
+//                    if(!createdComment.getCommenterUserId().equals(userId)) {
+//                        showNotification(v, commenter);
+//                    }
+
                 }
 
             }
@@ -174,6 +200,40 @@ public class Comments extends AppCompatActivity {
         }
     }
 
+    private void showNotification(View view, String commenter){
+        NotificationCompat.Builder notifiationBuilder = new NotificationCompat.Builder(this)
+                .setContentTitle(commenter + " has commented on your post!")
+                .setContentText("Click to view or respond back!")
+                .setTicker("New comment from " + commenter)
+                .setSmallIcon(R.mipmap.blank_prof_pic);
+
+        Intent moreInfoIntent = new Intent(this, Comments.class);
+
+        //When the user clicks back, it doesn't look sloppy!
+        TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(this);
+        taskStackBuilder.addParentStack(MoreInfoNotification.class);
+        taskStackBuilder.addNextIntent(moreInfoIntent);
+
+        //If the intent already exists, just update it and not create a new one
+        PendingIntent pendingIntent = taskStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        //When the notification is actually clicked on
+        notifiationBuilder.setContentIntent(pendingIntent);
+
+        //Notification manager to notify of background event
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(1, notifiationBuilder.build());
+
+        isNotificationActive = true;
+    }
+
+    private void stopNotification(View view){
+        if(isNotificationActive){
+            notificationManager.cancel(1);
+        }
+    }
+
     private void populateComment(Comment comment, int position){
         commentsRecyclerViewAdapter.add(comment, position);
         commentsView.postDelayed(new Runnable() {
@@ -186,14 +246,35 @@ public class Comments extends AppCompatActivity {
         }, 1000);
     }
 
+    private void checkAdapterIsEmpty () {
+        if(commentsRecyclerViewAdapter.getItemCount() == 1){
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) noCommentsView.getLayoutParams();
+            params.addRule(RelativeLayout.BELOW, R.id.view_post);
+            noCommentsView.setVisibility(View.VISIBLE);
+        }
+        else {
+            noCommentsView.setVisibility(View.GONE);
+        }
+    }
+
+
     public void populateComments(long postId) {
         commentsRecyclerViewAdapter = new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentsDatasource.getCommentsForPost(postId));
+        commentsRecyclerViewAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                checkAdapterIsEmpty();
+            }
+        });
         commentsView.setLayoutManager(llm);
         commentsView.setAdapter(commentsRecyclerViewAdapter);
+        checkAdapterIsEmpty();
     }
 
     public CommentsHeader getCommentsHeader(long id)
     {
+        System.out.println("Going to inflate header");
         post = postsDataSource.getPost(id);
         CommentsHeader header = new CommentsHeader();
         header.setPosterUserId(post.getPosterUserId());
@@ -241,13 +322,23 @@ public class Comments extends AppCompatActivity {
         return 0;
     }
 
-    public String convertDate(String timestamp){
+    private void saveCommentInCloud(Comment comment){
+        ParseObject commentObj = new ParseObject("Comment");
+        commentObj.put("commentPostId", comment.getPostId());
+        commentObj.put("comment", comment.getComment());
+        commentObj.put("commenter", comment.getCommenter());
+        commentObj.put("commenterUserId", comment.getCommenterUserId());
+        commentObj.put("commentTimeStamp", comment.getTimeStamp());
+        commentObj.saveInBackground();
+    }
+
+    public String convertDate(String timestamp) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
         String dateText = "";
         Date date = null;
         try {
             date = dateFormat.parse(timestamp);
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -257,28 +348,48 @@ public class Comments extends AppCompatActivity {
         Calendar now = Calendar.getInstance();
 
         Integer dateOffset = 0;
-
+        System.out.println("Post Date: " + postDate);
+        System.out.println("Now: " + now);
         if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
                 && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && now.get(Calendar.DAY_OF_MONTH) == postDate.get(Calendar.DAY_OF_MONTH)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)){
+                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)) {
 
             dateOffset = now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR);
             dateText = "h";
-        }
-        else if(now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+        } else if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
                 && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && now.get(Calendar.DAY_OF_MONTH) == postDate.get(Calendar.DAY_OF_MONTH)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)){
+                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)) {
             dateOffset = now.get(Calendar.MINUTE) - postDate.get(Calendar.MINUTE);
             dateText = "m";
-        }
-        else{
-            dateOffset = now.get(Calendar.DAY_OF_YEAR) - postDate.get(Calendar.DAY_OF_YEAR);
+        } else if (Math.abs(now.getTime().getTime() - postDate.getTime().getTime()) <= 24 * 60 * 60 * 1000L) {
+            dateOffset = (int) getHoursDifference(now, postDate);
+            if(dateOffset == 24){
+                dateOffset = 1;
+                dateText = "d";
+            }
+            else {
+                dateText = "h";
+            }
+        } else {
+            long hours = getHoursDifference(now, postDate);
+
+            dateOffset = (int)hours / 24;
             dateText = "d";
         }
         String newFormat = dateOffset + dateText;
         return newFormat;
     }
+
+    private long getHoursDifference(Calendar now, Calendar postDate) {
+        long secs = (now.getTime().getTime() - postDate.getTime().getTime()) / 1000;
+        long hours = secs / 3600;
+//        secs = secs % 3600;
+//        long mins = secs / 60;
+//        secs = secs % 60;
+        return hours;
+    }
+
 
 }

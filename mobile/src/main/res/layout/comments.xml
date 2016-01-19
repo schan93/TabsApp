@@ -45,11 +45,12 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:gravity="left"
-                    android:textSize="14sp"
-                    flatui:fl_theme="@array/sea"
+                    android:textSize="16sp"
+                    flatui:fl_theme="@array/color_primary_theme"
                     android:textColor="#000000"
                     android:cursorVisible="false"
                     android:hint="Comment back!"
+                    android:background="@color/feed_bg"
                     android:inputType="textMultiLine"
                     flatui:fl_fieldStyle="fl_box"
                     android:scrollHorizontally="false" />
@@ -60,11 +61,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="fill_parent"
                     android:layout_marginLeft="5dp"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:padding="5dp"
                     android:layout_gravity="center_vertical|center_horizontal"
                     android:text="Send"
-                    flatui:fl_theme="@array/sea"
+                    flatui:fl_theme="@array/color_primary_theme"
                     android:textAllCaps="false"
                     flatui:fl_textAppearance="fl_light"/>
             </LinearLayout>
@@ -77,6 +78,16 @@
                 android:layout_above="@id/send_message"
                 android:id="@+id/view_comments">
             </android.support.v7.widget.RecyclerView>
+
+            <TextView
+                android:id="@+id/no_comments_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:visibility="gone"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif"
+                android:text="No comments to display." />
         </RelativeLayout>
 
 </android.support.design.widget.CoordinatorLayout>

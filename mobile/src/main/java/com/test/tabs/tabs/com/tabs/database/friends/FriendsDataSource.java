@@ -82,6 +82,34 @@ public class FriendsDataSource {
                 + " = " + id, null);
     }
 
+    /**
+     * Method to get all freinds that you have added
+     * @param userId
+     * @return
+     */
+    public List<Friend> getAllAddedFriends(String userId){
+        List<Friend> friends = new ArrayList<Friend>();
+
+        Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
+                allColumns, DatabaseHelper.COLUMN_USER + " = ? and " + DatabaseHelper.COLUMN_IS_FRIEND + " = 1", new String[]{userId}, null, null, null);
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            Friend friend = cursorToFriend(cursor);
+            System.out.println("Friend is friend: " + friend.getIsFriend());
+            friends.add(friend);
+            cursor.moveToNext();
+        }
+        // make sure to close the cursor
+        cursor.close();
+        return friends;
+    }
+
+    /**
+     * General method to get all freinds from Facebook that have the app installed
+     * @param userId
+     * @return
+     */
     public List<Friend> getAllFriends(String userId) {
         List<Friend> friends = new ArrayList<Friend>();
 

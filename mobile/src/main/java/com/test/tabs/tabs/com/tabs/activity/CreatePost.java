@@ -3,8 +3,11 @@ package com.test.tabs.tabs.com.tabs.activity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
@@ -12,6 +15,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,17 +27,31 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.facebook.AccessToken;
 import com.facebook.login.LoginManager;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by schan on 11/14/15.
@@ -49,6 +67,23 @@ public class CreatePost extends AppCompatActivity {
 
     //Global variable for privacy, 0 = public, 1 = private, initialize to private
     Integer privacy;
+
+    // Resgistration Id from GCM
+    private static final String PREF_GCM_REG_ID = "PREF_GCM_REG_ID";
+    private SharedPreferences prefs;
+    // Your project number and web server url. Please change below.
+    private static final String GCM_SENDER_ID = "213033849274";
+    private static final String WEB_SERVER_URL = "jdbc:google:mysql://tabs-1124:tabs-backend/tabs_backend";
+
+    Button registerBtn;
+    TextView regIdView;
+
+    private static final int ACTION_PLAY_SERVICES_DIALOG = 100;
+    protected static final int MSG_REGISTER_WITH_GCM = 101;
+    protected static final int MSG_REGISTER_WEB_SERVER = 102;
+    protected static final int MSG_REGISTER_WEB_SERVER_SUCCESS = 103;
+    protected static final int MSG_REGISTER_WEB_SERVER_FAILURE = 104;
+    private String gcmRegId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,10 +199,14 @@ public class CreatePost extends AppCompatActivity {
 
                 System.out.println("Privacy: " + privacy);
                 Location location = LocationService.getLastLocation();
-                datasource.createPost(postId, post.getText().toString(), name, privacy, location.getLatitude(), location.getLongitude());
+                Post createdPost = datasource.createPost(postId, post.getText().toString(), name, privacy, location.getLatitude(), location.getLongitude());
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
+
+                savePostInCloud(createdPost, location);
+
+
                 if(intent != null) {
                     startActivity(intent);
                 }
@@ -176,9 +215,18 @@ public class CreatePost extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
-
     }
 
+    private void savePostInCloud(Post post, Location location){
+        ParseObject postObj = new ParseObject("Post");
+        postObj.put("postId", post.getId());
+        postObj.put("postStatus", post.getStatus());
+        postObj.put("posterName", post.getName());
+        postObj.put("privacy", privacy);
+        postObj.put("latitude", location.getLatitude());
+        postObj.put("longitude", location.getLongitude());
+        postObj.saveInBackground();
+    }
 
 
 }

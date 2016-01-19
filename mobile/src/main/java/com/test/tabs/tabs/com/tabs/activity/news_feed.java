@@ -1,5 +1,6 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.database.Cursor;
@@ -37,6 +38,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,6 +60,7 @@ import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.facebook.login.LoginManager;
 import com.facebook.login.widget.ProfilePictureView;
+import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
@@ -80,11 +83,21 @@ public class news_feed extends AppCompatActivity
     //Local Database for storing friends
     private FriendsDataSource datasource;
     private List<Friend> friendItems;
+    private List<Friend> friendItemsDifference;
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
     private List<Post> postItems;
     //Adapter for posts
     PostRecyclerViewAdapter adapter;
+
+    String userId;
+
+    Activity activityContext;
+
+    private ProgressBar progressBar;
+
+    //To detect if any new freinds are added
+    boolean newFriendAdded = false;
 
     public news_feed(){
 
@@ -98,7 +111,19 @@ public class news_feed extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        if(!FacebookSdk.isInitialized()){
+            FacebookSdk.sdkInitialize(getApplicationContext());
+        }
         final Profile profile = Profile.getCurrentProfile();
+        userId = AccessToken.getCurrentAccessToken().getUserId();
+        progressBar = (ProgressBar) findViewById(R.id.loading_progress_bar);
+        progressBar.setVisibility(View.GONE);
+
+        //Open DB and get freinds from db & posts.
+        datasource = new FriendsDataSource(this);
+        datasource.open();
+        postsDataSource = new PostsDataSource(this);
+        postsDataSource.open();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -118,15 +143,35 @@ public class news_feed extends AppCompatActivity
         //Listen for navigation events
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
+
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+
+                updateFriendsInCloud();
+
+                // Show loading screen and then show
+//                System.out.println("Closing drawer view");
+//                progressBar.setVisibility(View.VISIBLE);
+//                friendItemsDifference = new ArrayList<>();
+//                for (Friend i : datasource.getAllFriends(userId)) {
+//                    friendItemsDifference.add(i);
+//                }
+//                if(!friendItemsDifference.equals(friendItems)){
+//                    System.out.println("There is a difference");
+//                    //Show loading screen
+//                    friendsAdapter = new FriendsListAdapter(activityContext, friendItemsDifference);
+//                    friendsList.setAdapter(friendsAdapter);
+//                }
+//                else {
+//                    //Don't do anything
+//                }
+//                progressBar.setVisibility(View.GONE);
+            }
+        };
         drawer.setDrawerListener(toggle);
         toggle.syncState();
-
-        //Open DB and get freinds from db & posts.
-        datasource = new FriendsDataSource(this);
-        datasource.open();
-        postsDataSource = new PostsDataSource(this);
-        postsDataSource.open();
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("Public"));
@@ -142,6 +187,7 @@ public class news_feed extends AppCompatActivity
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                System.out.println("Tab: " + tab.getPosition());
                 viewPager.setCurrentItem(tab.getPosition());
             }
 
@@ -156,8 +202,6 @@ public class news_feed extends AppCompatActivity
             }
         });
 
-
-        String userId = AccessToken.getCurrentAccessToken().getUserId();
         //Set things such as facebook profile picture, facebook friends photos, etc.
         //Set up recycler view
         ListView listView = (ListView) findViewById(R.id.friends_list);
@@ -173,6 +217,17 @@ public class news_feed extends AppCompatActivity
         populateFriendsList(userId);
 
         //populateNewsFeedList();
+    }
+
+    private void updateFriendsInCloud(){
+        for(Friend i: datasource.getAllFriends(userId)){
+            ParseObject friendObj = new ParseObject("Friend");
+            friendObj.put("friendUserId", i.getUserId());
+            friendObj.put("friendUser", i.getUser());
+            friendObj.put("isFriend", i.getIsFriend());
+            friendObj.put("friendName", i.getName());
+            friendObj.saveInBackground();
+        }
     }
 
     @Override
@@ -262,6 +317,7 @@ public class news_feed extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -277,11 +333,14 @@ public class news_feed extends AppCompatActivity
         friendsList = (ListView) findViewById(R.id.friends_list);
         friendItems = new ArrayList<>();
 
+        activityContext = this;
+
         friendsAdapter = new FriendsListAdapter(this, friendItems);
         friendsList.setAdapter(friendsAdapter);
         if(datasource.isTablePopulated()) {
             System.out.println("Friends data source is populated");
             for (Friend i : datasource.getAllFriends(userId)) {
+                System.out.println("Friend name: " + i.getName());
                 friendItems.add(i);
             }
         }

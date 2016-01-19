@@ -1,6 +1,7 @@
 package com.test.tabs.tabs.com.tabs.database.posts;
 
 import android.content.Intent;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -30,12 +31,12 @@ import com.test.tabs.tabs.com.tabs.database.posts.Post;
 /**
  * Created by Chiharu on 10/26/2015.
  */
-public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostViewHolder>{
+public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostViewHolder> {
     List<Post> posts;
     Context context;
     boolean isPublic;
 
-    public static class PostViewHolder extends RecyclerView.ViewHolder{
+    public static class PostViewHolder extends RecyclerView.ViewHolder {
         CardView cardViewPost;
         TextView name;
         TextView timestamp;
@@ -56,111 +57,129 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         }
     }
 
-        @Override
-        public int getItemCount() {
-            return posts.size();
+    @Override
+    public int getItemCount() {
+        return posts.size();
+    }
+
+    @Override
+    public PostViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.news_feed_item, viewGroup, false);
+        PostViewHolder pvh = new PostViewHolder(v);
+        return pvh;
+    }
+
+    @Override
+    public void onBindViewHolder(PostViewHolder postViewHolder, int i) {
+        PostsDataSource datasource;
+        datasource = new PostsDataSource(context);
+        datasource.open();
+        postViewHolder.name.setText(posts.get(i).getName());
+        postViewHolder.timestamp.setText(convertDate(posts.get(i).getTimeStamp()));
+        postViewHolder.statusMsg.setText(posts.get(i).getStatus());
+        DraweeController controller = news_feed.getImage(posts.get(i).getPosterUserId());
+        RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
+        roundingParams.setRoundAsCircle(true);
+        postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
+        postViewHolder.posterPhoto.setController(controller);
+        postViewHolder.numComments.setText(datasource.getNumberComments(posts.get(i).getId()).toString() + " Comments");
+        postViewHolder.numComments.setTextSize(14);
+        System.out.println("Context: " + context);
+        if (posts.get(i).getPrivacy() == 1 && !isPublic) {
+            //If it is a private post, set the text to be "Private"
+            postViewHolder.privacyStatus.setText("Private");
+        } else if (posts.get(i).getPrivacy() == 0 && !isPublic) {
+            postViewHolder.privacyStatus.setText("Public");
+            //Set text to be public
+        } else {
+            //We know that it is in the public tab so we don't show it.
+            postViewHolder.privacyStatus.setText("");
+        }
+        final Post post = posts.get(i);
+
+        postViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), Comments.class);
+                Bundle bundle = new Bundle();
+                bundle.putLong("id", (post.getId()));
+                intent.putExtras(bundle);
+                v.getContext().startActivity(intent);
+            }
+        });
+    }
+
+    public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic) {
+        this.posts = posts;
+        this.context = context;
+        this.isPublic = isPublic;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+    }
+
+    public String convertDate(String timestamp) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+        String dateText = "";
+        Date date = null;
+        try {
+            date = dateFormat.parse(timestamp);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        @Override
-        public PostViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-            View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.news_feed_item, viewGroup, false);
-            PostViewHolder pvh = new PostViewHolder(v);
-            return pvh;
-        }
+        Calendar postDate = Calendar.getInstance();
+        postDate.setTime(date); // your date
 
-        @Override
-        public void onBindViewHolder(PostViewHolder postViewHolder, int i) {
-            PostsDataSource datasource;
-            datasource = new PostsDataSource(context);
-            datasource.open();
-            postViewHolder.name.setText(posts.get(i).getName());
-            postViewHolder.timestamp.setText(convertDate(posts.get(i).getTimeStamp()));
-            postViewHolder.statusMsg.setText(posts.get(i).getStatus());
-            DraweeController controller = news_feed.getImage(posts.get(i).getPosterUserId());
-            RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
-            roundingParams.setRoundAsCircle(true);
-            postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
-            postViewHolder.posterPhoto.setController(controller);
-            postViewHolder.numComments.setText(datasource.getNumberComments(posts.get(i).getId()).toString() + " Comments");
-            postViewHolder.numComments.setTextSize(14);
-            System.out.println("Context: " + context);
-            if(posts.get(i).getPrivacy() == 1 && !isPublic){
-                //If it is a private post, set the text to be "Private"
-                postViewHolder.privacyStatus.setText("Private");
-            }
-            else if(posts.get(i).getPrivacy() == 0 && !isPublic){
-                postViewHolder.privacyStatus.setText("Public");
-                //Set text to be public
-            }
-            else {
-                //We know that it is in the public tab so we don't show it.
-                postViewHolder.privacyStatus.setText("");
-            }
-            final Post post = posts.get(i);
+        Calendar now = Calendar.getInstance();
 
-            postViewHolder.itemView.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    Intent intent = new Intent(v.getContext(), Comments.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putLong("id", (post.getId()));
-                    intent.putExtras(bundle);
-                    v.getContext().startActivity(intent);
-                }
-            });
-        }
+        Integer dateOffset = 0;
+        System.out.println("Post Date: " + postDate);
+        System.out.println("Now: " + now);
+        if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
+                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
+                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)) {
 
-        public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic){
-            this.posts = posts;
-            this.context = context;
-            this.isPublic = isPublic;
-        }
-
-        @Override
-        public void onAttachedToRecyclerView(RecyclerView recyclerView) {
-            super.onAttachedToRecyclerView(recyclerView);
-        }
-
-        public String convertDate(String timestamp){
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-            String dateText = "";
-            Date date = null;
-            try {
-                date = dateFormat.parse(timestamp);
-            } catch(Exception e){
-                e.printStackTrace();
-            }
-
-            Calendar postDate = Calendar.getInstance();
-            postDate.setTime(date); // your date
-
-            Calendar now = Calendar.getInstance();
-
-            Integer dateOffset = 0;
-
-            if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
-                    && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                    && now.get(Calendar.DAY_OF_MONTH) == postDate.get(Calendar.DAY_OF_MONTH)
-                    && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)){
-
-                dateOffset = now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR);
-                dateText = "h";
-            }
-            else if(now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
-                    && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                    && now.get(Calendar.DAY_OF_MONTH) == postDate.get(Calendar.DAY_OF_MONTH)
-                    && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)){
-                dateOffset = now.get(Calendar.MINUTE) - postDate.get(Calendar.MINUTE);
-                dateText = "m";
-            }
-            else{
-                dateOffset = now.get(Calendar.DAY_OF_YEAR) - postDate.get(Calendar.DAY_OF_YEAR);
+            dateOffset = now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR);
+            dateText = "h";
+        } else if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
+                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
+                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)) {
+            dateOffset = now.get(Calendar.MINUTE) - postDate.get(Calendar.MINUTE);
+            dateText = "m";
+        } else if (Math.abs(now.getTime().getTime() - postDate.getTime().getTime()) <= 24 * 60 * 60 * 1000L) {
+            dateOffset = (int) getHoursDifference(now, postDate);
+            if(dateOffset == 24){
+                dateOffset = 1;
                 dateText = "d";
             }
-            String newFormat = dateOffset + dateText;
-            return newFormat;
+            else {
+                dateText = "h";
+            }
+        } else {
+            long hours = getHoursDifference(now, postDate);
+
+            dateOffset = (int)hours / 24;
+            dateText = "d";
         }
+        String newFormat = dateOffset + dateText;
+        return newFormat;
     }
+
+
+    private long getHoursDifference(Calendar now, Calendar postDate) {
+        long secs = (now.getTime().getTime() - postDate.getTime().getTime()) / 1000;
+        long hours = secs / 3600;
+//        secs = secs % 3600;
+//        long mins = secs / 60;
+//        secs = secs % 60;
+        return hours;
+    }
+}
 
 //        private Activity activity;
 //    private LayoutInflater inflater;

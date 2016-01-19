@@ -78,6 +78,9 @@ public class login extends Activity {
 
     //Initialize location service
     LocationService locationService;
+
+    //Parse database
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,11 +113,9 @@ public class login extends Activity {
             loggedIn = true;
             setContentView(R.layout.loading_panel);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
-            System.out.println("Now");
             getFacebookData(accessToken);
         }
         else {
-            System.out.println("Later");
             //I think we want to remove the friends db
             //This is just because ok lets think about this way: the user somehow logs out of our app
             //And then signs into another user
@@ -217,7 +218,6 @@ public class login extends Activity {
                             public void onCompleted(
                                     JSONObject jsonObject,
                                     GraphResponse response) {
-                                System.out.println("Response in me: " + response.toString());
                                 // Application code for user
                                 // TODO: Set up Google Cloud SQL so that we can store the user information into the global DB
                                 // as long as that id doesn't exist already.

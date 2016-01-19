@@ -48,6 +48,7 @@ public class MyTabs extends Fragment {
     public void onResume(){
         super.onResume();
         LocationService.getLocationManager(getContext());
+        adapter.notifyDataSetChanged();
     }
 
     private void populateNewsFeedList(View fragmentView, String userId){

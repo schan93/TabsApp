@@ -34,12 +34,20 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ITEM = 1;
 
-    CommentsHeader commentsHeader;
-    List<Comment> comments;
+    private CommentsHeader commentsHeader;
+    private List<Comment> comments;
 
     public CommentsRecyclerViewAdapter(CommentsHeader header, List<Comment> comments) {
         this.commentsHeader = header;
         this.comments = comments;
+    }
+
+    public List<Comment> getCommentsList(){
+        return this.comments;
+    }
+
+    public CommentsHeader getCommentsHeader(){
+        return this.commentsHeader;
     }
 
     //+1 for header
@@ -159,13 +167,13 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     }
 
-    public String convertDate(String timestamp){
+    public String convertDate(String timestamp) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
         String dateText = "";
         Date date = null;
         try {
             date = dateFormat.parse(timestamp);
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -175,28 +183,44 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         Calendar now = Calendar.getInstance();
 
         Integer dateOffset = 0;
-
+        System.out.println("Post Date: " + postDate);
+        System.out.println("Now: " + now);
         if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
                 && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && now.get(Calendar.DAY_OF_MONTH) == postDate.get(Calendar.DAY_OF_MONTH)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)){
+                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)) {
 
             dateOffset = now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR);
             dateText = "h";
-        }
-        else if(now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+        } else if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
                 && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && now.get(Calendar.DAY_OF_MONTH) == postDate.get(Calendar.DAY_OF_MONTH)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)){
+                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)) {
             dateOffset = now.get(Calendar.MINUTE) - postDate.get(Calendar.MINUTE);
             dateText = "m";
-        }
-        else{
-            dateOffset = now.get(Calendar.DAY_OF_YEAR) - postDate.get(Calendar.DAY_OF_YEAR);
+        } else if (Math.abs(now.getTime().getTime() - postDate.getTime().getTime()) <= 24 * 60 * 60 * 1000L) {
+            dateOffset = (int) getHoursDifference(now, postDate);
+            if(dateOffset == 24){
+                dateOffset = 1;
+                dateText = "d";
+            }
+            else {
+                dateText = "h";
+            }
+        } else {
+            long hours = getHoursDifference(now, postDate);
+
+            dateOffset = (int)hours / 24;
             dateText = "d";
         }
         String newFormat = dateOffset + dateText;
         return newFormat;
+    }
+
+    private long getHoursDifference(Calendar now, Calendar postDate) {
+        long secs = (now.getTime().getTime() - postDate.getTime().getTime()) / 1000;
+        long hours = secs / 3600;
+        return hours;
     }
 
 }

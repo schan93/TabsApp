@@ -7,61 +7,76 @@
         android:targetSdkVersion="19" />
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-        <meta-data android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id"/>
+        android:theme="@style/AppTheme"
+        android:name=".com.tabs.activity.ParseApplication">
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
 
         <activity
             android:name=".com.tabs.activity.news_feed"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
-
-        <activity android:name=".com.tabs.activity.CreatePost"
+        <activity
+            android:name=".com.tabs.activity.CreatePost"
             android:label="Create Post"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="stateVisible">
+            android:windowSoftInputMode="stateVisible" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".com.tabs.activity.news_feed"/>
+                android:value=".com.tabs.activity.news_feed" />
         </activity>
-
-        <activity android:name=".com.tabs.activity.Comments"
+        <activity
+            android:name=".com.tabs.activity.Comments"
             android:label="View Post"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar" >
             <meta-data
-                android:windowSoftInputMode="stateAlwaysHidden"
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".com.tabs.activity.Comments"/>
+                android:value=".com.tabs.activity.Comments"
+                android:windowSoftInputMode="stateAlwaysHidden" />
         </activity>
-
-
-        <activity android:name=".com.tabs.activity.login"
+        <activity
+            android:name=".com.tabs.activity.login"
             android:label="Tabs"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="com.facebook.FacebookActivity"
-            android:configChanges=
-                "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:label="@string/app_name"/>
-
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
+            android:name=".com.tabs.activity.MoreInfoNotification"
+            android:label="More on Notification"
+            android:parentActivityName=".com.tabs.activity.news_feed" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".com.tabs.activity.news_feed" />
+        </activity>
+        <meta-data
+            android:name="com.parse.APPLICATION_ID"
+            android:value="HEIu8jAXO0b0Bf0558cVlWrEyIOIZUxPnPG2LM8o" />
+        <meta-data
+            android:name="com.parse.CLIENT_KEY"
+            android:value="NtfN1EEPraxrei8RgxWy4HWz69jCVqIZCddQkHCN" />
 
     </application>
+
 
 </manifest>

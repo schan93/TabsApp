@@ -38,7 +38,7 @@ public class Comment {
         this.id = id;
     }
 
-    public long postId() {
+    public long getPostId() {
         return postId;
     }
 

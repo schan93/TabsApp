@@ -54,6 +54,7 @@ public class Public extends Fragment {
     public void onResume(){
         super.onResume();
         LocationService.getLocationManager(getContext());
+        adapter.notifyDataSetChanged();
     }
 
     private void populateNewsFeedList(View fragmentView){
@@ -61,9 +62,10 @@ public class Public extends Fragment {
         LinearLayoutManager llm = new LinearLayoutManager(getContext());
         rv.setLayoutManager(llm);
         Location location = LocationService.getLastLocation();
-        //Set a 3218.69 meter, or a 2 mile radius.
-        adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPublicPosts(location.getLatitude(), location.getLongitude(), 3218.69), getContext(), true);
+        //Set a 3218.69 meter, or a 15 mile radius.
+        adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPublicPosts(location.getLatitude(), location.getLongitude(), 24140.2), getContext(), true);
         rv.setAdapter(adapter);
+
         //newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
 //        posts = new ArrayList<Post>();
 //

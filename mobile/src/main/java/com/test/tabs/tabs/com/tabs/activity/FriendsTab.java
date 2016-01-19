@@ -24,15 +24,17 @@ public class FriendsTab extends Fragment {
 
     private View fragmentView;
     PostRecyclerViewAdapter adapter;
+    private RecyclerView rv;
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
     //Local Database for storing friends
     private FriendsDataSource datasource;
+    String userId;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         //Set things such as facebook profile picture, facebook friends photos, etc.
-        String userId = AccessToken.getCurrentAccessToken().getUserId();
+        userId = AccessToken.getCurrentAccessToken().getUserId();
 
         //Open DB and get freinds from db & posts.
         datasource = new FriendsDataSource(getContext());
@@ -40,7 +42,7 @@ public class FriendsTab extends Fragment {
         postsDataSource = new PostsDataSource(getContext());
         postsDataSource.open();
 
-
+        System.out.println("Creating freinds view");
         fragmentView = inflater.inflate(R.layout.content_news_feed, container, false);
 
         populateNewsFeedList(fragmentView, userId);
@@ -49,16 +51,35 @@ public class FriendsTab extends Fragment {
     }
 
     @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            if (getView() != null) {
+                System.out.println("It's visible!");
+                //Simply does a requery but don't we want it so that we just do notifyDataSetChanged?
+                //populateNewsFeedList(fragmentView, userId);
+                // your code goes here
+            }
+        }
+    }
+
+    @Override
     public void onResume(){
         super.onResume();
         LocationService.getLocationManager(getContext());
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
     }
 
     private void populateNewsFeedList(View fragmentView, String userId){
-        RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_news_feed);
+        rv = (RecyclerView) fragmentView.findViewById(R.id.rv_news_feed);
         LinearLayoutManager llm = new LinearLayoutManager(getContext());
         rv.setLayoutManager(llm);
-        List<Friend> friends = datasource.getAllFriends(userId);
+        List<Friend> friends = datasource.getAllAddedFriends(userId);
         adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByFriends(friends), getContext(), false);
         rv.setAdapter(adapter);
         //newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);

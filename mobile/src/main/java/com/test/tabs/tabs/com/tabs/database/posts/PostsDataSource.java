@@ -7,6 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.PointF;
 import android.provider.ContactsContract;
+import android.util.Log;
 
 import com.test.tabs.tabs.com.tabs.database.SQLite.DatabaseHelper;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
@@ -51,7 +52,7 @@ public class PostsDataSource {
         return dateFormat.format(date);
     }
 
-    public void createPost(String posterUserId, String status, String posterName, Integer privacy, double latitude, double longitude) {
+    public Post createPost(String posterUserId, String status, String posterName, Integer privacy, double latitude, double longitude) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
@@ -65,7 +66,9 @@ public class PostsDataSource {
         //Insert into the database
         database.insert(DatabaseHelper.TABLE_POSTS, null,
                 values);
-        return;
+
+        Post post = new Post(0, posterName, status, posterUserId, getDateTime(), privacy, latitude, longitude);
+        return post;
     }
 
     public Post getPost(long id) {
@@ -83,6 +86,14 @@ public class PostsDataSource {
 
     private Post cursorToPost(Cursor cursor) {
         //List is: 0 = Id, 1 = name, 2 = userid, 3 = status, 4 =timestamp, 5 = privacy, 6 = latitude, 7 = longitude
+        System.out.println("Id: " + cursor.getLong(0));
+        System.out.println("Name: " + cursor.getString(1));
+        System.out.println("Status: " + cursor.getString(3));
+        System.out.println("User Id: " + cursor.getString(2));
+        System.out.println("Time Stamp: " + cursor.getString(4));
+        System.out.println("Privacy: " + cursor.getString(5));
+        System.out.println("Latitude: " + cursor.getString(6));
+
         Post post = new Post(cursor.getLong(0), cursor.getString(1), cursor.getString(3),
                 cursor.getString(2), cursor.getString(4), cursor.getInt(5), cursor.getDouble(6), cursor.getDouble(7));
         return post;
@@ -195,6 +206,20 @@ public class PostsDataSource {
     public List<Post> getPostsByFriends(List<Friend> friendsUserIds) {
         List<Post> posts = new ArrayList<Post>();
         Cursor cursor = null;
+
+//        final String rawFreindsQuery = "select * from posts p left join friends f on p.user_id = f.user_id " +
+//                "where f.isFriend = 1";
+//
+//        cursor = database.rawQuery(rawFreindsQuery, null);
+//        System.out.println("Query cursor: " + cursor);
+//        cursor.moveToFirst();
+//        while(!cursor.isAfterLast()){
+//            Post post = cursorToPost(cursor);
+//            System.out.println("POST OUTPUT: " + post.getPosterUserId());
+//            Log.i("Test: ", "Post : " + post.getPosterUserId() + " Post id: " + post.getId() + " Post name: " + post.getName());
+//            posts.add(post);
+//            cursor.moveToNext();
+//        }
         for(int i = 0; i < friendsUserIds.size(); i++){
             cursor = database.query(DatabaseHelper.TABLE_POSTS,
                     allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{friendsUserIds.get(i).getUserId()},
