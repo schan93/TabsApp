@@ -102,7 +102,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             public void onClick(View v) {
                 Intent intent = new Intent(v.getContext(), Comments.class);
                 Bundle bundle = new Bundle();
-                bundle.putLong("id", (post.getId()));
+                bundle.putString("id", (post.getId()));
                 intent.putExtras(bundle);
                 v.getContext().startActivity(intent);
             }

@@ -41,18 +41,20 @@ public class FriendsDataSource {
         dbHelper.close();
     }
 
-    public void createFriend(String name, String id, String user) {
+    public Friend createFriend(String uniqueId, String name, String id, String user, Integer isFriend) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
+        values.put(DatabaseHelper.KEY_ID, uniqueId);
         values.put(DatabaseHelper.COLUMN_USER_ID, id);
         values.put(DatabaseHelper.COLUMN_NAME, name);
         values.put(DatabaseHelper.COLUMN_USER, user);
-        values.put(DatabaseHelper.COLUMN_IS_FRIEND, 0);
+        values.put(DatabaseHelper.COLUMN_IS_FRIEND, isFriend);
         //Insert into the database
         database.insertWithOnConflict(DatabaseHelper.TABLE_FRIENDS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        Friend friend = new Friend(uniqueId, name, id, user, isFriend);
 //        database.insert(DatabaseHelper.TABLE_FRIENDS, null,
 //                values);
-        return;
+        return friend;
     }
 
     public Friend getFriend(String id) {
@@ -67,11 +69,11 @@ public class FriendsDataSource {
     }
 
     private Friend cursorToFriend(Cursor cursor) {
-        Friend friend = new Friend();
-        friend.setUserId(cursor.getString(1));
-        friend.setName(cursor.getString(2));
-        friend.setUser(cursor.getString(3));
-        friend.setIsFriend(cursor.getInt(4));
+        System.out.println("Cursor 0: " + cursor.getString(0));
+        System.out.println("Cursor 1: " + cursor.getString(1));
+        System.out.println("Cursor 2: " + cursor.getString(2));
+
+        Friend friend = new Friend(cursor.getString(0), cursor.getString(2), cursor.getString(1), cursor.getString(3), cursor.getInt(4));
         return friend;
     }
 

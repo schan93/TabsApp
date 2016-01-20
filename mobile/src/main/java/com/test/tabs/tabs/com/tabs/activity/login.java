@@ -37,8 +37,16 @@ import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.comments.Comment;
+import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
+import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
 
@@ -47,7 +55,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by schan93 on 10/13/15.
@@ -61,11 +72,10 @@ public class login extends Activity {
     //Manage callbacks in app
     private CallbackManager callbackManager;
 
-    //Local Database for storing friends
-    private FriendsDataSource datasource;
-
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
+    private CommentsDataSource commentsDataSource;
+    private FriendsDataSource friendsDataSource;
 
     //Google Location Services API
     GoogleApiClient googleApiClient;
@@ -91,9 +101,9 @@ public class login extends Activity {
         //Configure Fresco so that image loads quickly
         configFresco();
         //Remove DB first this is because we have to change the schema
-        //deletePostsDatabase();
+        deletePostsDatabase();
         //Initialize DB
-        startFriendsDatabase();
+        startDatabases();
 
         //Set up location services
         LocationService.getLocationManager(this);
@@ -227,26 +237,54 @@ public class login extends Activity {
                         AccessToken.getCurrentAccessToken(),
                         new GraphRequest.GraphJSONArrayCallback() {
                             @Override
-                            public void onCompleted(JSONArray jsonArray,
+                            public void onCompleted(final JSONArray jsonArray,
                                                     GraphResponse response) {
                                 // Application code for users friends
                                 // Insert into our local DB
-                                System.out.println("Response: " + response);
-                                System.out.println("JSON ARRAY: " + jsonArray);
-                                String token = AccessToken.getCurrentAccessToken().getUserId();
+                                final String token = AccessToken.getCurrentAccessToken().getUserId();
+                                final ParseQuery<ParseObject> friendsQuery = ParseQuery.getQuery("Friends");
+                                //User = the user id of the person logged in
+                                //User_id = the user id of the friend
+                                friendsQuery.whereEqualTo("friendUser", token);
+                                final Integer[] numFriends = new Integer[1];
 
-                                try {
-                                    for (int i = 0; i < jsonArray.length(); i++) {
-                                        JSONObject row = jsonArray.getJSONObject(i);
-                                        System.out.println("Friend: " + row);
-                                        datasource.createFriend(row.getString("name"), row.getString("id"), token);
-                                        System.out.println("Friend Id: " + datasource.getFriend(row.getString("id")).getId());
-                                        System.out.println("Friend Name: " + datasource.getFriend(row.getString("id")).getName());
+                                friendsQuery.findInBackground(new FindCallback<ParseObject>() {
+                                    @Override
+                                    public void done(List<ParseObject> friendsList, ParseException e) {
+                                        if (e == null) {
+                                            numFriends[0] = friendsList.size();
+                                            System.out.println("Num friends: " + numFriends[0]);
+                                            System.out.println("No exception");
+                                            // object will be your game score
+                                        } else {
+                                            Log.d("Posts", "Error: " + e.getMessage());
+                                            numFriends[0] = 0;
+                                            // something went wrong
+                                        }
+                                        try {
+                                            if (numFriends[0] < 1) {
+                                                System.out.println("Past: " + jsonArray.length());
+                                                for (int i = 0; i < jsonArray.length(); i++) {
+                                                    JSONObject row = jsonArray.getJSONObject(i);
+                                                    System.out.println("Friend: " + row);
+                                                    String uniqueFriendId = UUID.randomUUID().toString();
+                                                    Friend createdFriend = friendsDataSource.createFriend(uniqueFriendId, row.getString("name"), row.getString("id"), token, 0);
+                                                    System.out.println("Friend Id: " + friendsDataSource.getFriend(row.getString("id")).getId());
+                                                    System.out.println("Friend Name: " + friendsDataSource.getFriend(row.getString("id")).getName());
+                                                    createFriendInCloud(createdFriend);
+                                                }
+                                                //Still need to populate posts from cloud db
+                                                getPostsAndComments(AccessToken.getCurrentAccessToken().getUserId());
+                                            }
+                                            else {
+                                                getDataFromParse(AccessToken.getCurrentAccessToken().getUserId());
+                                            }
+                                        } catch (JSONException ex) {
+                                            throw new RuntimeException(ex);
+                                        }
+                                        System.out.println("JSON: " + jsonArray);
                                     }
-                                } catch (JSONException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                System.out.println("JSON: " + jsonArray);
+                                });
                             }
                         }
                 )
@@ -310,13 +348,169 @@ public class login extends Activity {
         Fresco.initialize(this, frescoConfig);
     }
 
-    private void startFriendsDatabase(){
-        datasource = new FriendsDataSource(this);
-        datasource.open();
+    private void createFriendInCloud(Friend friend){
+        ParseObject friendObj = new ParseObject("Friends");
+        friendObj.put("uniqueFriendId", friend.getId());
+        friendObj.put("friendUserId", friend.getUserId());
+        friendObj.put("friendUser", friend.getUser());
+        friendObj.put("isFriend", friend.getIsFriend());
+        friendObj.put("friendName", friend.getName());
+        friendObj.saveInBackground();
     }
+
 
     private void deletePostsDatabase(){
         this.deleteDatabase("databaseManager.db");
+    }
+
+    private void getPostsAndComments(String userId) {
+        ParseQuery<ParseObject> userPostsQuery = ParseQuery.getQuery("Posts");
+        userPostsQuery.whereEqualTo("posterUserId", userId);
+        ParseQuery<ParseObject> publicPostsQuery = ParseQuery.getQuery("Posts");
+        publicPostsQuery.whereEqualTo("privacy", 0);
+        //TODO: Query longitude and latitude by 15 mile distance
+        List<ParseQuery<ParseObject>> parseQueryList = new ArrayList<>();
+        parseQueryList.add(userPostsQuery);
+        parseQueryList.add(publicPostsQuery);
+        ParseQuery mainQuery = ParseQuery.or(parseQueryList);
+        mainQuery.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> postList, ParseException e) {
+                if (e == null) {
+                    System.out.println("Retrieved Posts: " + postList.size());
+                    //Store into local database
+                    for (ParseObject post : postList) {
+                        storePost(post);
+                        ParseQuery<ParseObject> commentsQuery = ParseQuery.getQuery("Comments");
+                        commentsQuery.whereEqualTo("commentPostId", post.get("postId"));
+                        commentsQuery.findInBackground(new FindCallback<ParseObject>() {
+                            @Override
+                            public void done(List<ParseObject> commentsList, ParseException e) {
+                                if (e == null) {
+                                    System.out.println("Retrieved Comments: " + commentsList.size());
+                                    //Store into local database
+                                    for (ParseObject comment : commentsList) {
+                                        storeComment(comment);
+
+                                    }
+                                    // object will be your game score
+                                } else {
+                                    Log.d("Posts", "Error: " + e.getMessage());
+                                    // something went wrong
+                                }
+                            }
+                        });
+                    }
+                    // object will be your game score
+                } else {
+                    Log.d("Posts", "Error: " + e.getMessage());
+                    // something went wrong
+                }
+            }
+        });
+
+    }
+
+    private void getPostsAndComments(String userId, ParseObject friend){
+        ParseQuery<ParseObject> friendsPostsQuery = ParseQuery.getQuery("Posts");
+        friendsPostsQuery.whereEqualTo("posterUserId", friend.get("friendUser"));
+        ParseQuery<ParseObject> publicPostsQuery = ParseQuery.getQuery("Posts");
+        publicPostsQuery.whereEqualTo("privacy", 0);
+        //TODO: Query longitude and latitude by 15 mile distance
+        ParseQuery<ParseObject> userPostsQuery = ParseQuery.getQuery("Posts");
+        userPostsQuery.whereEqualTo("posterUserId", userId);
+        List<ParseQuery<ParseObject>> parseQueryList = new ArrayList<>();
+        parseQueryList.add(friendsPostsQuery);
+        parseQueryList.add(publicPostsQuery);
+        parseQueryList.add(userPostsQuery);
+        ParseQuery mainQuery = ParseQuery.or(parseQueryList);
+        mainQuery.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> postList, ParseException e) {
+                if (e == null) {
+                    System.out.println("Retrieved Posts 2" + postList.size());
+                    //Store into local database
+                    for (ParseObject post : postList) {
+                        storePost(post);
+                        ParseQuery<ParseObject> commentsQuery = ParseQuery.getQuery("Comments");
+                        commentsQuery.whereEqualTo("commentPostId", post.get("postId"));
+                        commentsQuery.findInBackground(new FindCallback<ParseObject>() {
+                            @Override
+                            public void done(List<ParseObject> commentsList, ParseException e) {
+                                if (e == null) {
+                                    System.out.println("Retrieved Comments 2" + commentsList.size());
+                                    //Store into local database
+                                    for (ParseObject comment : commentsList) {
+                                        storeComment(comment);
+
+                                    }
+                                    // object will be your game score
+                                } else {
+                                    Log.d("Posts", "Error: " + e.getMessage());
+                                    // something went wrong
+                                }
+                            }
+                        });
+                    }
+                    // object will be your game score
+                } else {
+                    Log.d("Posts", "Error: " + e.getMessage());
+                    // something went wrong
+                }
+            }
+        });
+    }
+
+
+    private void getDataFromParse(final String userId){
+        ParseQuery<ParseObject> friendsQuery = ParseQuery.getQuery("Friends");
+        friendsQuery.whereEqualTo("friendUser", userId);
+        friendsQuery.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> friendsList, ParseException e) {
+                if (e == null) {
+                    System.out.println("Retrieved " + friendsList.size());
+                    //Store into local database
+                    for (ParseObject friend : friendsList) {
+                        storeFriend(friend);
+                        getPostsAndComments(userId, friend);
+                    }
+                    // object will be your game score
+                } else {
+                    Log.d("Posts", "Error: " + e.getMessage());
+                    // something went wrong
+                }
+            }
+        });
+    }
+
+    private void storeFriend(ParseObject friend){
+        friendsDataSource.createFriend(friend.get("uniqueFriendId").toString(),
+                friend.get("friendName").toString(), friend.get("friendUserId").toString(),
+                friend.get("friendUser").toString(), Integer.parseInt(friend.get("isFriend").toString()));
+    }
+
+    private void storePost(ParseObject post){
+        postsDataSource.createPost(post.get("uniquePostId").toString(),
+                post.get("posterUserId").toString(), post.get("postStatus").toString(),
+                post.get("posterName").toString(), Integer.parseInt(post.get("privacy").toString()),
+                Double.parseDouble(post.get("latitude").toString()), Double.parseDouble(post.get("longitude").toString()));
+    }
+
+    private void storeComment(ParseObject comment){
+        //public Comment createComment(String uniqueCommentId, String postId, String commenter, String comment, String commenterUserId) {
+            commentsDataSource.createComment(comment.get("commentId").toString(),
+                    comment.get("commentPostId").toString(), comment.get("commenter").toString(),
+                    comment.get("comment").toString(), comment.get("commenterUserId").toString());
+    }
+
+    private void startDatabases(){
+        postsDataSource = new PostsDataSource(this);
+        postsDataSource.open();
+        commentsDataSource = new CommentsDataSource(this);
+        commentsDataSource.open();
+        friendsDataSource = new FriendsDataSource(this);
+        friendsDataSource.open();
     }
 
 }

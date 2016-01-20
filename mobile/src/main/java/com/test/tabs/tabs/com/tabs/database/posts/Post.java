@@ -4,7 +4,7 @@ package com.test.tabs.tabs.com.tabs.database.posts;
  * Created by Chiharu on 10/26/2015.
  */
 public class Post {
-    private long id;
+    private String id;
     private String name;
     private String status;
     private String posterUserId;
@@ -14,7 +14,7 @@ public class Post {
     private double longitude;
     private double latitude;
 
-    public Post(long id, String name, String status, String posterUserId, String timeStamp, Integer privacy, double latitude, double longitude) {
+    public Post(String id, String name, String status, String posterUserId, String timeStamp, Integer privacy, double latitude, double longitude) {
         super();
         this.id = id;
         this.name = name;
@@ -30,11 +30,11 @@ public class Post {
 
     public void setPrivacy(Integer privacy) { this.privacy = privacy; }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
