@@ -37,6 +37,8 @@ import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.parse.Parse;
+import com.parse.ParseInstallation;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
@@ -102,7 +104,6 @@ public class login extends Activity {
         loginButton = (LoginButton)findViewById(R.id.login_button);
 
         loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile"));
-
 
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in

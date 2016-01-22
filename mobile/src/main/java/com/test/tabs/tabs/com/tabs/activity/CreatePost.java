@@ -218,6 +218,7 @@ public class CreatePost extends AppCompatActivity {
     }
 
     private void savePostInCloud(Post post, Location location){
+        //Save post to Parse Cloud DB as a 'Post' object
         ParseObject postObj = new ParseObject("Post");
         postObj.put("postId", post.getId());
         postObj.put("postStatus", post.getStatus());
@@ -226,6 +227,14 @@ public class CreatePost extends AppCompatActivity {
         postObj.put("latitude", location.getLatitude());
         postObj.put("longitude", location.getLongitude());
         postObj.saveInBackground();
+
+        //** Send push notifications to friends **
+        //Send targeted push notifications to friends
+            //get friends from current user
+            //get installation id from current user
+        //Push notification
+        //Subscribe current user to channel
+
     }
 
 
