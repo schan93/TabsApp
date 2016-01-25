@@ -65,8 +65,33 @@ public class PostsDataSource {
         values.put(DatabaseHelper.COLUMN_LATITUDE, latitude);
         values.put(DatabaseHelper.COLUMN_LONGITUDE, longitude);
         //Insert into the database
-        database.insert(DatabaseHelper.TABLE_POSTS, null,
-                values);
+        database.insertWithOnConflict(DatabaseHelper.TABLE_POSTS, null,
+                values, SQLiteDatabase.CONFLICT_IGNORE);
+
+        Post post = new Post(postId, posterName, status, posterUserId, getDateTime(), privacy, latitude, longitude);
+        return post;
+    }
+
+    public Post createPostFromParse(String postId, String posterUserId, String status, String timeStamp, String posterName, Integer privacy, double latitude, double longitude) {
+        //Create a ContentValues object so we can put our column name key/value pairs into it.
+        ContentValues values = new ContentValues();
+        //Insert 0 as column id because it will autoincrement for us (?)
+        values.put(DatabaseHelper.KEY_ID, postId);
+        values.put(DatabaseHelper.COLUMN_POSTER_NAME, posterName);
+        values.put(DatabaseHelper.COLUMN_POSTER_USER_ID, posterUserId);
+        values.put(DatabaseHelper.COLUMN_STATUS, status);
+        values.put(DatabaseHelper.COLUMN_TIME_STAMP, timeStamp);
+        values.put(DatabaseHelper.COLUMN_PRIVACY, privacy);
+        values.put(DatabaseHelper.COLUMN_LATITUDE, latitude);
+        values.put(DatabaseHelper.COLUMN_LONGITUDE, longitude);
+        //Insert into the database
+
+        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_POSTS + " ("+
+                DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS + ", "
+                + DatabaseHelper.COLUMN_TIME_STAMP +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                new String[]{postId, posterName, posterUserId, status, timeStamp, privacy.toString(), Double.toString(longitude), Double.toString(latitude)});
+//        database.insertWithOnConflict(DatabaseHelper.TABLE_POSTS, null,
+//                values, SQLiteDatabase.CONFLICT_IGNORE);
 
         Post post = new Post(postId, posterName, status, posterUserId, getDateTime(), privacy, latitude, longitude);
         return post;

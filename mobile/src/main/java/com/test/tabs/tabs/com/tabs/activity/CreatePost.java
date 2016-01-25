@@ -219,6 +219,7 @@ public class CreatePost extends AppCompatActivity {
         postObj.put("postStatus", post.getStatus());
         postObj.put("posterName", post.getName());
         postObj.put("privacy", privacy);
+        postObj.put("postTimeStamp", post.getTimeStamp());
         postObj.put("posterUserId", post.getPosterUserId());
         postObj.put("latitude", location.getLatitude());
         postObj.put("longitude", location.getLongitude());
