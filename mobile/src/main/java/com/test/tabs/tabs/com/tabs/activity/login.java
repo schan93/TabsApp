@@ -101,7 +101,7 @@ public class login extends Activity {
         //Configure Fresco so that image loads quickly
         configFresco();
         //Remove DB first this is because we have to change the schema
-        deletePostsDatabase();
+//        deletePostsDatabase();
         //Initialize DB
         startDatabases();
 
@@ -432,7 +432,7 @@ public class login extends Activity {
                     for (ParseObject post : postList) {
                         storePost(post);
                         ParseQuery<ParseObject> commentsQuery = ParseQuery.getQuery("Comments");
-                        commentsQuery.whereEqualTo("commentPostId", post.get("postId"));
+                        commentsQuery.whereEqualTo("commentPostId", post.get("uniquePostId").toString());
                         commentsQuery.findInBackground(new FindCallback<ParseObject>() {
                             @Override
                             public void done(List<ParseObject> commentsList, ParseException e) {
@@ -490,8 +490,8 @@ public class login extends Activity {
     }
 
     private void storePost(ParseObject post){
-        postsDataSource.createPost(post.get("uniquePostId").toString(),
-                post.get("posterUserId").toString(), post.get("postStatus").toString(),
+        postsDataSource.createPostFromParse(post.get("uniquePostId").toString(),
+                post.get("posterUserId").toString(), post.get("postStatus").toString(), post.get("postTimeStamp").toString(),
                 post.get("posterName").toString(), Integer.parseInt(post.get("privacy").toString()),
                 Double.parseDouble(post.get("latitude").toString()), Double.parseDouble(post.get("longitude").toString()));
     }
