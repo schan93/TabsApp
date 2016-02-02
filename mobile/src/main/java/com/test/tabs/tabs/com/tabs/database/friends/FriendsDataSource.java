@@ -50,7 +50,11 @@ public class FriendsDataSource {
         values.put(DatabaseHelper.COLUMN_USER, user);
         values.put(DatabaseHelper.COLUMN_IS_FRIEND, isFriend);
         //Insert into the database
-        database.insertWithOnConflict(DatabaseHelper.TABLE_FRIENDS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        //database.insertWithOnConflict(DatabaseHelper.TABLE_FRIENDS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_FRIENDS + " ("+
+                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_USER_ID + ", " + DatabaseHelper.COLUMN_NAME +", " + DatabaseHelper.COLUMN_USER + ", "
+                        + DatabaseHelper.COLUMN_IS_FRIEND + ") VALUES (?, ?, ?, ?, ?)",
+                        new String[]{uniqueId, name, id, user, Integer.toString(isFriend)});
         Friend friend = new Friend(uniqueId, name, id, user, isFriend);
 //        database.insert(DatabaseHelper.TABLE_FRIENDS, null,
 //                values);

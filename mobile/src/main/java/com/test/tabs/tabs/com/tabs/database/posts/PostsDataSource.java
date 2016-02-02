@@ -65,8 +65,9 @@ public class PostsDataSource {
         values.put(DatabaseHelper.COLUMN_LATITUDE, latitude);
         values.put(DatabaseHelper.COLUMN_LONGITUDE, longitude);
         //Insert into the database
-        database.insertWithOnConflict(DatabaseHelper.TABLE_POSTS, null,
-                values, SQLiteDatabase.CONFLICT_IGNORE);
+        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_POSTS + " (" +
+                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
+                new String[]{postId, posterName, posterUserId, status, privacy.toString(), Double.toString(latitude), Double.toString(longitude)});
 
         Post post = new Post(postId, posterName, status, posterUserId, getDateTime(), privacy, latitude, longitude);
         return post;

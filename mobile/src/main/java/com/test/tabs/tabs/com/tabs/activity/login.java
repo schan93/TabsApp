@@ -101,7 +101,7 @@ public class login extends Activity {
         //Configure Fresco so that image loads quickly
         configFresco();
         //Remove DB first this is because we have to change the schema
-//        deletePostsDatabase();
+        deletePostsDatabase();
         //Initialize DB
         startDatabases();
 
@@ -268,8 +268,8 @@ public class login extends Activity {
                                                     System.out.println("Friend: " + row);
                                                     String uniqueFriendId = UUID.randomUUID().toString();
                                                     Friend createdFriend = friendsDataSource.createFriend(uniqueFriendId, row.getString("name"), row.getString("id"), token, 0);
-                                                    System.out.println("Friend Id: " + friendsDataSource.getFriend(row.getString("id")).getId());
-                                                    System.out.println("Friend Name: " + friendsDataSource.getFriend(row.getString("id")).getName());
+                                                    //System.out.println("Friend Id: " + friendsDataSource.getFriend(row.getString("id")).getId());
+                                                    //System.out.println("Friend Name: " + friendsDataSource.getFriend(row.getString("id")).getName());
                                                     createFriendInCloud(createdFriend);
                                                 }
                                                 //Still need to populate posts from cloud db
@@ -348,13 +348,13 @@ public class login extends Activity {
     }
 
     private void createFriendInCloud(Friend friend){
-        ParseObject friendObj = new ParseObject("Friends");
-        friendObj.put("uniqueFriendId", friend.getId());
-        friendObj.put("friendUserId", friend.getUserId());
-        friendObj.put("friendUser", friend.getUser());
-        friendObj.put("isFriend", friend.getIsFriend());
-        friendObj.put("friendName", friend.getName());
-        friendObj.saveInBackground();
+//        ParseObject friendObj = new ParseObject("Friends");
+//        friendObj.put("uniqueFriendId", friend.getId());
+//        friendObj.put("friendUserId", friend.getUserId());
+//        friendObj.put("friendUser", friend.getUser());
+//        friendObj.put("isFriend", friend.getIsFriend());
+//        friendObj.put("friendName", friend.getName());
+//        friendObj.saveInBackground();
     }
 
 

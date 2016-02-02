@@ -14,6 +14,10 @@ public class Post {
     private double longitude;
     private double latitude;
 
+    public Post(){
+        // empty default constructor, necessary for Firebase to be able to deserialize blog posts
+    }
+
     public Post(String id, String name, String status, String posterUserId, String timeStamp, Integer privacy, double latitude, double longitude) {
         super();
         this.id = id;
