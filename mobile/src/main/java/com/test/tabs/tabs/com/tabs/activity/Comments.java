@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by schan on 11/24/15.
@@ -72,6 +73,7 @@ public class Comments extends AppCompatActivity {
     private NotificationManager notificationManager;
     private boolean isNotificationActive;
     private String userId;
+    String uniqueCommentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +81,7 @@ public class Comments extends AppCompatActivity {
 
         userId = AccessToken.getCurrentAccessToken().getUserId();
         setContentView(R.layout.comments);
-        final long postId = getPostId();
+        final String postId = getPostId();
         toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         setSupportActionBar(toolbar);
         final Profile profile = Profile.getCurrentProfile();
@@ -160,7 +162,8 @@ public class Comments extends AppCompatActivity {
                 if (TextUtils.isEmpty(comment.getText())) {
                     Toast.makeText(Comments.this, "Please enter in a comment first.", Toast.LENGTH_SHORT).show();
                 } else {
-                    Comment createdComment = commentsDatasource.createComment(postId, commenter, comment.getText().toString(), profile.getId());
+                    uniqueCommentId = UUID.randomUUID().toString();
+                    Comment createdComment = commentsDatasource.createComment(uniqueCommentId, postId, commenter, comment.getText().toString(), profile.getId());
                     //Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
                     //Make comment blank and set cursor to disappear once again. Also hide keyboard again.
                     comment.setText("");
@@ -258,7 +261,7 @@ public class Comments extends AppCompatActivity {
     }
 
 
-    public void populateComments(long postId) {
+    public void populateComments(String postId) {
         commentsRecyclerViewAdapter = new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentsDatasource.getCommentsForPost(postId));
         commentsRecyclerViewAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
@@ -272,7 +275,7 @@ public class Comments extends AppCompatActivity {
         checkAdapterIsEmpty();
     }
 
-    public CommentsHeader getCommentsHeader(long id)
+    public CommentsHeader getCommentsHeader(String id)
     {
         System.out.println("Going to inflate header");
         post = postsDataSource.getPost(id);
@@ -285,7 +288,7 @@ public class Comments extends AppCompatActivity {
     }
 
 
-    public void populatePost(long id) {
+    public void populatePost(String id) {
         post = postsDataSource.getPost(id);
         TextView statusMsg = (TextView)findViewById(R.id.view_status);
         System.out.println("Post: " + post);
@@ -312,18 +315,19 @@ public class Comments extends AppCompatActivity {
         postsDataSource.open();
     }
 
-    public long getPostId(){
+    public String getPostId(){
         Bundle extras = getIntent().getExtras();
-        Long value;
+        String value;
         if (extras != null) {
-            value = extras.getLong("id");
+            value = extras.getString("id");
             return value;
         }
-        return 0;
+        return "";
     }
 
     private void saveCommentInCloud(Comment comment){
-        ParseObject commentObj = new ParseObject("Comment");
+        ParseObject commentObj = new ParseObject("Comments");
+        commentObj.put("commentId", comment.getId());
         commentObj.put("commentPostId", comment.getPostId());
         commentObj.put("comment", comment.getComment());
         commentObj.put("commenter", comment.getCommenter());

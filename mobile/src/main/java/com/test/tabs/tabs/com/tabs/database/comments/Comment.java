@@ -6,22 +6,23 @@ package com.test.tabs.tabs.com.tabs.database.comments;
 
 //Just for ONE individual comment
 public class Comment {
-    private long id; //This is the ID of the coment
-    private long postId; //ID of the post
+    private String id; //This is the ID of the coment
+    private String postId; //ID of the post
     private String commenter; //Can be same as poster
     private String comment; //Message that is written
     private String commenterUserId; //Commtenter id from facebook
     private String timeStamp; //When he wrote it
 
     public Comment(){
-        this.postId = 0;
+        this.postId = "";
         this.commenter = "";
         this.comment = "";
         this.commenterUserId = "";
         this.timeStamp = "";
     }
 
-    public Comment(long postId, String commenter, String comment, String commenterUserId, String timeStamp){
+    public Comment(String uniqueId, String postId, String commenter, String comment, String commenterUserId, String timeStamp){
+        this.id = uniqueId;
         this.postId = postId;
         this.commenter = commenter;
         this.comment = comment;
@@ -30,19 +31,19 @@ public class Comment {
     }
 
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public long getPostId() {
+    public String getPostId() {
         return postId;
     }
 
-    public void setPostId(long postId) {
+    public void setPostId(String postId) {
         this.postId = postId;
     }
 

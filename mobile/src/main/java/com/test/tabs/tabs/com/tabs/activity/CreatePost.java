@@ -52,6 +52,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by schan on 11/14/15.
@@ -68,22 +69,13 @@ public class CreatePost extends AppCompatActivity {
     //Global variable for privacy, 0 = public, 1 = private, initialize to private
     Integer privacy;
 
-    // Resgistration Id from GCM
-    private static final String PREF_GCM_REG_ID = "PREF_GCM_REG_ID";
-    private SharedPreferences prefs;
-    // Your project number and web server url. Please change below.
-    private static final String GCM_SENDER_ID = "213033849274";
-    private static final String WEB_SERVER_URL = "jdbc:google:mysql://tabs-1124:tabs-backend/tabs_backend";
-
     Button registerBtn;
     TextView regIdView;
 
-    private static final int ACTION_PLAY_SERVICES_DIALOG = 100;
-    protected static final int MSG_REGISTER_WITH_GCM = 101;
-    protected static final int MSG_REGISTER_WEB_SERVER = 102;
-    protected static final int MSG_REGISTER_WEB_SERVER_SUCCESS = 103;
-    protected static final int MSG_REGISTER_WEB_SERVER_FAILURE = 104;
-    private String gcmRegId;
+    String userId;
+
+    String uniquePostId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +88,9 @@ public class CreatePost extends AppCompatActivity {
         //Open posts database for storage
         datasource = new PostsDataSource(this);
         datasource.open();
+
+        uniquePostId = UUID.randomUUID().toString();
+        userId = AccessToken.getCurrentAccessToken().getUserId();
 
         //Pop up keyboard
         post = (EditText) findViewById(R.id.type_status);
@@ -191,7 +186,7 @@ public class CreatePost extends AppCompatActivity {
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
             case R.id.send_post:
-                String postId = getIntent().getExtras().getString("id");
+                uniquePostId = UUID.randomUUID().toString();
                 String name = getIntent().getExtras().getString("name");
                 if(post.getText().length() == 0){
                     Toast.makeText(CreatePost.this, "Please enter something in the post.", Toast.LENGTH_SHORT).show();
@@ -199,7 +194,8 @@ public class CreatePost extends AppCompatActivity {
 
                 System.out.println("Privacy: " + privacy);
                 Location location = LocationService.getLastLocation();
-                Post createdPost = datasource.createPost(postId, post.getText().toString(), name, privacy, location.getLatitude(), location.getLongitude());
+                Post createdPost = datasource.createPost(uniquePostId, userId,  post.getText().toString(), name, privacy, location.getLatitude(), location.getLongitude());
+                System.out.println("Unique post id: " + uniquePostId);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
@@ -218,12 +214,12 @@ public class CreatePost extends AppCompatActivity {
     }
 
     private void savePostInCloud(Post post, Location location){
-        //Save post to Parse Cloud DB as a 'Post' object
-        ParseObject postObj = new ParseObject("Post");
-        postObj.put("postId", post.getId());
+        ParseObject postObj = new ParseObject("Posts");
+        postObj.put("uniquePostId", post.getId());
         postObj.put("postStatus", post.getStatus());
         postObj.put("posterName", post.getName());
         postObj.put("privacy", privacy);
+        postObj.put("posterUserId", post.getPosterUserId());
         postObj.put("latitude", location.getLatitude());
         postObj.put("longitude", location.getLongitude());
         postObj.saveInBackground();

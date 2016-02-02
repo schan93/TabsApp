@@ -52,10 +52,11 @@ public class PostsDataSource {
         return dateFormat.format(date);
     }
 
-    public Post createPost(String posterUserId, String status, String posterName, Integer privacy, double latitude, double longitude) {
+    public Post createPost(String postId, String posterUserId, String status, String posterName, Integer privacy, double latitude, double longitude) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
+        values.put(DatabaseHelper.KEY_ID, postId);
         values.put(DatabaseHelper.COLUMN_POSTER_NAME, posterName);
         values.put(DatabaseHelper.COLUMN_POSTER_USER_ID, posterUserId);
         values.put(DatabaseHelper.COLUMN_STATUS, status);
@@ -67,16 +68,16 @@ public class PostsDataSource {
         database.insert(DatabaseHelper.TABLE_POSTS, null,
                 values);
 
-        Post post = new Post(0, posterName, status, posterUserId, getDateTime(), privacy, latitude, longitude);
+        Post post = new Post(postId, posterName, status, posterUserId, getDateTime(), privacy, latitude, longitude);
         return post;
     }
 
-    public Post getPost(long id) {
+    public Post getPost(String id) {
         //This might only get one post. We have the get all posts below however. This method may not be useful now but just leaving here
         //Get the values from the database, querying by poster's user id
         ContentValues row = new ContentValues();
         Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
-                allColumns, DatabaseHelper.KEY_ID + " = ?", new String[]{Long.toString(id)},
+                allColumns, DatabaseHelper.KEY_ID + " = ?", new String[]{id},
                 null, null, null);
         cursor.moveToFirst();
         Post newPost = cursorToPost(cursor);
@@ -86,7 +87,7 @@ public class PostsDataSource {
 
     private Post cursorToPost(Cursor cursor) {
         //List is: 0 = Id, 1 = name, 2 = userid, 3 = status, 4 =timestamp, 5 = privacy, 6 = latitude, 7 = longitude
-        System.out.println("Id: " + cursor.getLong(0));
+        System.out.println("Id: " + cursor.getString(0));
         System.out.println("Name: " + cursor.getString(1));
         System.out.println("Status: " + cursor.getString(3));
         System.out.println("User Id: " + cursor.getString(2));
@@ -94,7 +95,7 @@ public class PostsDataSource {
         System.out.println("Privacy: " + cursor.getString(5));
         System.out.println("Latitude: " + cursor.getString(6));
 
-        Post post = new Post(cursor.getLong(0), cursor.getString(1), cursor.getString(3),
+        Post post = new Post(cursor.getString(0), cursor.getString(1), cursor.getString(3),
                 cursor.getString(2), cursor.getString(4), cursor.getInt(5), cursor.getDouble(6), cursor.getDouble(7));
         return post;
     }
@@ -253,9 +254,9 @@ public class PostsDataSource {
         }
     }
 
-    public Integer getNumberComments(long postId){
+    public Integer getNumberComments(String postId){
         Cursor cursor = database.query(DatabaseHelper.TABLE_COMMENTS,
-                new String[]{DatabaseHelper.COLUMN_POST_ID}, DatabaseHelper.COLUMN_POST_ID + " = ?", new String[]{Long.toString(postId)},
+                new String[]{DatabaseHelper.COLUMN_POST_ID}, DatabaseHelper.COLUMN_POST_ID + " = ?", new String[]{postId},
                 null, null, null);
         Integer count = cursor.getCount();
         //cursor.moveToFirst();

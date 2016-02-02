@@ -130,7 +130,6 @@ public class news_feed extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Bundle bundle = new Bundle();
-                bundle.putString("id", AccessToken.getCurrentAccessToken().getUserId());
                 bundle.putString("name", profile.getFirstName() + " " + profile.getLastName());
                 Intent intent = new Intent(news_feed.this, CreatePost.class);
                 if(intent != null) {
@@ -221,7 +220,8 @@ public class news_feed extends AppCompatActivity
 
     private void updateFriendsInCloud(){
         for(Friend i: datasource.getAllFriends(userId)){
-            ParseObject friendObj = new ParseObject("Friend");
+            ParseObject friendObj = new ParseObject("Friends");
+            friendObj.put("uniqueFriendId", i.getId());
             friendObj.put("friendUserId", i.getUserId());
             friendObj.put("friendUser", i.getUser());
             friendObj.put("isFriend", i.getIsFriend());

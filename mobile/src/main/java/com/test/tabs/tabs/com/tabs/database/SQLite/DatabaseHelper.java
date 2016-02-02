@@ -59,20 +59,20 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     // Table Create Statements
     private static final String CREATE_TABLE_FRIENDS = "create table "
             + TABLE_FRIENDS + "(" + KEY_ID
-            + " integer primary key autoincrement, " +  COLUMN_USER_ID  + " text not null unique, " + COLUMN_NAME
+            + " string primary key, " +  COLUMN_USER_ID  + " text not null, " + COLUMN_NAME
             + " text not null, " + COLUMN_USER + " text not null, " + COLUMN_IS_FRIEND + " integer not null);";
 
     // Tag table create statement
     private static final String CREATE_TABLE_POSTS = "create table "
             + TABLE_POSTS + "(" + KEY_ID
-            + " integer primary key autoincrement, " + COLUMN_POSTER_USER_ID
+            + " string primary key, " + COLUMN_POSTER_USER_ID
             + " text not null, " + COLUMN_POSTER_NAME + " text not null, " + COLUMN_STATUS +
             " text not null, " + COLUMN_TIME_STAMP + " datetime not null, " + COLUMN_PRIVACY + " integer not null, " +
             COLUMN_LATITUDE + " real not null, " + COLUMN_LONGITUDE + " real not null);";
 
     // Comments table create statement
     private static final String CREATE_TABLE_COMMENTS = "create table "
-            + TABLE_COMMENTS + "(" + KEY_ID + " integer primary key autoincrement, "
+            + TABLE_COMMENTS + "(" + KEY_ID + " string primary key, "
             + COLUMN_POST_ID + " integer not null, " + COLUMN_COMMENTER + " text not null, "
             + COLUMN_COMMENT + " text not null, " + COLUMN_COMMENTER_USER_ID + " text not null, " + COLUMN_TIME_STAMP + " datetime not null)";
 

@@ -54,9 +54,10 @@ public class CommentsDataSource {
         return dateFormat.format(date);
     }
 
-    public Comment createComment(long postId, String commenter, String comment, String commenterUserId) {
+    public Comment createComment(String uniqueCommentId, String postId, String commenter, String comment, String commenterUserId) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
+        values.put(DatabaseHelper.KEY_ID, uniqueCommentId);
         values.put(DatabaseHelper.COLUMN_POST_ID, postId);
         values.put(DatabaseHelper.COLUMN_COMMENTER, commenter);
         values.put(DatabaseHelper.COLUMN_COMMENT, comment);
@@ -66,7 +67,7 @@ public class CommentsDataSource {
         System.out.println("Values in create: " + values);
         database.insert(DatabaseHelper.TABLE_COMMENTS, null,
                 values);
-        Comment createdComment = new Comment(postId, commenter, comment, commenterUserId, getDateTime());
+        Comment createdComment = new Comment(uniqueCommentId, postId, commenter, comment, commenterUserId, getDateTime());
         return createdComment;
     }
 
@@ -85,8 +86,8 @@ public class CommentsDataSource {
 
     private Comment cursorToPost(Cursor cursor) {
         Comment comment = new Comment();
-        comment.setId(cursor.getLong(0));
-        comment.setPostId(cursor.getLong(1));
+        comment.setId(cursor.getString(0));
+        comment.setPostId(cursor.getString(1));
         comment.setCommenter(cursor.getString(2));
         comment.setComment(cursor.getString(3));
         comment.setCommenterUserId(cursor.getString(4));
@@ -95,17 +96,17 @@ public class CommentsDataSource {
     }
 
     public void deleteComment(Comment post) {
-        long id = post.getId();
+        String id = post.getId();
         System.out.println("Comment deleted with id: " + id);
         database.delete(DatabaseHelper.TABLE_POSTS, DatabaseHelper.KEY_ID
                 + " = " + id, null);
     }
 
-    public List<Comment> getCommentsForPost(long postId) {
+    public List<Comment> getCommentsForPost(String postId) {
         List<Comment> comments = new ArrayList<Comment>();
 
         Cursor cursor = database.query(DatabaseHelper.TABLE_COMMENTS,
-                allColumns, DatabaseHelper.COLUMN_POST_ID + " = ?", new String[]{Long.toString(postId)}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_POST_ID + " = ?", new String[]{postId}, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {

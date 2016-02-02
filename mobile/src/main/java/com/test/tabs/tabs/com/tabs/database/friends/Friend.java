@@ -4,13 +4,22 @@ package com.test.tabs.tabs.com.tabs.database.friends;
  * Created by schan on 10/28/15.
  */
 public class Friend {
-    private long id;
-    private String user_id;
+
+    Friend(String id, String name, String userId, String user, Integer isFriend){
+        this.id = id;
+        this.userId = userId;
+        this.name = name;
+        this.user = user;
+        this.isFriend = isFriend;
+    }
+
+    private String id;
+    private String userId;
     private String name;
     private String user;
     private Integer isFriend;
 
-    public long getId(){
+    public String getId(){
         return id;
     }
 
@@ -19,14 +28,14 @@ public class Friend {
     }
 
     public String getUserId() {
-        return user_id;
+        return userId;
     }
 
     public String getUser() { return user; }
 
     public Integer getIsFriend() { return isFriend; }
 
-    public void setId(long id){
+    public void setId(String id){
         this.id = id;
     }
 
@@ -34,7 +43,7 @@ public class Friend {
         this.name = name;
     }
 
-    public void setUserId(String user_id) {this.user_id = user_id; }
+    public void setUserId(String user_id) {this.userId = userId; }
 
     public void setIsFriend(Integer isFriend) { this.isFriend = isFriend; }
 
