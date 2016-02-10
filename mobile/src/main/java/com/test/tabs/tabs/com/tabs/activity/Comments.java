@@ -326,14 +326,15 @@ public class Comments extends AppCompatActivity {
     }
 
     private void saveCommentInCloud(Comment comment){
-        ParseObject commentObj = new ParseObject("Comments");
-        commentObj.put("commentId", comment.getId());
-        commentObj.put("commentPostId", comment.getPostId());
-        commentObj.put("comment", comment.getComment());
-        commentObj.put("commenter", comment.getCommenter());
-        commentObj.put("commenterUserId", comment.getCommenterUserId());
-        commentObj.put("commentTimeStamp", comment.getTimeStamp());
-        commentObj.saveInBackground();
+        //TODO: add firebase save comment to cloud
+//        ParseObject commentObj = new ParseObject("Comments");
+//        commentObj.put("commentId", comment.getId());
+//        commentObj.put("commentPostId", comment.getPostId());
+//        commentObj.put("comment", comment.getComment());
+//        commentObj.put("commenter", comment.getCommenter());
+//        commentObj.put("commenterUserId", comment.getCommenterUserId());
+//        commentObj.put("commentTimeStamp", comment.getTimeStamp());
+//        commentObj.saveInBackground();
     }
 
     public String convertDate(String timestamp) {

@@ -218,6 +218,8 @@ public class CreatePost extends AppCompatActivity {
     }
 
     private void savePostInCloud(Post post, Location location){
+        //TODO: add firebase save post to cloud
+
 //        ParseObject postObj = new ParseObject("Posts");
 //        postObj.put("uniquePostId", post.getId());
 //        postObj.put("postStatus", post.getStatus());
@@ -241,7 +243,6 @@ public class CreatePost extends AppCompatActivity {
         myPost.child("latitude").setValue(location.getLatitude());
         myPost.child("longitude").setValue(location.getLongitude());
 
-        Firebase ref = new Firebase("https://docs-examples.firebaseio.com/web/saving-data/fireblog/" + post.getId());
         // Attach an asynchronous callback to read the data at our posts reference
         myFirebaseRef.child(post.getId()).addValueEventListener(new ValueEventListener() {
             @Override

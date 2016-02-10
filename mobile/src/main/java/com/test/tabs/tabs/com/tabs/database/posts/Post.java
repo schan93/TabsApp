@@ -1,5 +1,7 @@
 package com.test.tabs.tabs.com.tabs.database.posts;
 
+import com.firebase.client.Firebase;
+
 /**
  * Created by Chiharu on 10/26/2015.
  */
@@ -14,8 +16,10 @@ public class Post {
     private double longitude;
     private double latitude;
 
+    /**
+     * Empty default constructor, necessary for Firebase to be able to deserialize Posts
+     */
     public Post(){
-        // empty default constructor, necessary for Firebase to be able to deserialize blog posts
     }
 
     public Post(String id, String name, String status, String posterUserId, String timeStamp, Integer privacy, double latitude, double longitude) {

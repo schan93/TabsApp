@@ -7,6 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.test.tabs.tabs.com.tabs.database.SQLite.DatabaseHelper;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,22 +55,41 @@ public class CommentsDataSource {
         return dateFormat.format(date);
     }
 
-    public Comment createComment(String uniqueCommentId, String postId, String commenter, String comment, String commenterUserId) {
+    public Comment createComment(String id, String postId, String commenter, String comment, String commenterUserId) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
-        values.put(DatabaseHelper.KEY_ID, uniqueCommentId);
+        values.put(DatabaseHelper.KEY_ID, id);
         values.put(DatabaseHelper.COLUMN_POST_ID, postId);
         values.put(DatabaseHelper.COLUMN_COMMENTER, commenter);
         values.put(DatabaseHelper.COLUMN_COMMENT, comment);
         values.put(DatabaseHelper.COLUMN_COMMENTER_USER_ID, commenterUserId);
-        values.put(DatabaseHelper.COLUMN_TIME_STAMP, getDateTime());
-        //Insert into the database
-        System.out.println("Values in create: " + values);
-        database.insert(DatabaseHelper.TABLE_COMMENTS, null,
-                values);
-        Comment createdComment = new Comment(uniqueCommentId, postId, commenter, comment, commenterUserId, getDateTime());
-        return createdComment;
+        String dateTime = getDateTime();
+        values.put(DatabaseHelper.COLUMN_TIME_STAMP, dateTime);
+        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_COMMENTS + " (" +
+                        DatabaseHelper.KEY_ID + ", " + DatabaseHelper.COLUMN_POST_ID + ", " + DatabaseHelper.COLUMN_COMMENTER + ", " + DatabaseHelper.COLUMN_COMMENT + ", "
+                        + DatabaseHelper.COLUMN_COMMENTER_USER_ID + ", " + DatabaseHelper.COLUMN_TIME_STAMP + ") VALUES (?, ?, ?, ?, ?, ?)",
+                new String[]{id, postId, commenter, comment, commenterUserId, dateTime});
+        Comment newComment = new Comment(id, postId, commenter, comment, commenterUserId, dateTime);
+        return newComment;
     }
+
+    public Comment createCommentFromFirebase(String id, String postId, String commenter, String comment, String commenterUserId, String timeStamp) {
+        //Create a ContentValues object so we can put our column name key/value pairs into it.
+        ContentValues values = new ContentValues();
+        values.put(DatabaseHelper.KEY_ID, id);
+        values.put(DatabaseHelper.COLUMN_POST_ID, postId);
+        values.put(DatabaseHelper.COLUMN_COMMENTER, commenter);
+        values.put(DatabaseHelper.COLUMN_COMMENT, comment);
+        values.put(DatabaseHelper.COLUMN_COMMENTER_USER_ID, commenterUserId);
+        values.put(DatabaseHelper.COLUMN_TIME_STAMP, timeStamp);
+        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_COMMENTS + " (" +
+                        DatabaseHelper.KEY_ID + ", " + DatabaseHelper.COLUMN_POST_ID + ", " + DatabaseHelper.COLUMN_COMMENTER + ", " + DatabaseHelper.COLUMN_COMMENT + ", "
+                        + DatabaseHelper.COLUMN_COMMENTER_USER_ID + ", " + DatabaseHelper.COLUMN_TIME_STAMP + ") VALUES (?, ?, ?, ?, ?, ?)",
+                new String[]{id, postId, commenter, comment, commenterUserId, timeStamp});
+        Comment newComment = new Comment(id, postId, commenter, comment, commenterUserId, timeStamp);
+        return newComment;
+    }
+
 
     public Comment getComment(String id) {
         //This might only get one post. We have the get all posts below however. This method may not be useful now but just leaving here
@@ -78,10 +98,14 @@ public class CommentsDataSource {
         Cursor cursor = database.query(DatabaseHelper.TABLE_COMMENTS,
                 allColumns, DatabaseHelper.KEY_ID + " = ?", new String[]{id},
                 null, null, null);
-        cursor.moveToFirst();
-        Comment newComment = cursorToPost(cursor);
-        cursor.close();
-        return newComment;
+        if(cursor.moveToFirst()){
+            Comment newComment = cursorToPost(cursor);
+            cursor.close();
+            return newComment;
+        }
+        else {
+            return null;
+        }
     }
 
     private Comment cursorToPost(Cursor cursor) {

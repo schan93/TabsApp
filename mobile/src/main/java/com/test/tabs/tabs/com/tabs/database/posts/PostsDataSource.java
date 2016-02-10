@@ -22,8 +22,6 @@ import java.util.Locale;
  * Created by schan on 11/16/15.
  */
 public class PostsDataSource {
-
-
     // Database fields
     private SQLiteDatabase database;
     private DatabaseHelper dbHelper;
@@ -33,8 +31,6 @@ public class PostsDataSource {
 
     public PostsDataSource(Context context) {
         dbHelper = DatabaseHelper.getInstance(context);
-//        database = dbHelper.getWritableDatabase();
-
     }
 
     public void open() throws SQLException {
@@ -60,7 +56,8 @@ public class PostsDataSource {
         values.put(DatabaseHelper.COLUMN_POSTER_NAME, posterName);
         values.put(DatabaseHelper.COLUMN_POSTER_USER_ID, posterUserId);
         values.put(DatabaseHelper.COLUMN_STATUS, status);
-        values.put(DatabaseHelper.COLUMN_TIME_STAMP, getDateTime());
+        String dateTime = getDateTime();
+        values.put(DatabaseHelper.COLUMN_TIME_STAMP, dateTime);
         values.put(DatabaseHelper.COLUMN_PRIVACY, privacy);
         values.put(DatabaseHelper.COLUMN_LATITUDE, latitude);
         values.put(DatabaseHelper.COLUMN_LONGITUDE, longitude);
@@ -69,11 +66,11 @@ public class PostsDataSource {
                         DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
                 new String[]{postId, posterName, posterUserId, status, privacy.toString(), Double.toString(latitude), Double.toString(longitude)});
 
-        Post post = new Post(postId, posterName, status, posterUserId, getDateTime(), privacy, latitude, longitude);
+        Post post = new Post(postId, posterName, status, posterUserId, dateTime, privacy, latitude, longitude);
         return post;
     }
 
-    public Post createPostFromParse(String postId, String posterUserId, String status, String timeStamp, String posterName, Integer privacy, double latitude, double longitude) {
+    public Post createPostFromFireBase(String postId, String posterUserId, String status, String timeStamp, String posterName, Integer privacy, double latitude, double longitude) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
@@ -94,7 +91,7 @@ public class PostsDataSource {
 //        database.insertWithOnConflict(DatabaseHelper.TABLE_POSTS, null,
 //                values, SQLiteDatabase.CONFLICT_IGNORE);
 
-        Post post = new Post(postId, posterName, status, posterUserId, getDateTime(), privacy, latitude, longitude);
+        Post post = new Post(postId, posterName, status, posterUserId, timeStamp, privacy, latitude, longitude);
         return post;
     }
 
@@ -105,10 +102,14 @@ public class PostsDataSource {
         Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
                 allColumns, DatabaseHelper.KEY_ID + " = ?", new String[]{id},
                 null, null, null);
-        cursor.moveToFirst();
-        Post newPost = cursorToPost(cursor);
-        cursor.close();
-        return newPost;
+        if(cursor.moveToFirst()) {
+            Post newPost = cursorToPost(cursor);
+            cursor.close();
+            return newPost;
+        }
+        else {
+            return null;
+        }
     }
 
     private Post cursorToPost(Cursor cursor) {
@@ -214,18 +215,15 @@ public class PostsDataSource {
 
     public List<Post> getPostsByUser(String userId) {
         List<Post> posts = new ArrayList<Post>();
-
         Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
                 allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{userId},
                 null, null, null);
-
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             Post post = cursorToPost(cursor);
             posts.add(post);
             cursor.moveToNext();
         }
-        // make sure to close the cursor
         cursor.close();
         return posts;
     }
@@ -233,25 +231,10 @@ public class PostsDataSource {
     public List<Post> getPostsByFriends(List<Friend> friendsUserIds) {
         List<Post> posts = new ArrayList<Post>();
         Cursor cursor = null;
-
-//        final String rawFreindsQuery = "select * from posts p left join friends f on p.user_id = f.user_id " +
-//                "where f.isFriend = 1";
-//
-//        cursor = database.rawQuery(rawFreindsQuery, null);
-//        System.out.println("Query cursor: " + cursor);
-//        cursor.moveToFirst();
-//        while(!cursor.isAfterLast()){
-//            Post post = cursorToPost(cursor);
-//            System.out.println("POST OUTPUT: " + post.getPosterUserId());
-//            Log.i("Test: ", "Post : " + post.getPosterUserId() + " Post id: " + post.getId() + " Post name: " + post.getName());
-//            posts.add(post);
-//            cursor.moveToNext();
-//        }
         for(int i = 0; i < friendsUserIds.size(); i++){
             cursor = database.query(DatabaseHelper.TABLE_POSTS,
                     allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{friendsUserIds.get(i).getUserId()},
                     null, null, null);
-
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
                 Post post = cursorToPost(cursor);
@@ -259,12 +242,10 @@ public class PostsDataSource {
                 cursor.moveToNext();
             }
         }
-        // make sure to close the cursor
         if(cursor != null)
             cursor.close();
         return posts;
     }
-
 
     public boolean isTablePopulated(){
         String count = "SELECT count(*) FROM posts";
@@ -272,7 +253,6 @@ public class PostsDataSource {
         cursor.moveToFirst();
         int rowCount = cursor.getInt(0);
         if(rowCount > 0){
-
             return true;
         }
         else{
@@ -285,8 +265,6 @@ public class PostsDataSource {
                 new String[]{DatabaseHelper.COLUMN_POST_ID}, DatabaseHelper.COLUMN_POST_ID + " = ?", new String[]{postId},
                 null, null, null);
         Integer count = cursor.getCount();
-        //cursor.moveToFirst();
-        //Integer count = cursor.getCount();
         cursor.close();
         return count;
     }

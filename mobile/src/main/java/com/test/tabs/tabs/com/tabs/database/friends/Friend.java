@@ -5,7 +5,10 @@ package com.test.tabs.tabs.com.tabs.database.friends;
  */
 public class Friend {
 
-    Friend(String id, String name, String userId, String user, Integer isFriend){
+    Friend(){
+    }
+
+    Friend(String id, String userId, String name, String user, Integer isFriend){
         this.id = id;
         this.userId = userId;
         this.name = name;
@@ -43,7 +46,7 @@ public class Friend {
         this.name = name;
     }
 
-    public void setUserId(String user_id) {this.userId = userId; }
+    public void setUserId(String userId) {this.userId = userId; }
 
     public void setIsFriend(Integer isFriend) { this.isFriend = isFriend; }
 

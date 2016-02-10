@@ -13,12 +13,7 @@ public class Comment {
     private String commenterUserId; //Commtenter id from facebook
     private String timeStamp; //When he wrote it
 
-    public Comment(){
-        this.postId = "";
-        this.commenter = "";
-        this.comment = "";
-        this.commenterUserId = "";
-        this.timeStamp = "";
+    Comment(){
     }
 
     public Comment(String uniqueId, String postId, String commenter, String comment, String commenterUserId, String timeStamp){

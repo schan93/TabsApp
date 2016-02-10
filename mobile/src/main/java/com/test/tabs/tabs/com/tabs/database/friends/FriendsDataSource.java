@@ -41,21 +41,22 @@ public class FriendsDataSource {
         dbHelper.close();
     }
 
-    public Friend createFriend(String uniqueId, String name, String id, String user, Integer isFriend) {
+    public Friend createFriend(String uniqueId, String name, String userId, String user, Integer isFriend) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.KEY_ID, uniqueId);
-        values.put(DatabaseHelper.COLUMN_USER_ID, id);
+        values.put(DatabaseHelper.COLUMN_USER_ID, userId);
         values.put(DatabaseHelper.COLUMN_NAME, name);
         values.put(DatabaseHelper.COLUMN_USER, user);
         values.put(DatabaseHelper.COLUMN_IS_FRIEND, isFriend);
         //Insert into the database
         //database.insertWithOnConflict(DatabaseHelper.TABLE_FRIENDS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
-        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_FRIENDS + " ("+
+
+            database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_FRIENDS + " ("+
                         DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_USER_ID + ", " + DatabaseHelper.COLUMN_NAME +", " + DatabaseHelper.COLUMN_USER + ", "
                         + DatabaseHelper.COLUMN_IS_FRIEND + ") VALUES (?, ?, ?, ?, ?)",
-                        new String[]{uniqueId, name, id, user, Integer.toString(isFriend)});
-        Friend friend = new Friend(uniqueId, name, id, user, isFriend);
+                        new String[]{uniqueId, userId, name, user, Integer.toString(isFriend)});
+        Friend friend = new Friend(uniqueId, userId, name, user, isFriend);
 //        database.insert(DatabaseHelper.TABLE_FRIENDS, null,
 //                values);
         return friend;
@@ -66,10 +67,14 @@ public class FriendsDataSource {
         Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
                 allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?",
                 new String[]{id}, null, null, null);
-        cursor.moveToFirst();
-        Friend newFriend = cursorToFriend(cursor);
-        cursor.close();
-        return newFriend;
+        if(cursor.moveToFirst()) {
+            Friend newFriend = cursorToFriend(cursor);
+            cursor.close();
+            return newFriend;
+        }
+        else {
+            return null;
+        }
     }
 
     private Friend cursorToFriend(Cursor cursor) {

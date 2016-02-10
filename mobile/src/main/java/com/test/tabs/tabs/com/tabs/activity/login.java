@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -34,6 +35,10 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -48,6 +53,8 @@ import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
+import com.test.tabs.tabs.com.tabs.database.users.User;
+import com.test.tabs.tabs.com.tabs.database.users.UsersDataSource;
 
 
 import org.json.JSONArray;
@@ -65,8 +72,8 @@ import java.util.UUID;
  */
 public class login extends Activity {
 
-    private static final String TAG = "Result: ";
-    //Widgets
+    //Firebase reference
+    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
     private LoginButton loginButton;
 
     //Manage callbacks in app
@@ -76,53 +83,46 @@ public class login extends Activity {
     private PostsDataSource postsDataSource;
     private CommentsDataSource commentsDataSource;
     private FriendsDataSource friendsDataSource;
+    private UsersDataSource usersDataSource;
 
-    //Google Location Services API
-    GoogleApiClient googleApiClient;
-    LocationServices lastLocation;
-    Location location;
-    LocationManager locationManager;
+    //Variable for current user facebook user id
+    private String userId;
 
     //Boolean to tell us whether or not we are actually logged in already if we are then we show the loading screen
     Boolean loggedIn = false;
 
+    Handler handler;
+
     //Initialize location service
     LocationService locationService;
-
-    //Parse database
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Initialize Facebook SDK
+        //Initialize Facebook SDK & Callback Manager
         FacebookSdk.sdkInitialize(getApplicationContext());
-        //Initialize Callback Manager
         callbackManager = CallbackManager.Factory.create();
         //Configure Fresco so that image loads quickly
         configFresco();
         //Remove DB first this is because we have to change the schema
-        deletePostsDatabase();
+        deleteDatabase();
         //Initialize DB
         startDatabases();
-
+        //Initialize Handler
+        handler = new Handler();
         //Set up location services
         LocationService.getLocationManager(this);
-
         setContentView(R.layout.activity_login);
         loginButton = (LoginButton)findViewById(R.id.login_button);
-
         loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile"));
 
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
-            //Go to Activity
-            //Not sure if it is efficient to be grabbing data every single time we open the app. However, if we have new friends,
-            //we should be able to see them so I will for now, and until we find a more efficient implementation, this will be as is.
-            //What we need to do here though is to
             loggedIn = true;
             setContentView(R.layout.loading_panel);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
-            getFacebookData(accessToken);
+            userId = accessToken.getUserId();
+            getUserInfo(userId);
         }
         else {
             //I think we want to remove the friends db
@@ -153,12 +153,9 @@ public class login extends Activity {
                         };
                         profileTracker.startTracking();
                     }
-                    //Login successful. Now instead of setting text, we want to pass data into the next Activity (namely the news feed activity)
-                    //So that the user can view their friends and so forth after they login.
-                    //We use an asynchronous task so that as we are logging in, we can grab data from the login and put it into news feed.
-                    //We have to set the loading view here also because we have the batch request that is in progress
-                    //even if we are or arent in the db. I probably should make this more efficient but can't really think for right now.
-                    getFacebookData(loginResult.getAccessToken());
+                    AccessToken accessToken = loginResult.getAccessToken();
+                    userId = accessToken.getUserId();
+                    getUserInfo(userId);
                 }
 
                 @Override
@@ -181,7 +178,10 @@ public class login extends Activity {
         LocationService.onStart();
     }
 
-    //Check if user is logged in already. If they are, then return true, else false.
+    /**
+     * Check if user is logged in already. If they are, then return true, else false.
+     * @return
+     */
     public boolean isLoggedIn(){
         if(AccessToken.getCurrentAccessToken() != null) {
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
@@ -192,21 +192,13 @@ public class login extends Activity {
         }
     }
 
-    //Tracking Access Tokens to confirm whether or not we are logged in.
+    /**
+     * Tracks Access Tokens from Facebook to confirm whether or not we are logged in.
+     * @return
+     */
     public boolean trackAccessToken(){
         if(AccessToken.getCurrentAccessToken() != null) {
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
-            AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
-                @Override
-                protected void onCurrentAccessTokenChanged(
-                        AccessToken oldAccessToken,
-                        AccessToken currentAccessToken) {
-                    // Set the access token using
-                    // currentAccessToken when it's loaded or set.
-                    //accessToken = currentAccessToken;
-                }
-            };
-            accessToken = AccessToken.getCurrentAccessToken();
             // If the access token is available already assign it.
             return accessToken != null;
         }
@@ -215,118 +207,217 @@ public class login extends Activity {
         }
     }
 
-    public void getFacebookData(final AccessToken accessToken){
-        //newMeRequest = My own data
-        //myFriendsRequest = my mutual friends who have the app downloaded
-        //Basically make 2 requests to one's Facebook info and return the names, links, id, and picture of the individual
-        GraphRequestBatch batch = new GraphRequestBatch(
-                GraphRequest.newMeRequest(
-                        AccessToken.getCurrentAccessToken(),
-                        new GraphRequest.GraphJSONObjectCallback() {
-                            @Override
-                            public void onCompleted(
-                                    JSONObject jsonObject,
-                                    GraphResponse response) {
-                                // Application code for user
-                                // TODO: Set up Google Cloud SQL so that we can store the user information into the global DB
-                                // as long as that id doesn't exist already.
-                            }
-                        }),
-                GraphRequest.newMyFriendsRequest(
-                        AccessToken.getCurrentAccessToken(),
-                        new GraphRequest.GraphJSONArrayCallback() {
-                            @Override
-                            public void onCompleted(final JSONArray jsonArray,
-                                                    GraphResponse response) {
-                                // Application code for users friends
-                                // Insert into our local DB
-                                final String token = AccessToken.getCurrentAccessToken().getUserId();
-                                final ParseQuery<ParseObject> friendsQuery = ParseQuery.getQuery("Friends");
-                                //User = the user id of the person logged in
-                                //User_id = the user id of the friend
-                                friendsQuery.whereEqualTo("friendUser", token);
-                                final Integer[] numFriends = new Integer[1];
+    /**
+     * Query from our User database to see if the user has already logged into the app on this phone. If so,
+     * we do not need to perform the newMeRequest request to grab Facebook data about them. On the contrary,
+     * we will need to grab information about their friends every time they login (better way to do this?)
+     * @param userId
+     */
+    private void getUserInfo(String userId) {
+        System.out.println("Getting User Info");
+        User user = usersDataSource.getUser(userId);
+        System.out.println("User is null: " + user);
+        if(user == null) {
+            getUserFromFacebook(userId);
+        }
+        else {
+            getFriendsFromFirebase(user);
+            getFriendsFromFacebook(userId);
+        }
+    }
 
-                                friendsQuery.findInBackground(new FindCallback<ParseObject>() {
-                                    @Override
-                                    public void done(List<ParseObject> friendsList, ParseException e) {
-                                        if (e == null) {
-                                            numFriends[0] = friendsList.size();
-                                            System.out.println("Num friends: " + numFriends[0]);
-                                            System.out.println("No exception");
-                                            // object will be your game score
-                                        } else {
-                                            Log.d("Posts", "Error: " + e.getMessage());
-                                            numFriends[0] = 0;
-                                            // something went wrong
-                                        }
-                                        try {
-                                            if (numFriends[0] < 1) {
-                                                System.out.println("Past: " + jsonArray.length());
-                                                for (int i = 0; i < jsonArray.length(); i++) {
-                                                    JSONObject row = jsonArray.getJSONObject(i);
-                                                    System.out.println("Friend: " + row);
-                                                    String uniqueFriendId = UUID.randomUUID().toString();
-                                                    Friend createdFriend = friendsDataSource.createFriend(uniqueFriendId, row.getString("name"), row.getString("id"), token, 0);
-                                                    //System.out.println("Friend Id: " + friendsDataSource.getFriend(row.getString("id")).getId());
-                                                    //System.out.println("Friend Name: " + friendsDataSource.getFriend(row.getString("id")).getName());
-                                                    createFriendInCloud(createdFriend);
-                                                }
-                                                //Still need to populate posts from cloud db
-                                                getPostsAndComments(AccessToken.getCurrentAccessToken().getUserId());
-                                            }
-                                            else {
-                                                getDataFromParse(AccessToken.getCurrentAccessToken().getUserId());
-                                            }
-                                        } catch (JSONException ex) {
-                                            throw new RuntimeException(ex);
-                                        }
-                                        System.out.println("JSON: " + jsonArray);
-                                    }
-                                });
-                            }
+    /**
+     *  This method is designed to get the user since he/she doesn't exist.
+     *  We have to perform a Facebook batch request & insert their data into the local database.
+     * @param userId
+     * @return
+     */
+    private void getUserFromFacebook(final String userId) {
+        final User[] user = new User[1];
+        GraphRequest meRequest = GraphRequest.newMeRequest(
+                AccessToken.getCurrentAccessToken(),
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(
+                            JSONObject jsonObject,
+                            GraphResponse response) {
+                        try {
+                            System.out.println("User Try.");
+                            String id = generateUniqueId();
+                            String userId = jsonObject.getString("id");
+                            String name = jsonObject.getString("name");
+                            user[0] = usersDataSource.createUser(id, userId, name);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } finally {
+                            System.out.println("Finally user.");
+                            //This is after getting the user has completed
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    System.out.println("Running user");
+                                    saveUserToFirebase(user[0]);
+                                    getFriendsFromFirebase(user[0]);
+                                    getFriendsFromFacebook(userId);
+                                }
+                            });
                         }
-                )
-        );
-        batch.addCallback(new GraphRequestBatch.Callback() {
-            @Override
-            public void onBatchCompleted(GraphRequestBatch graphRequests) {
-                // Application code for when the batch finishes
-                Log.d(TAG, graphRequests.toString());
+                    }
+                });
+        meRequest.executeAsync();
+        return;
+    }
 
+    /**
+     * This method generates a random unique UUID for each entry in our database.
+     * @return
+     */
+    private String generateUniqueId() {
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * This method is designed to get all the friends of a user from Firebase, and store into our local database.
+     * @param user
+     */
+    private void getFriendsFromFirebase(User user) {
+        System.out.println("Getting friends from Firebase");
+        firebaseRef.child("Friends/" + user.getUserId()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                System.out.println("Snapshot Friends Count: " + snapshot.getChildrenCount());
+                for (DataSnapshot friendSnapShot : snapshot.getChildren()) {
+                    Friend friend = friendSnapShot.getValue(Friend.class);
+                    String id = friend.getId();
+                    String name = friend.getName();
+                    String userId = friend.getUserId();
+                    String user = friend.getUser();
+                    Integer isFriend = friend.getIsFriend();
+                    System.out.println("Newest Friend id: " + id + " Name: " + name + " User id: " + userId + " User: " + user + " isFriend: " + isFriend);
+                    Friend newFriend = friendsDataSource.getFriend(id);
+                    if(newFriend == null) {
+                        friendsDataSource.createFriend(id, name, userId, user, isFriend);
+                    }
+                }
             }
-        });
-        batch.executeAsync();
 
-        //After all batches execute, then we go into the main activity.
-        batch.addCallback(new GraphRequestBatch.Callback() {
             @Override
-            public void onBatchCompleted(GraphRequestBatch graphRequests) {
-                if (loggedIn) {
-                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-                }
-                Bundle parameters = new Bundle();
-                //parameters.putString("url", );
-                parameters.putString("id", AccessToken.getCurrentAccessToken().getUserId());
-
-                Intent intent = new Intent(login.this, news_feed.class);
-                if (intent != null) {
-                    //ProfilePictureView profilePictureView =  new  ProfilePictureView(getApplicationContext());
-                    intent.putExtras(parameters);
-                    System.out.println("Passing Id: " + AccessToken.getCurrentAccessToken().getUserId());
-                    startActivity(intent);
-                }
+            public void onCancelled(FirebaseError error) {
             }
         });
     }
-    //Tapping the login button starts off a new Activity, which returns a result.
-    //To receive and handle the result, override the onActivityResult function.
+
+    /**
+     * This method is designed to save a freind to Firebase database.
+     * User = the user id of the person logged in
+     * User_id = the user id of the friend
+     * @param friend
+     */
+    private void saveFriendToFirebase(Friend friend) {
+        firebaseRef.child("Friends/" + friend.getUser() + "/" + friend.getUserId()).setValue(friend);
+    }
+
+    /**
+     * This method is designed to save a Post to Firebase database.
+     * @param post
+     */
+    private void savePostToFirebase(Post post) {
+        firebaseRef.child("Posts/" + post.getPosterUserId()).setValue(post);
+    }
+
+    /**
+     * This method is designed to save a Comment to Firebase database.
+     * @param comment
+     */
+    private void saveCommentToFirebase(Comment comment) {
+        firebaseRef.child("Comments/" + comment.getPostId()).setValue(comment);
+    }
+
+    private void saveUserToFirebase(User user) {
+        firebaseRef.child("Users/" + user.getUserId()).setValue(user);
+    }
+
+    /**
+     * This method is designed to get all the friends of the current user based on their userId from Facebook.
+     * @param userId
+     */
+    public void getFriendsFromFacebook(final String userId){
+        GraphRequest friendsRequest = GraphRequest.newMyFriendsRequest(AccessToken.getCurrentAccessToken(),
+            new GraphRequest.GraphJSONArrayCallback() {
+                @Override
+                public void onCompleted(final JSONArray jsonArray, GraphResponse response) {
+                    try {
+                        System.out.println("Completed: " + jsonArray.length());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            String id = generateUniqueId();
+                            String friendId = jsonObject.getString("id");
+                            String name = jsonObject.getString("name");
+                            Friend friend = friendsDataSource.getFriend(friendId);
+                            System.out.println("Friend: " + friend);
+                            if(friend == null) {
+                                //    public Friend createFriend(String uniqueId, String name, String userId, String user, Integer isFriend) {
+
+                                friend = friendsDataSource.createFriend(id, name, friendId, userId, 0);
+                                //Insert into Cloud database
+                                saveFriendToFirebase(friend);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    finally {
+                        System.out.println("Finally.");
+                        //This is after getting all the friends has completed
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                System.out.println("Running.");
+                                getPosts(userId);
+                                setupNextActivity();
+                            }
+                        });
+                    }
+                }
+            });
+        friendsRequest.executeAsync();
+    }
+
+
+    /**
+     * This method is designed to move the user to the next activity after getting all the details from Firebase and storing information
+     * into the local database is performed. This is because doing so will make our application function a lot faster
+     * than getting everything on the fly.
+     */
+    private void setupNextActivity() {
+        if (loggedIn) {
+            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+        }
+        Bundle parameters = new Bundle();
+        parameters.putString("id", userId);
+        Intent intent = new Intent(login.this, news_feed.class);
+        if (intent != null) {
+            intent.putExtras(parameters);
+            startActivity(intent);
+        }
+    }
+
+    /**
+     * Tapping the login button starts off a new Activity, which returns a result.
+     * To receive and handle the result, override the onActivityResult function.
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
+    /**
+     * Initialize Fresco.
+     */
     public void configFresco() {
         Supplier<File> diskSupplier = new Supplier<File>() {
             @Override
@@ -347,163 +438,82 @@ public class login extends Activity {
         Fresco.initialize(this, frescoConfig);
     }
 
-    private void createFriendInCloud(Friend friend){
-//        ParseObject friendObj = new ParseObject("Friends");
-//        friendObj.put("uniqueFriendId", friend.getId());
-//        friendObj.put("friendUserId", friend.getUserId());
-//        friendObj.put("friendUser", friend.getUser());
-//        friendObj.put("isFriend", friend.getIsFriend());
-//        friendObj.put("friendName", friend.getName());
-//        friendObj.saveInBackground();
-    }
 
-
-    private void deletePostsDatabase(){
+    private void deleteDatabase(){
         this.deleteDatabase("databaseManager.db");
     }
 
-    private void getPostsAndComments(String userId) {
-        ParseQuery<ParseObject> userPostsQuery = ParseQuery.getQuery("Posts");
-        userPostsQuery.whereEqualTo("posterUserId", userId);
-        ParseQuery<ParseObject> publicPostsQuery = ParseQuery.getQuery("Posts");
-        publicPostsQuery.whereEqualTo("privacy", 0);
+    /**
+     * This method is designed to get all the Posts from Firebase, store them in local.
+     * If a Post does not exist in local database already so we need to also create the post in local db.
+     * @param userId
+     */
+    private void getPosts(String userId) {
+        System.out.println("Getting posts from Firebase");
         //TODO: Query longitude and latitude by 15 mile distance
-        List<ParseQuery<ParseObject>> parseQueryList = new ArrayList<>();
-        parseQueryList.add(userPostsQuery);
-        parseQueryList.add(publicPostsQuery);
-        ParseQuery mainQuery = ParseQuery.or(parseQueryList);
-        mainQuery.findInBackground(new FindCallback<ParseObject>() {
+        firebaseRef.child("Posts/" + userId).addValueEventListener(new ValueEventListener() {
             @Override
-            public void done(List<ParseObject> postList, ParseException e) {
-                if (e == null) {
-                    System.out.println("Retrieved Posts: " + postList.size());
-                    //Store into local database
-                    for (ParseObject post : postList) {
-                        storePost(post);
-                        ParseQuery<ParseObject> commentsQuery = ParseQuery.getQuery("Comments");
-                        commentsQuery.whereEqualTo("commentPostId", post.get("postId"));
-                        commentsQuery.findInBackground(new FindCallback<ParseObject>() {
-                            @Override
-                            public void done(List<ParseObject> commentsList, ParseException e) {
-                                if (e == null) {
-                                    System.out.println("Retrieved Comments: " + commentsList.size());
-                                    //Store into local database
-                                    for (ParseObject comment : commentsList) {
-                                        storeComment(comment);
-
-                                    }
-                                    // object will be your game score
-                                } else {
-                                    Log.d("Posts", "Error: " + e.getMessage());
-                                    // something went wrong
-                                }
-                            }
-                        });
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot postSnapShot : snapshot.getChildren()) {
+                    Post post = snapshot.getValue(Post.class);
+                    String id = post.getId();
+                    String name = post.getName();
+                    String status = post.getStatus();
+                    String posterUserId = post.getPosterUserId();
+                    String timeStamp = post.getTimeStamp();
+                    Integer privacy = post.getPrivacy();
+                    Double latitude = post.getLatitude();
+                    Double longitude = post.getLongitude();
+                    Post newPost = postsDataSource.getPost(id);
+                    if (newPost == null) {
+                        postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
+                        savePostToFirebase(newPost);
                     }
-                    // object will be your game score
-                } else {
-                    Log.d("Posts", "Error: " + e.getMessage());
-                    // something went wrong
+                    getComments(id);
                 }
             }
-        });
 
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+            }
+        });
     }
 
-    private void getPostsAndComments(String userId, ParseObject friend){
-        ParseQuery<ParseObject> friendsPostsQuery = ParseQuery.getQuery("Posts");
-        friendsPostsQuery.whereEqualTo("posterUserId", friend.get("friendUser"));
-        ParseQuery<ParseObject> publicPostsQuery = ParseQuery.getQuery("Posts");
-        publicPostsQuery.whereEqualTo("privacy", 0);
+
+    /**
+     * This method is designed to get all the Comments from Firebase, store them in local.
+     * If a Comment does not exist in local database already so we need to also create the comment in local db.
+     * @param postId
+     */
+    private void getComments(String postId) {
         //TODO: Query longitude and latitude by 15 mile distance
-        ParseQuery<ParseObject> userPostsQuery = ParseQuery.getQuery("Posts");
-        userPostsQuery.whereEqualTo("posterUserId", userId);
-        List<ParseQuery<ParseObject>> parseQueryList = new ArrayList<>();
-        parseQueryList.add(friendsPostsQuery);
-        parseQueryList.add(publicPostsQuery);
-        parseQueryList.add(userPostsQuery);
-        ParseQuery mainQuery = ParseQuery.or(parseQueryList);
-        mainQuery.findInBackground(new FindCallback<ParseObject>() {
+        firebaseRef.child("Comments/" + postId).addValueEventListener(new ValueEventListener() {
             @Override
-            public void done(List<ParseObject> postList, ParseException e) {
-                if (e == null) {
-                    System.out.println("Retrieved Posts 2" + postList.size());
-                    //Store into local database
-                    for (ParseObject post : postList) {
-                        storePost(post);
-                        ParseQuery<ParseObject> commentsQuery = ParseQuery.getQuery("Comments");
-                        commentsQuery.whereEqualTo("commentPostId", post.get("uniquePostId").toString());
-                        commentsQuery.findInBackground(new FindCallback<ParseObject>() {
-                            @Override
-                            public void done(List<ParseObject> commentsList, ParseException e) {
-                                if (e == null) {
-                                    System.out.println("Retrieved Comments 2" + commentsList.size());
-                                    //Store into local database
-                                    for (ParseObject comment : commentsList) {
-                                        storeComment(comment);
-
-                                    }
-                                    // object will be your game score
-                                } else {
-                                    Log.d("Posts", "Error: " + e.getMessage());
-                                    // something went wrong
-                                }
-                            }
-                        });
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
+                    Comment comment = snapshot.getValue(Comment.class);
+                    String id = comment.getId();
+                    String postId = comment.getPostId();
+                    String commenter = comment.getCommenter();
+                    String commentText = comment.getComment();
+                    String commenterUserId = comment.getCommenterUserId();
+                    String timeStamp = comment.getTimeStamp();
+                    Comment newComment = commentsDataSource.getComment(id);
+                    if (newComment == null) {
+                        commentsDataSource.createCommentFromFirebase(id, postId, commenter, commentText, commenterUserId, timeStamp);
+                        saveCommentToFirebase(newComment);
                     }
-                    // object will be your game score
-                } else {
-                    Log.d("Posts", "Error: " + e.getMessage());
-                    // something went wrong
                 }
             }
-        });
-    }
-
-
-    private void getDataFromParse(final String userId){
-        ParseQuery<ParseObject> friendsQuery = ParseQuery.getQuery("Friends");
-        friendsQuery.whereEqualTo("friendUser", userId);
-        friendsQuery.findInBackground(new FindCallback<ParseObject>() {
             @Override
-            public void done(List<ParseObject> friendsList, ParseException e) {
-                if (e == null) {
-                    System.out.println("Retrieved " + friendsList.size());
-                    //Store into local database
-                    for (ParseObject friend : friendsList) {
-                        storeFriend(friend);
-                        getPostsAndComments(userId, friend);
-                    }
-                    // object will be your game score
-                } else {
-                    Log.d("Posts", "Error: " + e.getMessage());
-                    // something went wrong
-                }
+            public void onCancelled(FirebaseError firebaseError) {
             }
         });
-    }
-
-    private void storeFriend(ParseObject friend){
-        friendsDataSource.createFriend(friend.get("uniqueFriendId").toString(),
-                friend.get("friendName").toString(), friend.get("friendUserId").toString(),
-                friend.get("friendUser").toString(), Integer.parseInt(friend.get("isFriend").toString()));
-    }
-
-    private void storePost(ParseObject post){
-        postsDataSource.createPostFromParse(post.get("uniquePostId").toString(),
-                post.get("posterUserId").toString(), post.get("postStatus").toString(), post.get("postTimeStamp").toString(),
-                post.get("posterName").toString(), Integer.parseInt(post.get("privacy").toString()),
-                Double.parseDouble(post.get("latitude").toString()), Double.parseDouble(post.get("longitude").toString()));
-    }
-
-    private void storeComment(ParseObject comment){
-        //public Comment createComment(String uniqueCommentId, String postId, String commenter, String comment, String commenterUserId) {
-            commentsDataSource.createComment(comment.get("commentId").toString(),
-                    comment.get("commentPostId").toString(), comment.get("commenter").toString(),
-                    comment.get("comment").toString(), comment.get("commenterUserId").toString());
     }
 
     private void startDatabases(){
+        usersDataSource = new UsersDataSource(this);
+        usersDataSource.open();
         postsDataSource = new PostsDataSource(this);
         postsDataSource.open();
         commentsDataSource = new CommentsDataSource(this);
