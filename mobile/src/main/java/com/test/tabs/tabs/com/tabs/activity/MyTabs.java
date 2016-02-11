@@ -55,6 +55,7 @@ public class MyTabs extends Fragment {
         RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_news_feed);
         LinearLayoutManager llm = new LinearLayoutManager(getContext());
         rv.setLayoutManager(llm);
+        System.out.println("User Id in Posts: " + userId);
         adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByUser(userId), getContext(), false);
         rv.setAdapter(adapter);
     }

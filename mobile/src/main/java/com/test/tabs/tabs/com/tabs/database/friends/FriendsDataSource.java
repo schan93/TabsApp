@@ -52,13 +52,13 @@ public class FriendsDataSource {
         //Insert into the database
         //database.insertWithOnConflict(DatabaseHelper.TABLE_FRIENDS, null, values, SQLiteDatabase.CONFLICT_IGNORE);
 
-            database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_FRIENDS + " ("+
-                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_USER_ID + ", " + DatabaseHelper.COLUMN_NAME +", " + DatabaseHelper.COLUMN_USER + ", "
-                        + DatabaseHelper.COLUMN_IS_FRIEND + ") VALUES (?, ?, ?, ?, ?)",
-                        new String[]{uniqueId, userId, name, user, Integer.toString(isFriend)});
+//            database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_FRIENDS + " ("+
+//                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_USER_ID + ", " + DatabaseHelper.COLUMN_NAME +", " + DatabaseHelper.COLUMN_USER + ", "
+//                        + DatabaseHelper.COLUMN_IS_FRIEND + ") VALUES (?, ?, ?, ?, ?)",
+//                        new String[]{uniqueId, userId, name, user, Integer.toString(isFriend)});
         Friend friend = new Friend(uniqueId, userId, name, user, isFriend);
-//        database.insert(DatabaseHelper.TABLE_FRIENDS, null,
-//                values);
+        database.insert(DatabaseHelper.TABLE_FRIENDS, null,
+                values);
         return friend;
     }
 
@@ -82,7 +82,7 @@ public class FriendsDataSource {
         System.out.println("Cursor 1: " + cursor.getString(1));
         System.out.println("Cursor 2: " + cursor.getString(2));
 
-        Friend friend = new Friend(cursor.getString(0), cursor.getString(2), cursor.getString(1), cursor.getString(3), cursor.getInt(4));
+        Friend friend = new Friend(cursor.getString(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getInt(4));
         return friend;
     }
 

@@ -48,10 +48,12 @@ public class UsersDataSource {
         values.put(DatabaseHelper.COLUMN_NAME, name);
 
         //Insert into the database
-        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_USERS + " (" +
-                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_USER_ID + ", " + DatabaseHelper.COLUMN_NAME + ") VALUES (?, ?, ?)",
-                new String[]{id, userId, name});
+//        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_USERS + " (" +
+//                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_USER_ID + ", " + DatabaseHelper.COLUMN_NAME + ") VALUES (?, ?, ?)",
+//                new String[]{id, userId, name});
 
+        database.insert(DatabaseHelper.TABLE_USERS, null,
+                values);
         //Return the created user so we can use it for future use.
         User user = new User(id, userId, name);
         return user;

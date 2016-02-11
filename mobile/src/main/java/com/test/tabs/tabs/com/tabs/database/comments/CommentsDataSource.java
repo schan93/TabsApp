@@ -82,10 +82,11 @@ public class CommentsDataSource {
         values.put(DatabaseHelper.COLUMN_COMMENT, comment);
         values.put(DatabaseHelper.COLUMN_COMMENTER_USER_ID, commenterUserId);
         values.put(DatabaseHelper.COLUMN_TIME_STAMP, timeStamp);
-        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_COMMENTS + " (" +
-                        DatabaseHelper.KEY_ID + ", " + DatabaseHelper.COLUMN_POST_ID + ", " + DatabaseHelper.COLUMN_COMMENTER + ", " + DatabaseHelper.COLUMN_COMMENT + ", "
-                        + DatabaseHelper.COLUMN_COMMENTER_USER_ID + ", " + DatabaseHelper.COLUMN_TIME_STAMP + ") VALUES (?, ?, ?, ?, ?, ?)",
-                new String[]{id, postId, commenter, comment, commenterUserId, timeStamp});
+//        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_COMMENTS + " (" +
+//                        DatabaseHelper.KEY_ID + ", " + DatabaseHelper.COLUMN_POST_ID + ", " + DatabaseHelper.COLUMN_COMMENTER + ", " + DatabaseHelper.COLUMN_COMMENT + ", "
+//                        + DatabaseHelper.COLUMN_COMMENTER_USER_ID + ", " + DatabaseHelper.COLUMN_TIME_STAMP + ") VALUES (?, ?, ?, ?, ?, ?)",
+//                new String[]{id, postId, commenter, comment, commenterUserId, timeStamp});
+        database.insert(DatabaseHelper.TABLE_POSTS, null, values);
         Comment newComment = new Comment(id, postId, commenter, comment, commenterUserId, timeStamp);
         return newComment;
     }

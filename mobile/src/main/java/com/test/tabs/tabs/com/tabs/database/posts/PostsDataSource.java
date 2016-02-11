@@ -84,12 +84,13 @@ public class PostsDataSource {
         values.put(DatabaseHelper.COLUMN_LONGITUDE, longitude);
         //Insert into the database
 
-        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_POSTS + " ("+
-                DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS + ", "
-                + DatabaseHelper.COLUMN_TIME_STAMP +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                new String[]{postId, posterName, posterUserId, status, timeStamp, privacy.toString(), Double.toString(longitude), Double.toString(latitude)});
+//        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_POSTS + " ("+
+//                DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS + ", "
+//                + DatabaseHelper.COLUMN_TIME_STAMP +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+//                new String[]{postId, posterName, posterUserId, status, timeStamp, privacy.toString(), Double.toString(longitude), Double.toString(latitude)});
 //        database.insertWithOnConflict(DatabaseHelper.TABLE_POSTS, null,
 //                values, SQLiteDatabase.CONFLICT_IGNORE);
+        database.insert(DatabaseHelper.TABLE_POSTS, null, values);
 
         Post post = new Post(postId, posterName, status, posterUserId, timeStamp, privacy, latitude, longitude);
         return post;

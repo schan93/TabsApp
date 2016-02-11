@@ -105,7 +105,7 @@ public class login extends Activity {
         //Configure Fresco so that image loads quickly
         configFresco();
         //Remove DB first this is because we have to change the schema
-        deleteDatabase();
+//        deleteDatabase();
         //Initialize DB
         startDatabases();
         //Initialize Handler
@@ -247,6 +247,7 @@ public class login extends Activity {
                             String userId = jsonObject.getString("id");
                             String name = jsonObject.getString("name");
                             user[0] = usersDataSource.createUser(id, userId, name);
+                            System.out.println("New User Name: " + user[0].getName());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } finally {
@@ -256,7 +257,7 @@ public class login extends Activity {
                                 @Override
                                 public void run() {
                                     System.out.println("Running user");
-                                    saveUserToFirebase(user[0]);
+                                    //saveUserToFirebase(user[0]);
                                     getFriendsFromFirebase(user[0]);
                                     getFriendsFromFacebook(userId);
                                 }
@@ -293,10 +294,13 @@ public class login extends Activity {
                     String userId = friend.getUserId();
                     String user = friend.getUser();
                     Integer isFriend = friend.getIsFriend();
-                    System.out.println("Newest Friend id: " + id + " Name: " + name + " User id: " + userId + " User: " + user + " isFriend: " + isFriend);
-                    Friend newFriend = friendsDataSource.getFriend(id);
+                    //System.out.println("Newest Friend id: " + id + " Name: " + name + " User id: " + userId + " User: " + user + " isFriend: " + isFriend);
+                    Friend newFriend = friendsDataSource.getFriend(userId);
+//                    System.out.println("New Friend Name: " + newFriend.getName());
                     if(newFriend == null) {
-                        friendsDataSource.createFriend(id, name, userId, user, isFriend);
+                        System.out.println("Friend is null");
+                        Friend newCreatedFriend = friendsDataSource.createFriend(id, name, userId, user, isFriend);
+                        System.out.println("New Created Friend Name: " + newCreatedFriend.getName());
                     }
                 }
             }
@@ -322,7 +326,7 @@ public class login extends Activity {
      * @param post
      */
     private void savePostToFirebase(Post post) {
-        firebaseRef.child("Posts/" + post.getPosterUserId()).setValue(post);
+        firebaseRef.child("Posts/" + post.getId()).setValue(post);
     }
 
     /**
@@ -360,7 +364,7 @@ public class login extends Activity {
 
                                 friend = friendsDataSource.createFriend(id, name, friendId, userId, 0);
                                 //Insert into Cloud database
-                                saveFriendToFirebase(friend);
+                                //saveFriendToFirebase(friend);
                             }
                         }
                     } catch (JSONException e) {
@@ -374,7 +378,6 @@ public class login extends Activity {
                             public void run() {
                                 System.out.println("Running.");
                                 getPosts(userId);
-                                setupNextActivity();
                             }
                         });
                     }
@@ -451,11 +454,11 @@ public class login extends Activity {
     private void getPosts(String userId) {
         System.out.println("Getting posts from Firebase");
         //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Posts/" + userId).addValueEventListener(new ValueEventListener() {
+        firebaseRef.child("Posts").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot postSnapShot : snapshot.getChildren()) {
-                    Post post = snapshot.getValue(Post.class);
+                    Post post = postSnapShot.getValue(Post.class);
                     String id = post.getId();
                     String name = post.getName();
                     String status = post.getStatus();
@@ -465,12 +468,15 @@ public class login extends Activity {
                     Double latitude = post.getLatitude();
                     Double longitude = post.getLongitude();
                     Post newPost = postsDataSource.getPost(id);
+                    //System.out.println("New Post Id: " + id);
                     if (newPost == null) {
-                        postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
-                        savePostToFirebase(newPost);
+                        Post createdPost = postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
+                        System.out.println("Created Post Id: " + createdPost.getId());
+                        //savePostToFirebase(newPost);
                     }
                     getComments(id);
                 }
+                setupNextActivity();
             }
 
             @Override
@@ -491,7 +497,7 @@ public class login extends Activity {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
-                    Comment comment = snapshot.getValue(Comment.class);
+                    Comment comment = commentSnapShot.getValue(Comment.class);
                     String id = comment.getId();
                     String postId = comment.getPostId();
                     String commenter = comment.getCommenter();
@@ -501,7 +507,7 @@ public class login extends Activity {
                     Comment newComment = commentsDataSource.getComment(id);
                     if (newComment == null) {
                         commentsDataSource.createCommentFromFirebase(id, postId, commenter, commentText, commenterUserId, timeStamp);
-                        saveCommentToFirebase(newComment);
+                        //saveCommentToFirebase(newComment);
                     }
                 }
             }

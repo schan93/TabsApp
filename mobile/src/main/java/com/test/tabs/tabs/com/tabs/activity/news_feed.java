@@ -148,7 +148,7 @@ public class news_feed extends AppCompatActivity
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
 
-                updateFriendsInCloud();
+//                updateFriendsInCloud();
 
                 // Show loading screen and then show
 //                System.out.println("Closing drawer view");
@@ -218,17 +218,17 @@ public class news_feed extends AppCompatActivity
         //populateNewsFeedList();
     }
 
-    private void updateFriendsInCloud(){
-        for(Friend i: datasource.getAllFriends(userId)){
-            ParseObject friendObj = new ParseObject("Friends");
-            friendObj.put("uniqueFriendId", i.getId());
-            friendObj.put("friendUserId", i.getUserId());
-            friendObj.put("friendUser", i.getUser());
-            friendObj.put("isFriend", i.getIsFriend());
-            friendObj.put("friendName", i.getName());
-            friendObj.saveInBackground();
-        }
-    }
+//    private void updateFriendsInCloud(){
+//        for(Friend i: datasource.getAllFriends(userId)){
+//            ParseObject friendObj = new ParseObject("Friends");
+//            friendObj.put("uniqueFriendId", i.getId());
+//            friendObj.put("friendUserId", i.getUserId());
+//            friendObj.put("friendUser", i.getUser());
+//            friendObj.put("isFriend", i.getIsFriend());
+//            friendObj.put("friendName", i.getName());
+//            friendObj.saveInBackground();
+//        }
+//    }
 
     @Override
     public void onResume(){
