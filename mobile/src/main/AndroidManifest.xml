@@ -82,6 +82,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".com.tabs.activity.news_feed" />
         </activity>
+
+        <!--
         <meta-data
             android:name="com.parse.APPLICATION_ID"
             android:value="HEIu8jAXO0b0Bf0558cVlWrEyIOIZUxPnPG2LM8o" />
@@ -90,6 +92,9 @@
             android:value="NtfN1EEPraxrei8RgxWy4HWz69jCVqIZCddQkHCN" />
 
         <service android:name="com.parse.PushService" />
+        -->
+
+        <!--
         <receiver android:name="com.parse.ParsePushBroadcastReceiver"
             android:exported="false">
             <intent-filter>
@@ -104,12 +109,23 @@
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
 
-                <!--
-                  IMPORTANT: Change "com.parse.starter" to match your app's package name.
-                -->
                 <category android:name="com.test.tabs.tabs" />
             </intent-filter>
         </receiver>
+        -->
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <service android:name="com.batch.android.BatchPushService" />
+        <receiver android:name="com.batch.android.BatchPushReceiver" android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="com.test.tabs.tabs" />
+            </intent-filter>
+        </receiver>
+
 
     </application>
 

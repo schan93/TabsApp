@@ -32,7 +32,12 @@ android {
     }
 }
 
-repositories { mavenCentral() }
+repositories {
+    mavenCentral()
+    maven {
+        url "http://maven.batch.com/release"
+    }
+}
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -52,4 +57,10 @@ dependencies {
 
     //Firebase Dependencies
     compile 'com.firebase:firebase-client-android:2.5.0+'
+
+    //Batch push notifications
+    compile 'com.google.android.gms:play-services-base:8.4.0'
+    compile 'com.google.android.gms:play-services-gcm:8.4.0'
+    compile 'com.google.android.gms:play-services-ads:8.4.0'
+    compile 'com.batch.android:batch-sdk:1.5+'
 }
