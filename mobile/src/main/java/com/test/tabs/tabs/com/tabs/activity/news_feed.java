@@ -83,7 +83,7 @@ import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
-public class news_feed extends AppCompatActivity
+public class news_feed extends BatchAppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private CardView newsFeedCardView;
     private PostRecyclerViewAdapter postListAdapter;

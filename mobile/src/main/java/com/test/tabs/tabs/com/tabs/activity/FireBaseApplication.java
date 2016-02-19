@@ -2,6 +2,8 @@ package com.test.tabs.tabs.com.tabs.activity;
 
 import android.app.Application;
 
+import com.batch.android.Batch;
+import com.batch.android.Config;
 import com.firebase.client.Firebase;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
@@ -24,6 +26,11 @@ public class FireBaseApplication extends Application {
         Firebase.setAndroidContext(this);
 
         myFirebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
+
+        //Batch push notifications
+        //Batch.setConfig(new Config("DEV56BC2B1738EFE251617C406E76D"));
+        Batch.Push.setGCMSenderId("213033849274");
+        Batch.setConfig(new Config("AIzaSyCP0MX6xM67bdd3-2cqCVjHqVFvF4HgcIw"));
     }
 
     private void stateDataBase(){

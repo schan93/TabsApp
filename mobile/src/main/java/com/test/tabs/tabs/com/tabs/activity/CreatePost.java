@@ -61,7 +61,7 @@ import java.util.UUID;
 /**
  * Created by schan on 11/14/15.
  */
-public class CreatePost extends AppCompatActivity {
+public class CreatePost extends BatchAppCompatActivity {
 
     //Firebase Ref
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
