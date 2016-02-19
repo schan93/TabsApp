@@ -404,6 +404,7 @@ public class login extends Activity {
     private void setupNextActivity() {
         if (loggedIn) {
             AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+            System.out.println("LOGINDONE");
             //findViewById(R.id.loadingPanel).setVisibility(View.GONE);
         }
         Bundle parameters = new Bundle();

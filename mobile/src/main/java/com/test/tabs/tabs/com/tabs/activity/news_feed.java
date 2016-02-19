@@ -169,36 +169,11 @@ public class news_feed extends BatchAppCompatActivity
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-
-                //Update freinds into firebase reference. Set transparency of loading panel to transparent
-                AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
-
-                System.out.println("Visible");
-                try {
-                    System.out.println("Start");
-                    for (Friend i : datasource.getAllFriends(userId)) {
-                        System.out.println("Friend: " + i.getName());
-                        updateFriendToFirebase(i);
-                        getPostsFromFriends(i);
-                    }
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            populateMyTabs(userId);
-                            populatePrivateFeed(userId);
-                            populatePublicFeed();
-                            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                        }
-
-                    });
-                }
-
+                UpdateNewsFeedListTask updateNewsFeedListTask = new UpdateNewsFeedListTask();
+                updateNewsFeedListTask.execute();
             }
         };
+
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
@@ -252,12 +227,14 @@ public class news_feed extends BatchAppCompatActivity
         RecyclerView rv = (RecyclerView) findViewById(R.id.rv_public_feed);
         Location location = LocationService.getLastLocation();
         //Set a 24140.2 meter, or a 15 mile radius.
+        PostRecyclerViewAdapter adapter;
         adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPublicPosts(location.getLatitude(), location.getLongitude(), 24140.2), getApplicationContext(), true);
         rv.setAdapter(adapter);
     }
 
     private void populateMyTabs(String userId){
         RecyclerView rv = (RecyclerView) findViewById(R.id.rv_my_tabs_feed);
+        PostRecyclerViewAdapter adapter;
         adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByUser(userId), getApplicationContext(), false);
         rv.setAdapter(adapter);
     }
@@ -265,6 +242,7 @@ public class news_feed extends BatchAppCompatActivity
     private void populatePrivateFeed(String userId){
         RecyclerView rv = (RecyclerView) findViewById(R.id.rv_private_feed);
         List<Friend> friends = datasource.getAllAddedFriends(userId);
+        PostRecyclerViewAdapter adapter;
         adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByFriends(friends), getApplicationContext(), false);
         rv.setAdapter(adapter);
     }
@@ -466,41 +444,44 @@ public class news_feed extends BatchAppCompatActivity
         }
     }
 
-//
-//    class UpdateNewsFeedListTask extends AsyncTask<Void,String, Void>
-//    {
-//        //ArrayAdapter<String> news_feed_adapter;
-//
-//        @Override
-//        protected void onPostExecute(Void aVoid) {
-//            super.onPostExecute(aVoid);
-//            //TODO keep array that holds strings up to date
-//            //news_feed_adapter = (ArrayAdapter<String>)newsFeedListView.getAdapter();
-//        }
-//
-//        @Override
-//        protected Void doInBackground(Void... params) {
-//
-//            //for(String Name : newsFeedString){
-//            //    //will invoke onProgressUpdate
-//            //    publishProgress(Name);
-//            //}
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onProgressUpdate(String... values) {
-//            super.onProgressUpdate(values);
-//            //add input into adapter
-//            //news_feed_adapter.add(values[0]);
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//        }
-//    }
-//
+    class UpdateNewsFeedListTask extends AsyncTask<Void,String, Void>
+    {
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            //TODO keep array that holds strings up to date
+            populateMyTabs(userId);
+            populatePrivateFeed(userId);
+            populatePublicFeed();
+            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+            System.out.println("DONEDONE");
+            //news_feed_adapter = (ArrayAdapter<String>)newsFeedListView.getAdapter();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            System.out.println("HALFHALF");
+            for (Friend i : datasource.getAllFriends(userId)) {
+                System.out.println("Friend: " + i.getName());
+                updateFriendToFirebase(i);
+                getPostsFromFriends(i);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            System.out.println("STARTSTART");
+            AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
+        }
+    }
+
 //    @Override
 //    protected void onResume() {
 //        super.onResume();
@@ -509,12 +490,12 @@ public class news_feed extends BatchAppCompatActivity
 //        AppEventsLogger.activateApp(this);
 //  //      adapter.notifyDataSetChanged();
 //    }
-//
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//
-//        // Logs 'app deactivate' App Event.
-//        AppEventsLogger.deactivateApp(this);
-//    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Logs 'app deactivate' App Event.
+        AppEventsLogger.deactivateApp(this);
+    }
 }
