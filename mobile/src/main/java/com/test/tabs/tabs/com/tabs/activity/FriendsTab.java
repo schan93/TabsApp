@@ -31,6 +31,7 @@ public class FriendsTab extends Fragment {
     private FriendsDataSource datasource;
     String userId;
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         //Set things such as facebook profile picture, facebook friends photos, etc.
@@ -43,7 +44,7 @@ public class FriendsTab extends Fragment {
         postsDataSource.open();
 
         System.out.println("Creating freinds view");
-        fragmentView = inflater.inflate(R.layout.content_news_feed, container, false);
+        fragmentView = inflater.inflate(R.layout.private_tab, container, false);
 
         populateNewsFeedList(fragmentView, userId);
 
@@ -57,7 +58,8 @@ public class FriendsTab extends Fragment {
             if (getView() != null) {
                 System.out.println("It's visible!");
                 //Simply does a requery but don't we want it so that we just do notifyDataSetChanged?
-                //populateNewsFeedList(fragmentView, userId);
+//                adapter.notifyDataSetChanged();
+                populateNewsFeedList(fragmentView, userId);
                 // your code goes here
             }
         }
@@ -66,6 +68,7 @@ public class FriendsTab extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
+        System.out.println("On resume");
         LocationService.getLocationManager(getContext());
         adapter.notifyDataSetChanged();
     }
@@ -76,48 +79,11 @@ public class FriendsTab extends Fragment {
     }
 
     private void populateNewsFeedList(View fragmentView, String userId){
-        rv = (RecyclerView) fragmentView.findViewById(R.id.rv_news_feed);
+        rv = (RecyclerView) fragmentView.findViewById(R.id.rv_private_feed);
         LinearLayoutManager llm = new LinearLayoutManager(getContext());
         rv.setLayoutManager(llm);
         List<Friend> friends = datasource.getAllAddedFriends(userId);
         adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByFriends(friends), getContext(), false);
         rv.setAdapter(adapter);
-        //newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
-//        posts = new ArrayList<Post>();
-//
-//
-//        postListAdapter = new PostListAdapter(this, posts);
-//        newsFeedCardView
-//        newsFeedCardView.setAdapter(postListAdapter);
-//        if(postsDataSource.isTablePopulated()) {
-//            System.out.println("Size: " + postsDataSource.getAllPosts().size());
-//            for (Post i : postsDataSource.getAllPosts()) {
-//                System.out.println("Within posts");
-//                posts.add(i);
-//            }
-//        }
-//        else{
-//            System.out.println("Is not populated");
-//        }
-
-        //Set onclick listener for clicking on post
-//        rv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            public void onItemClick(AdapterView<?> parent, View view,
-//                                    int position, long id) {
-//
-//
-//                Object post  = newsFeedListView.getItemAtPosition(position);
-//                Intent intent = new Intent(news_feed.this, Comments.class);
-//                Bundle bundle = new Bundle();
-//                bundle.putLong("id", ((Post) post).getId());
-//                if(intent != null){
-//                    intent.putExtras(bundle);
-//                    startActivity(intent);
-//                }
-//            }
-//        });
-
-        //postListAdapter.notifyDataSetChanged();
-        // ************************************************
     }
 }

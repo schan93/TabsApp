@@ -8,10 +8,12 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Location;
 import android.media.ImageReader;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -32,13 +34,18 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,8 +67,15 @@ import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.facebook.login.LoginManager;
 import com.facebook.login.widget.ProfilePictureView;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
+import com.firebase.client.ValueEventListener;
 import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.comments.Comment;
+import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
@@ -75,6 +89,9 @@ public class news_feed extends AppCompatActivity
     private PostRecyclerViewAdapter postListAdapter;
     private List<Post> posts;
 
+    //Firebase reference
+    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
+
     //View for navigation header
     private NavigationView navigationView;
     //Friends list values
@@ -86,15 +103,18 @@ public class news_feed extends AppCompatActivity
     private List<Friend> friendItemsDifference;
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
+    private CommentsDataSource commentsDataSource;
     private List<Post> postItems;
     //Adapter for posts
     PostRecyclerViewAdapter adapter;
+    //Progress overlay
+    View progressOverlay;
 
     String userId;
 
     Activity activityContext;
 
-    private ProgressBar progressBar;
+    Handler handler;
 
     //To detect if any new freinds are added
     boolean newFriendAdded = false;
@@ -109,6 +129,8 @@ public class news_feed extends AppCompatActivity
         super.onCreate(savedInstanceState);
         Fresco.initialize(this);
         setContentView(R.layout.activity_main);
+        progressOverlay = findViewById(R.id.progress_overlay);
+        handler = new Handler();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if(!FacebookSdk.isInitialized()){
@@ -116,14 +138,14 @@ public class news_feed extends AppCompatActivity
         }
         final Profile profile = Profile.getCurrentProfile();
         userId = AccessToken.getCurrentAccessToken().getUserId();
-        progressBar = (ProgressBar) findViewById(R.id.loading_progress_bar);
-        progressBar.setVisibility(View.GONE);
 
         //Open DB and get freinds from db & posts.
         datasource = new FriendsDataSource(this);
         datasource.open();
         postsDataSource = new PostsDataSource(this);
         postsDataSource.open();
+        commentsDataSource = new CommentsDataSource(this);
+        commentsDataSource.open();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -148,25 +170,33 @@ public class news_feed extends AppCompatActivity
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
 
-//                updateFriendsInCloud();
+                //Update freinds into firebase reference. Set transparency of loading panel to transparent
+                AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
 
-                // Show loading screen and then show
-//                System.out.println("Closing drawer view");
-//                progressBar.setVisibility(View.VISIBLE);
-//                friendItemsDifference = new ArrayList<>();
-//                for (Friend i : datasource.getAllFriends(userId)) {
-//                    friendItemsDifference.add(i);
-//                }
-//                if(!friendItemsDifference.equals(friendItems)){
-//                    System.out.println("There is a difference");
-//                    //Show loading screen
-//                    friendsAdapter = new FriendsListAdapter(activityContext, friendItemsDifference);
-//                    friendsList.setAdapter(friendsAdapter);
-//                }
-//                else {
-//                    //Don't do anything
-//                }
-//                progressBar.setVisibility(View.GONE);
+                System.out.println("Visible");
+                try {
+                    System.out.println("Start");
+                    for (Friend i : datasource.getAllFriends(userId)) {
+                        System.out.println("Friend: " + i.getName());
+                        updateFriendToFirebase(i);
+                        getPostsFromFriends(i);
+                    }
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            populateMyTabs(userId);
+                            populatePrivateFeed(userId);
+                            populatePublicFeed();
+                            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                        }
+
+                    });
+                }
+
             }
         };
         drawer.setDrawerListener(toggle);
@@ -218,17 +248,107 @@ public class news_feed extends AppCompatActivity
         //populateNewsFeedList();
     }
 
-//    private void updateFriendsInCloud(){
-//        for(Friend i: datasource.getAllFriends(userId)){
-//            ParseObject friendObj = new ParseObject("Friends");
-//            friendObj.put("uniqueFriendId", i.getId());
-//            friendObj.put("friendUserId", i.getUserId());
-//            friendObj.put("friendUser", i.getUser());
-//            friendObj.put("isFriend", i.getIsFriend());
-//            friendObj.put("friendName", i.getName());
-//            friendObj.saveInBackground();
-//        }
-//    }
+    public void populatePublicFeed(){
+        RecyclerView rv = (RecyclerView) findViewById(R.id.rv_public_feed);
+        Location location = LocationService.getLastLocation();
+        //Set a 24140.2 meter, or a 15 mile radius.
+        adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPublicPosts(location.getLatitude(), location.getLongitude(), 24140.2), getApplicationContext(), true);
+        rv.setAdapter(adapter);
+    }
+
+    private void populateMyTabs(String userId){
+        RecyclerView rv = (RecyclerView) findViewById(R.id.rv_my_tabs_feed);
+        adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByUser(userId), getApplicationContext(), false);
+        rv.setAdapter(adapter);
+    }
+
+    private void populatePrivateFeed(String userId){
+        RecyclerView rv = (RecyclerView) findViewById(R.id.rv_private_feed);
+        List<Friend> friends = datasource.getAllAddedFriends(userId);
+        adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByFriends(friends), getApplicationContext(), false);
+        rv.setAdapter(adapter);
+    }
+
+    private void getPostsFromFriends(Friend friend){
+        System.out.println("Friend Test User Id: " + friend.getUserId());
+        firebaseRef.child("Posts/" + friend.getUserId()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot postSnapShot : snapshot.getChildren()) {
+                    Post post = postSnapShot.getValue(Post.class);
+                    String id = post.getId();
+                    String name = post.getName();
+                    String status = post.getStatus();
+                    String posterUserId = post.getPosterUserId();
+                    String timeStamp = post.getTimeStamp();
+                    Integer privacy = post.getPrivacy();
+                    Double latitude = post.getLatitude();
+                    Double longitude = post.getLongitude();
+                    Post newPost = postsDataSource.getPost(id);
+                    System.out.println("New Post Id Test: " + id);
+                    if (newPost == null) {
+                        Post createdPost = postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
+                        System.out.println("Created Post Id: " + createdPost.getId());
+//                        savePostToFirebase(newPost);
+                    }
+                    getComments(id);
+                    System.out.println("Done getting stuff from friend: " + posterUserId);
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+            }
+        });
+    }
+
+    private void getComments(String postId) {
+        //TODO: Query longitude and latitude by 15 mile distance
+        firebaseRef.child("Comments/" + postId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
+                    Comment comment = commentSnapShot.getValue(Comment.class);
+                    String id = comment.getId();
+                    String postId = comment.getPostId();
+                    String commenter = comment.getCommenter();
+                    String commentText = comment.getComment();
+                    String commenterUserId = comment.getCommenterUserId();
+                    String timeStamp = comment.getTimeStamp();
+                    Comment newComment = commentsDataSource.getComment(id);
+                    if (newComment == null) {
+                        commentsDataSource.createCommentFromFirebase(id, postId, commenter, commentText, commenterUserId, timeStamp);
+                        saveCommentToFirebase(newComment);
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+            }
+        });
+    }
+
+    /**
+     * This method is designed to save a Post to Firebase database.
+     * @param post
+     */
+    private void savePostToFirebase(Post post) {
+        firebaseRef.child("Posts/" + post.getPosterUserId() + "/" + post.getId()).setValue(post);
+    }
+
+    /**
+     * This method is designed to save a Comment to Firebase database.
+     * @param comment
+     */
+    private void saveCommentToFirebase(Comment comment) {
+        firebaseRef.child("Comments/" + comment.getPostId()).setValue(comment);
+    }
+
+    private void updateFriendToFirebase(Friend friend) {
+        Map<String, Object> isFriend = new HashMap<String, Object>();
+        isFriend.put("isFriend", friend.getIsFriend());
+        firebaseRef.child("Friends/" + friend.getUser() + "/" + friend.getUserId()).updateChildren(isFriend);
+    }
 
     @Override
     public void onResume(){

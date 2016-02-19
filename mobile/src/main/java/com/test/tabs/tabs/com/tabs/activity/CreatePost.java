@@ -63,7 +63,8 @@ import java.util.UUID;
  */
 public class CreatePost extends AppCompatActivity {
 
-
+    //Firebase Ref
+    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
     //Local Database for storing posts
     private PostsDataSource datasource;
 
@@ -195,17 +196,13 @@ public class CreatePost extends AppCompatActivity {
                 if(post.getText().length() == 0){
                     Toast.makeText(CreatePost.this, "Please enter something in the post.", Toast.LENGTH_SHORT).show();
                 }
-
-                System.out.println("Privacy: " + privacy);
                 Location location = LocationService.getLastLocation();
                 Post createdPost = datasource.createPost(uniquePostId, userId, post.getText().toString(), name, privacy, location.getLatitude(), location.getLongitude());
-                System.out.println("Unique post id: " + uniquePostId);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
 
-                savePostInCloud(createdPost, location);
-
+                savePostInCloud(createdPost);
 
                 if(intent != null) {
                     startActivity(intent);
@@ -217,54 +214,9 @@ public class CreatePost extends AppCompatActivity {
         }
     }
 
-    private void savePostInCloud(Post post, Location location){
-        //TODO: add firebase save post to cloud
-
-//        ParseObject postObj = new ParseObject("Posts");
-//        postObj.put("uniquePostId", post.getId());
-//        postObj.put("postStatus", post.getStatus());
-//        postObj.put("posterName", post.getName());
-//        postObj.put("privacy", privacy);
-//        postObj.put("postTimeStamp", post.getTimeStamp());
-//        postObj.put("posterUserId", post.getPosterUserId());
-//        postObj.put("latitude", location.getLatitude());
-//        postObj.put("longitude", location.getLongitude());
-//        postObj.saveInBackground();
-
-        Firebase myFirebaseRef = new Firebase("https://tabsapp.firebaseio.com/Posts/");
-        Firebase myPost = myFirebaseRef.child(post.getId().toString());
-
-        myPost.child("id").setValue(post.getId());
-        myPost.child("status").setValue(post.getStatus());
-        myPost.child("name").setValue(post.getName());
-        myPost.child("privacy").setValue(privacy);
-        myPost.child("timeStamp").setValue(post.getTimeStamp());
-        myPost.child("posterUserId").setValue(post.getPosterUserId());
-        myPost.child("latitude").setValue(location.getLatitude());
-        myPost.child("longitude").setValue(location.getLongitude());
-
-        // Attach an asynchronous callback to read the data at our posts reference
-        myFirebaseRef.child(post.getId()).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                //Log.i("CreatePost", );  //prints "Do you have data? You'll love Firebase."
-                Log.i("CreatePost Snapshot ID ", snapshot.getValue().toString());
-                Post postCheck = snapshot.getValue(Post.class);
-                Log.i("CreatePost", postCheck.getId().toString());
-            }
-
-            @Override
-            public void onCancelled(FirebaseError error) {
-            }
-        });
-
-        //** Send push notifications to friends **
-        //Send targeted push notifications to friends
-            //get friends from current user
-            //get installation id from current user
-        //Push notification
-        //Subscribe current user to channel
-
+    private void savePostInCloud(Post post){
+        System.out.println("Poster user id: " + post.getPosterUserId() + " Id: " + post.getId());
+        firebaseRef.child("Posts/" + post.getPosterUserId() + "/" + post.getId()).setValue(post);
     }
 
 

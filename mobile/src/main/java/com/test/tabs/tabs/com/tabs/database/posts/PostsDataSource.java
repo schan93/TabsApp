@@ -245,6 +245,7 @@ public class PostsDataSource {
         }
         if(cursor != null)
             cursor.close();
+        System.out.println("Number of posts from friends: " + posts.size());
         return posts;
     }
 

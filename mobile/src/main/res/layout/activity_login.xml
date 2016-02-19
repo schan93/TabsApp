@@ -18,6 +18,7 @@
         fresco:placeholderImage="@mipmap/ic_launcher"
         android:id="@+id/login_picture"/>
 
+    <include layout="@layout/include_progress_overlay"/>
 
     <TextView
         android:layout_width="wrap_content"

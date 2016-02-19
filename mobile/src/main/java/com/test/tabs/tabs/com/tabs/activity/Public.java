@@ -43,65 +43,42 @@ public class Public extends Fragment {
         postsDataSource = new PostsDataSource(getContext());
         postsDataSource.open();
 
-        fragmentView = inflater.inflate(R.layout.content_news_feed, container, false);
+        fragmentView = inflater.inflate(R.layout.public_tab, container, false);
 
         populateNewsFeedList(fragmentView);
 
         return fragmentView;
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            if (getView() != null) {
+                System.out.println("It's visible!");
+                //Simply does a requery but don't we want it so that we just do notifyDataSetChanged?
+//                adapter.notifyDataSetChanged();
+                populateNewsFeedList(fragmentView);
+                // your code goes here
+            }
+        }
     }
     
     @Override
     public void onResume(){
         super.onResume();
         LocationService.getLocationManager(getContext());
+//        populateNewsFeedList(fragmentView);
         adapter.notifyDataSetChanged();
     }
 
-    private void populateNewsFeedList(View fragmentView){
-        RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_news_feed);
+    public void populateNewsFeedList(View fragmentView){
+        RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_public_feed);
         LinearLayoutManager llm = new LinearLayoutManager(getContext());
         rv.setLayoutManager(llm);
         Location location = LocationService.getLastLocation();
         //Set a 24140.2 meter, or a 15 mile radius.
         adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPublicPosts(location.getLatitude(), location.getLongitude(), 24140.2), getContext(), true);
         rv.setAdapter(adapter);
-
-        //newsFeedListView = (ListView)findViewById(R.id.lv_news_feed);
-//        posts = new ArrayList<Post>();
-//
-//
-//        postListAdapter = new PostListAdapter(this, posts);
-//        newsFeedCardView
-//        newsFeedCardView.setAdapter(postListAdapter);
-//        if(postsDataSource.isTablePopulated()) {
-//            System.out.println("Size: " + postsDataSource.getAllPosts().size());
-//            for (Post i : postsDataSource.getAllPosts()) {
-//                System.out.println("Within posts");
-//                posts.add(i);
-//            }
-//        }
-//        else{
-//            System.out.println("Is not populated");
-//        }
-
-        //Set onclick listener for clicking on post
-//        rv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            public void onItemClick(AdapterView<?> parent, View view,
-//                                    int position, long id) {
-//
-//
-//                Object post  = newsFeedListView.getItemAtPosition(position);
-//                Intent intent = new Intent(news_feed.this, Comments.class);
-//                Bundle bundle = new Bundle();
-//                bundle.putLong("id", ((Post) post).getId());
-//                if(intent != null){
-//                    intent.putExtras(bundle);
-//                    startActivity(intent);
-//                }
-//            }
-//        });
-
-        //postListAdapter.notifyDataSetChanged();
-        // ************************************************
     }
 }
