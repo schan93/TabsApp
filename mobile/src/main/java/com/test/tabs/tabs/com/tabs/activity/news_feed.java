@@ -247,7 +247,7 @@ public class news_feed extends BatchAppCompatActivity
         rv.setAdapter(adapter);
     }
 
-    private void getPostsFromFriends(Friend friend){
+    private void getPostsFromFriends(final Friend friend){
         System.out.println("Friend Test User Id: " + friend.getUserId());
         firebaseRef.child("Posts/" + friend.getUserId()).addValueEventListener(new ValueEventListener() {
             @Override
@@ -271,6 +271,10 @@ public class news_feed extends BatchAppCompatActivity
                     }
                     getComments(id);
                     System.out.println("Done getting stuff from friend: " + posterUserId);
+                    //No need to populate your own feed if you are changing friends
+//                    else {
+//                        populateMyTabs(friend.getUser());
+//                    }
                 }
             }
 
@@ -450,9 +454,14 @@ public class news_feed extends BatchAppCompatActivity
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             //TODO keep array that holds strings up to date
-            populateMyTabs(userId);
-            populatePrivateFeed(userId);
-            populatePublicFeed();
+            //Get the currently selected tab and populate that tab's information
+            TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+            if(tabLayout.getSelectedTabPosition() == 0) {
+                populatePublicFeed();
+            }
+            else if(tabLayout.getSelectedTabPosition() == 1) {
+                populatePrivateFeed(userId);
+            }
             AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
             System.out.println("DONEDONE");
             //news_feed_adapter = (ArrayAdapter<String>)newsFeedListView.getAdapter();

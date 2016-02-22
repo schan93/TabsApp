@@ -504,10 +504,13 @@ public class login extends Activity {
      */
     private void getComments(String postId) {
         //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Comments/" + postId).addValueEventListener(new ValueEventListener() {
+        firebaseRef.child("Comments").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
+                    System.out.println("Comment snapshot: " + commentSnapShot.getKey());
+                    System.out.println("Value of comment: " + commentSnapShot.getValue());
+                    System.out.println("String: comment: " + commentSnapShot.getValue().toString());
                     Comment comment = commentSnapShot.getValue(Comment.class);
                     String id = comment.getId();
                     String postId = comment.getPostId();
@@ -518,7 +521,7 @@ public class login extends Activity {
                     Comment newComment = commentsDataSource.getComment(id);
                     if (newComment == null) {
                         commentsDataSource.createCommentFromFirebase(id, postId, commenter, commentText, commenterUserId, timeStamp);
-                        saveCommentToFirebase(newComment);
+//                        saveCommentToFirebase(newComment);
                     }
                 }
             }

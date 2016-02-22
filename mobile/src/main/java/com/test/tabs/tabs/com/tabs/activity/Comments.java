@@ -37,6 +37,7 @@ import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.firebase.client.Firebase;
 import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
@@ -74,6 +75,8 @@ public class Comments extends AppCompatActivity {
     private boolean isNotificationActive;
     private String userId;
     String uniqueCommentId;
+
+    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -262,6 +265,7 @@ public class Comments extends AppCompatActivity {
 
 
     public void populateComments(String postId) {
+        System.out.println("populating comment of post id: " + postId);
         commentsRecyclerViewAdapter = new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentsDatasource.getCommentsForPost(postId));
         commentsRecyclerViewAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
@@ -279,6 +283,7 @@ public class Comments extends AppCompatActivity {
     {
         System.out.println("Going to inflate header");
         post = postsDataSource.getPost(id);
+        System.out.println("Post Status after inflating header: " + post.getStatus());
         CommentsHeader header = new CommentsHeader();
         header.setPosterUserId(post.getPosterUserId());
         header.setPosterName(post.getName());
@@ -326,15 +331,7 @@ public class Comments extends AppCompatActivity {
     }
 
     private void saveCommentInCloud(Comment comment){
-        //TODO: add firebase save comment to cloud
-//        ParseObject commentObj = new ParseObject("Comments");
-//        commentObj.put("commentId", comment.getId());
-//        commentObj.put("commentPostId", comment.getPostId());
-//        commentObj.put("comment", comment.getComment());
-//        commentObj.put("commenter", comment.getCommenter());
-//        commentObj.put("commenterUserId", comment.getCommenterUserId());
-//        commentObj.put("commentTimeStamp", comment.getTimeStamp());
-//        commentObj.saveInBackground();
+        firebaseRef.child("Comments/"+ comment.getPostId()).setValue(comment);
     }
 
     public String convertDate(String timestamp) {
