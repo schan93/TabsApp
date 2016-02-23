@@ -103,6 +103,8 @@ public class CreatePost extends BatchAppCompatActivity {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(post, InputMethodManager.SHOW_IMPLICIT);
 
+        setupPrivacyToggle();
+
         //First posts are always private
         privacy = 1;
     }
@@ -151,33 +153,33 @@ public class CreatePost extends BatchAppCompatActivity {
 //        return true;
         // Get the action view used in your toggleservice item
         getMenuInflater().inflate(R.menu.create_post_menu, menu);
-        MenuItem toggleservice = menu.findItem(R.id.toggle_test);
-        RadioGroup privacyToggle = (RadioGroup) getLayoutInflater().inflate(R.layout.privacy_toggle_layout, null);
-        toggleservice.setActionView(privacyToggle);
+        //MenuItem toggleservice = menu.findItem(R.id.toggle_test);
+//        RadioGroup privacyToggle = (RadioGroup) getLayoutInflater().inflate(R.layout.privacy_toggle_layout, null);
+        //toggleservice.setActionView(privacyToggle);
 
-        final RadioButton publicToggle = (RadioButton) toggleservice.getActionView().findViewById(R.id.public_toggle);
-        final RadioButton privateToggle = (RadioButton) toggleservice.getActionView().findViewById(R.id.private_toggle);
-
-        privateToggle.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
-
-        //Set listener for clicking on toggle
-        privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if(checkedId == R.id.public_toggle){
-                    privacy = 0;
-                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-                    System.out.println("Toggled public");
-                }
-                else {
-                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-                    System.out.println("Toggled private");
-                    privacy = 1;
-                }
-            }
-        });
+//        final RadioButton publicToggle = (RadioButton) toggleservice.getActionView().findViewById(R.id.public_toggle);
+//        final RadioButton privateToggle = (RadioButton) toggleservice.getActionView().findViewById(R.id.private_toggle);
+//
+//        privateToggle.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+//
+//        //Set listener for clicking on toggle
+//        privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(RadioGroup group, int checkedId) {
+//                if(checkedId == R.id.public_toggle){
+//                    privacy = 0;
+//                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+//                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+//                    System.out.println("Toggled public");
+//                }
+//                else {
+//                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+//                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+//                    System.out.println("Toggled private");
+//                    privacy = 1;
+//                }
+//            }
+//        });
 
 
         return super.onCreateOptionsMenu(menu);
@@ -212,6 +214,34 @@ public class CreatePost extends BatchAppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void setupPrivacyToggle() {
+        RadioGroup privacyToggle = (RadioGroup) findViewById(R.id.privacy_toggle);
+
+        final RadioButton publicToggle = (RadioButton) findViewById(R.id.public_toggle);
+        final RadioButton privateToggle = (RadioButton) findViewById(R.id.private_toggle);
+
+        privateToggle.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+
+        //Set listener for clicking on toggle
+        privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if(checkedId == R.id.public_toggle){
+                    privacy = 0;
+                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+                    System.out.println("Toggled public");
+                }
+                else {
+                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+                    System.out.println("Toggled private");
+                    privacy = 1;
+                }
+            }
+        });
     }
 
     private void savePostInCloud(Post post){
