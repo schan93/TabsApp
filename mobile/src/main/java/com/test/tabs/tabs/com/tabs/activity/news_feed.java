@@ -286,7 +286,7 @@ public class news_feed extends BatchAppCompatActivity
 
     private void getComments(String postId) {
         //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Comments/" + postId).addValueEventListener(new ValueEventListener() {
+        firebaseRef.child("Comments").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
