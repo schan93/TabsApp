@@ -46,6 +46,7 @@ public class Public extends Fragment {
         fragmentView = inflater.inflate(R.layout.public_tab, container, false);
 
         populateNewsFeedList(fragmentView);
+        System.out.println("Populating news feed list: ");
 
         return fragmentView;
     }

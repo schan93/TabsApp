@@ -331,7 +331,7 @@ public class Comments extends AppCompatActivity {
     }
 
     private void saveCommentInCloud(Comment comment){
-        firebaseRef.child("Comments/"+ comment.getPostId()).setValue(comment);
+        firebaseRef.child("Comments/"+ comment.getPostId()).push().setValue(comment);
     }
 
     public String convertDate(String timestamp) {

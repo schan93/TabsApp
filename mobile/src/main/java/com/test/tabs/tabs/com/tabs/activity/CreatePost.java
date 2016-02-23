@@ -216,7 +216,7 @@ public class CreatePost extends BatchAppCompatActivity {
 
     private void savePostInCloud(Post post){
         System.out.println("Poster user id: " + post.getPosterUserId() + " Id: " + post.getId());
-        firebaseRef.child("Posts/" + post.getPosterUserId() + "/" + post.getId()).setValue(post);
+        firebaseRef.child("Posts/" + post.getPosterUserId()).push().setValue(post);
     }
 
 

@@ -189,6 +189,7 @@ public class PostsDataSource {
             cursor.moveToNext();
         }
         // make sure to close the cursor
+        System.out.println("Number of posts from public: " + posts.size());
         cursor.close();
         return posts;
     }

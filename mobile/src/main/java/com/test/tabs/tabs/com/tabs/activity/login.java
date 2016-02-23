@@ -128,7 +128,8 @@ public class login extends Activity {
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
             loggedIn = true;
-            AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
+            setContentView(R.layout.loading_panel);
+//            AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.0f, 200);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
             userId = accessToken.getUserId();
             getUserInfo(userId);
@@ -151,6 +152,7 @@ public class login extends Activity {
                 @Override
                 public void onSuccess(LoginResult loginResult) {
                     loggedIn = true;
+                    setContentView(R.layout.loading_panel);
 
                     if(Profile.getCurrentProfile() == null){
                         profileTracker = new ProfileTracker() {
@@ -256,6 +258,7 @@ public class login extends Activity {
                             String name = jsonObject.getString("name");
                             user[0] = usersDataSource.createUser(id, userId, name);
                             System.out.println("New User Name: " + user[0].getName());
+                            saveUserToFirebase(user[0]);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } finally {
@@ -335,7 +338,7 @@ public class login extends Activity {
      */
     private void savePostToFirebase(Post post) {
         System.out.println("Posting!");
-        firebaseRef.child("Posts/" + post.getPosterUserId() + "/" + post.getId()).setValue(post);
+        firebaseRef.child("Posts/" + post.getPosterUserId()).push().setValue(post);
     }
 
     /**
@@ -343,7 +346,7 @@ public class login extends Activity {
      * @param comment
      */
     private void saveCommentToFirebase(Comment comment) {
-        firebaseRef.child("Comments/" + comment.getPostId()).setValue(comment);
+        firebaseRef.child("Comments").push().setValue(comment);
     }
 
     private void saveUserToFirebase(User user) {
@@ -403,8 +406,9 @@ public class login extends Activity {
      */
     private void setupNextActivity() {
         if (loggedIn) {
-            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-            System.out.println("LOGINDONE");
+            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+//            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+            System.out.println("Login: Login done.");
             //findViewById(R.id.loadingPanel).setVisibility(View.GONE);
         }
         Bundle parameters = new Bundle();
@@ -465,29 +469,39 @@ public class login extends Activity {
     private void getPosts(String userId) {
         System.out.println("Getting posts from Firebase");
         //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Posts/" + userId).addValueEventListener(new ValueEventListener() {
+        firebaseRef.child("Posts").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                for (DataSnapshot postSnapShot : snapshot.getChildren()) {
-                    Post post = postSnapShot.getValue(Post.class);
-                    String id = post.getId();
-                    String name = post.getName();
-                    String status = post.getStatus();
-                    String posterUserId = post.getPosterUserId();
-                    String timeStamp = post.getTimeStamp();
-                    Integer privacy = post.getPrivacy();
-                    Double latitude = post.getLatitude();
-                    Double longitude = post.getLongitude();
-                    Post newPost = postsDataSource.getPost(id);
-                    //System.out.println("New Post Id: " + id);
-                    if (newPost == null) {
-                        Post createdPost = postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
-                        System.out.println("Created Post Id: " + createdPost.getId());
-//                        savePostToFirebase(newPost);
-                    }
-                    getComments(id);
+                System.out.println("Snapshot Count: " + snapshot.getChildrenCount());
+                if(snapshot.getChildrenCount() == 0) {
+                    setupNextActivity();
                 }
-                setupNextActivity();
+                for (DataSnapshot postSnapShot : snapshot.getChildren()) {
+                    System.out.println("POsts children count: " + postSnapShot.getChildrenCount());
+                    for(DataSnapshot userSnapShot: postSnapShot.getChildren()){
+                        Post post = userSnapShot.getValue(Post.class);
+                        String id = post.getId();
+                        String name = post.getName();
+                        String status = post.getStatus();
+                        String posterUserId = post.getPosterUserId();
+                        String timeStamp = post.getTimeStamp();
+                        Integer privacy = post.getPrivacy();
+                        Double latitude = post.getLatitude();
+                        Double longitude = post.getLongitude();
+                        Post newPost = postsDataSource.getPost(id);
+                        //System.out.println("New Post Id: " + id);
+                        if (newPost == null) {
+                            Post createdPost = postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
+                            System.out.println("Login: Created Post Id: " + createdPost.getId());
+//                        savePostToFirebase(newPost);
+                        }
+                        else {
+                            System.out.println("Login: Already have post id: " + newPost.getId());
+                        }
+                        System.out.println("Login: Done getting Posts, now getting comments");
+                        getComments(id);
+                    }
+                }
             }
 
             @Override
@@ -504,7 +518,7 @@ public class login extends Activity {
      */
     private void getComments(String postId) {
         //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Comments").addValueEventListener(new ValueEventListener() {
+        firebaseRef.child("Comments").push().addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
@@ -523,8 +537,12 @@ public class login extends Activity {
                         commentsDataSource.createCommentFromFirebase(id, postId, commenter, commentText, commenterUserId, timeStamp);
 //                        saveCommentToFirebase(newComment);
                     }
+                    System.out.println("Login: Done getting comments.");
                 }
+                System.out.println("Login: Done getting Everything.");
+                setupNextActivity();
             }
+
             @Override
             public void onCancelled(FirebaseError firebaseError) {
             }
