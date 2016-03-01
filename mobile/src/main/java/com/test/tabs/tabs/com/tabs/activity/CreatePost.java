@@ -1,6 +1,7 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -67,12 +68,13 @@ public class CreatePost extends BatchAppCompatActivity {
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
     //Local Database for storing posts
     private PostsDataSource datasource;
+    private FireBaseApplication application;
 
     //Edit for post
     private EditText post;
 
     //Global variable for privacy, 0 = public, 1 = private, initialize to private
-    Integer privacy;
+    String privacy;
 
     Button registerBtn;
     TextView regIdView;
@@ -86,6 +88,8 @@ public class CreatePost extends BatchAppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.create_post);
+        application = ((FireBaseApplication) getApplication());
+
 
         //Set up action bar
         setupActionBar();
@@ -106,7 +110,7 @@ public class CreatePost extends BatchAppCompatActivity {
         setupPrivacyToggle();
 
         //First posts are always private
-        privacy = 1;
+        privacy = "1";
     }
 
     private void setupActionBar(){
@@ -200,6 +204,10 @@ public class CreatePost extends BatchAppCompatActivity {
                 }
                 Location location = LocationService.getLastLocation();
                 Post createdPost = datasource.createPost(uniquePostId, userId, post.getText().toString(), name, privacy, location.getLatitude(), location.getLongitude());
+                if(createdPost.getPrivacy().equals("0")) {
+                    application.getPublicAdapter().add(createdPost);
+                }
+                application.getMyTabsAdapter().add(createdPost);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
@@ -229,7 +237,7 @@ public class CreatePost extends BatchAppCompatActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if(checkedId == R.id.public_toggle){
-                    privacy = 0;
+                    privacy = "0";
                     publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
                     privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                     System.out.println("Toggled public");
@@ -238,7 +246,7 @@ public class CreatePost extends BatchAppCompatActivity {
                     privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
                     publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                     System.out.println("Toggled private");
-                    privacy = 1;
+                    privacy = "1";
                 }
             }
         });
@@ -247,6 +255,7 @@ public class CreatePost extends BatchAppCompatActivity {
     private void savePostInCloud(Post post){
         System.out.println("Poster user id: " + post.getPosterUserId() + " Id: " + post.getId());
         firebaseRef.child("Posts/" + post.getPosterUserId()).push().setValue(post);
+
     }
 
 

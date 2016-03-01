@@ -2,6 +2,8 @@ package com.test.tabs.tabs.com.tabs.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -13,6 +15,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,7 +54,9 @@ import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
+import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 import com.test.tabs.tabs.com.tabs.database.users.User;
 import com.test.tabs.tabs.com.tabs.database.users.UsersDataSource;
@@ -62,6 +67,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,7 +76,7 @@ import java.util.UUID;
 /**
  * Created by schan93 on 10/13/15.
  */
-public class login extends Activity {
+public class login extends Activity implements Serializable{
 
     //Firebase reference
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
@@ -99,6 +105,8 @@ public class login extends Activity {
     //Progress overlay
     View progressOverlay;
 
+    //Application
+    FireBaseApplication application;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -109,11 +117,13 @@ public class login extends Activity {
         //Configure Fresco so that image loads quickly
         configFresco();
         //Remove DB first this is because we have to change the schema
-//        deleteDatabase();
+        deleteDatabase();
         //Initialize DB
         startDatabases();
         //Initialize Handler
         handler = new Handler();
+        application =  (FireBaseApplication) getApplication();
+        initializeAdapters();
         //Set up location services
         LocationService.getLocationManager(this);
 
@@ -125,26 +135,16 @@ public class login extends Activity {
         loginButton = (LoginButton)findViewById(R.id.login_button);
         loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile"));
 
+        System.out.println("Login: App has started");
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
             loggedIn = true;
             setContentView(R.layout.loading_panel);
-//            AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.0f, 200);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
             userId = accessToken.getUserId();
             getUserInfo(userId);
         }
         else {
-            //I think we want to remove the friends db
-            //This is just because ok lets think about this way: the user somehow logs out of our app
-            //And then signs into another user
-            //If this happens, we have to make sure that the friends db doesn't match up with the previous one. dont think we
-            //want to remove the posts db because the posts db is supposed to just keep getting appended to,
-            //Maybe after some time we will delete the posts db (certain posts after  X time)
-            //TODO: Set up some cache so we can lazily load the friends from cache. Right now we simply purge out the db and recreate it.
-            //Since this is an asynchronous process, this access token may tell us that we aren't logged in
-            //if we aren't logged in, we have to check via the access token tracker
-            //Set layout of activity
             loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
 
                 private ProfileTracker profileTracker;
@@ -224,9 +224,7 @@ public class login extends Activity {
      * @param userId
      */
     private void getUserInfo(String userId) {
-        System.out.println("Getting User Info");
         User user = usersDataSource.getUser(userId);
-        System.out.println("User is null: " + user);
         if(user == null) {
             getUserFromFacebook(userId);
         }
@@ -252,12 +250,10 @@ public class login extends Activity {
                             JSONObject jsonObject,
                             GraphResponse response) {
                         try {
-                            System.out.println("User Try.");
                             String id = generateUniqueId();
                             String userId = jsonObject.getString("id");
                             String name = jsonObject.getString("name");
                             user[0] = usersDataSource.createUser(id, userId, name);
-                            System.out.println("New User Name: " + user[0].getName());
                             saveUserToFirebase(user[0]);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -268,7 +264,6 @@ public class login extends Activity {
                                 @Override
                                 public void run() {
                                     System.out.println("Running user");
-                                    //saveUserToFirebase(user[0]);
                                     getFriendsFromFirebase(user[0]);
                                     getFriendsFromFacebook(userId);
                                 }
@@ -293,31 +288,39 @@ public class login extends Activity {
      * @param user
      */
     private void getFriendsFromFirebase(User user) {
-        System.out.println("Getting friends from Firebase");
         firebaseRef.child("Friends/" + user.getUserId()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                System.out.println("Snapshot Friends Count: " + snapshot.getChildrenCount());
                 for (DataSnapshot friendSnapShot : snapshot.getChildren()) {
                     Friend friend = friendSnapShot.getValue(Friend.class);
                     String id = friend.getId();
                     String name = friend.getName();
                     String userId = friend.getUserId();
                     String user = friend.getUser();
-                    Integer isFriend = friend.getIsFriend();
+                    String isFriend = friend.getIsFriend();
                     //System.out.println("Newest Friend id: " + id + " Name: " + name + " User id: " + userId + " User: " + user + " isFriend: " + isFriend);
                     Friend newFriend = friendsDataSource.getFriend(userId);
 //                    System.out.println("New Friend Name: " + newFriend.getName());
                     if(newFriend == null) {
-                        System.out.println("Friend is null");
-                        Friend newCreatedFriend = friendsDataSource.createFriend(id, name, userId, user, isFriend);
-                        System.out.println("New Created Friend Name: " + newCreatedFriend.getName());
+                        newFriend = friendsDataSource.createFriend(id, name, userId, user, isFriend);
+                        System.out.println("FriendsDataSource: Login123: " + "Friend " + userId + "is a friend of " + user);
+
                     }
+                    List<Friend> friends = application.getFriendsAdapter().getFriends();
+                    if(!application.getFriendsAdapter().containsId(friends, newFriend.getUserId())){
+                        System.out.println("Login: Adding friend: " + newFriend.getUserId() + " because it is not in friends from Firebase");
+                        System.out.println("Login: Firebase count: " + application.getFriendsAdapter().getCount());
+                        application.getFriendsAdapter().getFriends().add(newFriend);
+                    }
+                    getPosts(userId);
                 }
+                //In case that the data set changes when we are on Resume or something.. I guess we have to check if the dataset changes
+//                application.getFriendsAdapter().notifyDataSetChanged();
             }
 
             @Override
-            public void onCancelled(FirebaseError error) {
+            public void onCancelled(FirebaseError firebaseError) {
+                System.out.println("Failed getting friends: " + firebaseError.getMessage());
             }
         });
     }
@@ -363,20 +366,24 @@ public class login extends Activity {
                 @Override
                 public void onCompleted(final JSONArray jsonArray, GraphResponse response) {
                     try {
-                        System.out.println("Completed: " + jsonArray.length());
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
                             String id = generateUniqueId();
                             String friendId = jsonObject.getString("id");
                             String name = jsonObject.getString("name");
                             Friend friend = friendsDataSource.getFriend(friendId);
-                            System.out.println("Friend: " + friend);
                             if(friend == null) {
-                                //    public Friend createFriend(String uniqueId, String name, String userId, String user, Integer isFriend) {
-
-                                friend = friendsDataSource.createFriend(id, name, friendId, userId, 0);
+                                System.out.println("FriendsDataSource: LoginFB: " + "Friend " + friendId + "is a friend of " + userId);
+                                friend = friendsDataSource.createFriend(id, name, friendId, userId, "0");
                                 //Insert into Cloud database
+                                System.out.println("Login: Setting up friend in Facebook");
                                 saveFriendToFirebase(friend);
+                            }
+                            List<Friend> friends = application.getFriendsAdapter().getFriends();
+                            if(!application.getFriendsAdapter().containsId(friends, friend.getUserId())) {
+                                System.out.println("Login: Adding friend: " + friend.getUserId() + " because it is not in friends from Facebook");
+                                System.out.println("Login: Facebook count: " + application.getFriendsAdapter().getCount());
+                                application.getFriendsAdapter().getFriends().add(friend);
                             }
                         }
                     } catch (JSONException e) {
@@ -406,9 +413,9 @@ public class login extends Activity {
      */
     private void setupNextActivity() {
         if (loggedIn) {
-            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
 //            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
             System.out.println("Login: Login done.");
+            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
             //findViewById(R.id.loadingPanel).setVisibility(View.GONE);
         }
         Bundle parameters = new Bundle();
@@ -466,7 +473,7 @@ public class login extends Activity {
      * If a Post does not exist in local database already so we need to also create the post in local db.
      * @param userId
      */
-    private void getPosts(String userId) {
+    private void getPosts(final String userId) {
         System.out.println("Getting posts from Firebase");
         //TODO: Query longitude and latitude by 15 mile distance
         firebaseRef.child("Posts").addValueEventListener(new ValueEventListener() {
@@ -478,30 +485,65 @@ public class login extends Activity {
                 }
                 for (DataSnapshot postSnapShot : snapshot.getChildren()) {
                     System.out.println("POsts children count: " + postSnapShot.getChildrenCount());
-                    for(DataSnapshot userSnapShot: postSnapShot.getChildren()){
+                    String postCreator = postSnapShot.getKey();
+                    int i = 0;
+                    for(DataSnapshot userSnapShot : postSnapShot.getChildren()){
                         Post post = userSnapShot.getValue(Post.class);
                         String id = post.getId();
                         String name = post.getName();
                         String status = post.getStatus();
                         String posterUserId = post.getPosterUserId();
                         String timeStamp = post.getTimeStamp();
-                        Integer privacy = post.getPrivacy();
+                        String privacy = post.getPrivacy();
                         Double latitude = post.getLatitude();
                         Double longitude = post.getLongitude();
                         Post newPost = postsDataSource.getPost(id);
+                        //TODO: This is basically when we update the Post in Firebase we need to be able to handle this change
+//                        if(newPost != null && !newPost.getPrivacy().equals(post.getPrivacy())) {
+//                            //update the post in the db, then you may need to swap whatever is out from the db to / from the supposed adapters
+//                            postsDataSource.updatePost(newPost);
+//                            if(newPost.getPrivacy().equals("1")) {
+//                                Friend friend = friendsDataSource.getFriend(posterUserId);
+//                                if(friend != null && friend.getIsFriend().equals("1")) {
+//                                    application.getPrivateAdapter().add(post);
+//                                }
+//                                application.getPublicAdapter().remove(post, getApplicationContext());
+//                            } else {
+//                                System.out.println("The new post's privacy = 0. Therefore, it goes into public, out of private");
+//                                application.getPublicAdapter().add(post);
+//                                application.getPrivateAdapter().remove(post, getApplicationContext());
+//                            }
+//                            //also need to refresh my tabs
+//                            application.getMyTabsAdapter().notifyDataSetChanged();
+//                        }
                         //System.out.println("New Post Id: " + id);
                         if (newPost == null) {
-                            Post createdPost = postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
-                            System.out.println("Login: Created Post Id: " + createdPost.getId());
-//                        savePostToFirebase(newPost);
+                            postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
                         }
                         else {
                             System.out.println("Login: Already have post id: " + newPost.getId());
                         }
+                        if(post.getPrivacy().equals("0")) {
+                            application.getPublicAdapter().add(post);
+                        } else {
+                            Friend friend = friendsDataSource.getFriend(posterUserId);
+                            if(friend != null && friend.getIsFriend().equals("1") && !friend.getUserId().equals(userId)){
+                                application.getPrivateAdapter().add(post);
+                            }
+                        }
+                        if(post.getPosterUserId().equals(userId)) {
+                            application.getMyTabsAdapter().add(post);
+                        }
                         System.out.println("Login: Done getting Posts, now getting comments");
+                        i++;
                         getComments(id);
+                        if(i == postSnapShot.getChildrenCount() && application.getFromAnotherActivity() == false) {
+                            System.out.println("SETTING UP NEXT ACTIVITY");
+                            setupNextActivity();
+                        }
                     }
                 }
+                //In case that the data set changes when we are on Resume or something.. I guess we have to check if the dataset changes
             }
 
             @Override
@@ -518,7 +560,7 @@ public class login extends Activity {
      */
     private void getComments(String postId) {
         //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Comments").push().addValueEventListener(new ValueEventListener() {
+        firebaseRef.child("Comments").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
@@ -535,12 +577,12 @@ public class login extends Activity {
                     Comment newComment = commentsDataSource.getComment(id);
                     if (newComment == null) {
                         commentsDataSource.createCommentFromFirebase(id, postId, commenter, commentText, commenterUserId, timeStamp);
-//                        saveCommentToFirebase(newComment);
                     }
                     System.out.println("Login: Done getting comments.");
+//                    application.getCommentsRecyclerViewAdapter().getComments().add(comment);
                 }
                 System.out.println("Login: Done getting Everything.");
-                setupNextActivity();
+//                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
             }
 
             @Override
@@ -558,6 +600,18 @@ public class login extends Activity {
         commentsDataSource.open();
         friendsDataSource = new FriendsDataSource(this);
         friendsDataSource.open();
+    }
+
+    private void initializeAdapters() {
+        List<Friend> friends = new ArrayList<Friend>();
+        List<Post> privatePosts = new ArrayList<Post>();
+        List<Post> publicPosts = new ArrayList<Post>();
+        List<Post> myTabsPosts = new ArrayList<Post>();
+
+        application.setFriendsAdapter(new FriendsListAdapter(this, friends));
+        application.setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false));
+        application.setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false));
+        application.setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false));
     }
 
 }

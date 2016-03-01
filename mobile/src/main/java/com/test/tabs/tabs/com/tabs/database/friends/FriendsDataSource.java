@@ -6,12 +6,16 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.test.tabs.tabs.com.tabs.database.SQLite.DatabaseHelper;
 
 import org.w3c.dom.Comment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by schan on 10/28/15.
@@ -28,6 +32,7 @@ public class FriendsDataSource {
     private String[] allColumns = { DatabaseHelper.KEY_ID,
             DatabaseHelper.COLUMN_USER_ID, DatabaseHelper.COLUMN_NAME,
             DatabaseHelper.COLUMN_USER, DatabaseHelper.COLUMN_IS_FRIEND };
+    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
 
     public FriendsDataSource(Context context) {
         dbHelper = DatabaseHelper.getInstance(context);
@@ -41,8 +46,10 @@ public class FriendsDataSource {
         dbHelper.close();
     }
 
-    public Friend createFriend(String uniqueId, String name, String userId, String user, Integer isFriend) {
+    public Friend createFriend(String uniqueId, String name, String userId, String user, String isFriend) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
+        //User = the user id of the person logged in
+        //User_id = the user id of the friend
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.KEY_ID, uniqueId);
         values.put(DatabaseHelper.COLUMN_USER_ID, userId);
@@ -82,7 +89,7 @@ public class FriendsDataSource {
         System.out.println("Cursor 1: " + cursor.getString(1));
         System.out.println("Cursor 2: " + cursor.getString(2));
 
-        Friend friend = new Friend(cursor.getString(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getInt(4));
+        Friend friend = new Friend(cursor.getString(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4));
         return friend;
     }
 
@@ -122,12 +129,13 @@ public class FriendsDataSource {
      * @return
      */
     public List<Friend> getAllFriends(String userId) {
+        System.out.println("Friends: User Id: " + userId);
         List<Friend> friends = new ArrayList<Friend>();
 
         Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
                 allColumns, DatabaseHelper.COLUMN_USER + " = ?", new String[]{userId}, null, null, null);
-
         cursor.moveToFirst();
+        System.out.println("Cursor: " + cursor);
         while (!cursor.isAfterLast()) {
             Friend friend = cursorToFriend(cursor);
             System.out.println("Friend is friend: " + friend.getIsFriend());
@@ -154,14 +162,16 @@ public class FriendsDataSource {
         }
     }
 
-    public void updateFriend(String userId, String user, Integer val){
+    public boolean updateFriend(String userId, String user, String isFriend){
         database = dbHelper.getWritableDatabase();
         ContentValues newValues = new ContentValues();
-        newValues.put(DatabaseHelper.COLUMN_IS_FRIEND, val);
+        newValues.put(DatabaseHelper.COLUMN_IS_FRIEND, isFriend);
 
         String[] args = new String[]{userId, user};
-        System.out.println("Database: " + database);
-        database.update("friends", newValues, "user_id=? AND user=?", args);
+        int value = database.update("friends", newValues, "user_id= ? AND user= ?", args);
+        System.out.println("FriendsDataSource: " + "Number of rows affecteD: " + value + " isFreind: " + isFriend);
+        System.out.println("FriendsDataSource: " + "Friend " + userId + " is a friend of " + user + " and his is friend");
+        return value > 0;
     }
 
 }

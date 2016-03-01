@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class DatabaseHelper extends SQLiteOpenHelper{
 
-    //Static instance of helper so that we don't have database leaks!
+    //Static instance of helper so that we don't have database leaks.
     private static DatabaseHelper sInstance;
 
     // Logcat tag
@@ -63,14 +63,14 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     private static final String CREATE_TABLE_FRIENDS = "create table "
             + TABLE_FRIENDS + "(" + KEY_ID
             + " string primary key, " +  COLUMN_USER_ID  + " text not null, " + COLUMN_NAME
-            + " text not null, " + COLUMN_USER + " text not null, " + COLUMN_IS_FRIEND + " integer not null);";
+            + " text not null, " + COLUMN_USER + " text not null, " + COLUMN_IS_FRIEND + " text not null);";
 
     // Tag table create statement
     private static final String CREATE_TABLE_POSTS = "create table "
             + TABLE_POSTS + "(" + KEY_ID
             + " string primary key, " + COLUMN_POSTER_USER_ID
             + " text not null, " + COLUMN_POSTER_NAME + " text not null, " + COLUMN_STATUS +
-            " text not null, " + COLUMN_TIME_STAMP + " datetime not null, " + COLUMN_PRIVACY + " integer not null, " +
+            " text not null, " + COLUMN_TIME_STAMP + " datetime not null, " + COLUMN_PRIVACY + " string not null, " +
             COLUMN_LATITUDE + " real not null, " + COLUMN_LONGITUDE + " real not null);";
 
     // Comments table create statement
@@ -88,30 +88,34 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // creating required tables
-        System.out.println("Creating required tables.");
         db.execSQL(CREATE_TABLE_FRIENDS);
         db.execSQL(CREATE_TABLE_POSTS);
         db.execSQL(CREATE_TABLE_COMMENTS);
         db.execSQL(CREATE_TABLE_USERS);
     }
 
+    /**
+     * Drop older tables and create new tables if there is an update in the database.
+     * @param db
+     * @param oldVersion
+     * @param newVersion
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        //Drop older tables
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_FRIENDS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_COMMENTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_POSTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        //Create new tables
         onCreate(db);
     }
 
+    /**
+     * Use the application context, which will ensure that you don't accidentally leak an Activity's context.
+     * See this article for more information: http://bit.ly/6LRzfx.
+     * @param context
+     * @return
+     */
     public static synchronized DatabaseHelper getInstance(Context context) {
-        // Use the application context, which will ensure that you
-        // don't accidentally leak an Activity's context.
-        // See this article for more information: http://bit.ly/6LRzfx
-        System.out.println("Getting DB Context");
         if (sInstance == null) {
             sInstance = new DatabaseHelper(context.getApplicationContext());
         }

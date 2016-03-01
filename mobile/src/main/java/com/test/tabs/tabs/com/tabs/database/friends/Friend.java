@@ -8,7 +8,7 @@ public class Friend {
     Friend(){
     }
 
-    Friend(String id, String userId, String name, String user, Integer isFriend){
+    Friend(String id, String userId, String name, String user, String isFriend){
         this.id = id;
         this.userId = userId;
         this.name = name;
@@ -20,7 +20,7 @@ public class Friend {
     private String userId;
     private String name;
     private String user;
-    private Integer isFriend;
+    private String isFriend;
 
     public String getId(){
         return id;
@@ -36,7 +36,7 @@ public class Friend {
 
     public String getUser() { return user; }
 
-    public Integer getIsFriend() { return isFriend; }
+    public String getIsFriend() { return isFriend; }
 
     public void setId(String id){
         this.id = id;
@@ -48,7 +48,7 @@ public class Friend {
 
     public void setUserId(String userId) {this.userId = userId; }
 
-    public void setIsFriend(Integer isFriend) { this.isFriend = isFriend; }
+    public void setIsFriend(String isFriend) { this.isFriend = isFriend; }
 
     public void setUser(String user) { this.user = user; }
 }
