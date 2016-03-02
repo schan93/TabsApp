@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.BitmapDrawable;
+import android.hardware.camera2.params.Face;
 import android.location.Location;
 import android.media.ImageReader;
 import android.net.Uri;
@@ -92,23 +93,20 @@ public class news_feed extends BatchAppCompatActivity
     //Firebase reference
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
 
-    //View for navigation header
-    private NavigationView navigationView;
     //Friends list values
     private ListView friendsList;
     private FriendsListAdapter friendsAdapter;
     //Local Database for storing friends
     private FriendsDataSource datasource;
     private List<Friend> friendItems;
-    private List<Friend> friendItemsDifference;
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
     private CommentsDataSource commentsDataSource;
     private List<Post> postItems;
-    //Adapter for posts
-    PostRecyclerViewAdapter adapter;
     //Progress overlay
     View progressOverlay;
+
+    int callResume = 0;
 
     String userId;
 
@@ -116,8 +114,9 @@ public class news_feed extends BatchAppCompatActivity
 
     Handler handler;
 
-    //To detect if any new freinds are added
-    boolean newFriendAdded = false;
+    AccessToken accessToken;
+
+    FireBaseApplication application;
 
     public news_feed(){
 
@@ -127,39 +126,27 @@ public class news_feed extends BatchAppCompatActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        System.out.println("CREATING THE NEWS FEED ACTIVITY BEFORE GOING INTO FRAGMENT");
         Fresco.initialize(this);
         setContentView(R.layout.activity_main);
+        System.out.println("News_Feed: 0");
+        application =  (FireBaseApplication) getApplication();
+        System.out.println("News_Feed: 1");
+        startDatabases();
+        System.out.println("News_Feed: 2");
         progressOverlay = findViewById(R.id.progress_overlay);
+        System.out.println("News_Feed: 3");
         handler = new Handler();
+        System.out.println("News_Feed: 4");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if(!FacebookSdk.isInitialized()){
+        System.out.println("News_Feed: 5");
+        if(!FacebookSdk.isInitialized()) {
+            System.out.println("News_Feed: 6");
             FacebookSdk.sdkInitialize(getApplicationContext());
+            accessToken = checkAccessToken();
         }
-        final Profile profile = Profile.getCurrentProfile();
-        userId = AccessToken.getCurrentAccessToken().getUserId();
-
-        //Open DB and get freinds from db & posts.
-        datasource = new FriendsDataSource(this);
-        datasource.open();
-        postsDataSource = new PostsDataSource(this);
-        postsDataSource.open();
-        commentsDataSource = new CommentsDataSource(this);
-        commentsDataSource.open();
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Bundle bundle = new Bundle();
-                bundle.putString("name", profile.getFirstName() + " " + profile.getLastName());
-                Intent intent = new Intent(news_feed.this, CreatePost.class);
-                if(intent != null) {
-                    intent.putExtras(bundle);
-                    startActivity(intent);
-                }
-            }
-        });
+//            populateFriendsList(userId);
 
         //Listen for navigation events
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -169,8 +156,9 @@ public class news_feed extends BatchAppCompatActivity
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                UpdateNewsFeedListTask updateNewsFeedListTask = new UpdateNewsFeedListTask();
-                updateNewsFeedListTask.execute();
+                AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
+                List<Friend> friends = application.getFriendsAdapter().getFriends();
+                updateFriendToFirebase(friends);
             }
         };
 
@@ -191,7 +179,6 @@ public class news_feed extends BatchAppCompatActivity
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                System.out.println("Tab: " + tab.getPosition());
                 viewPager.setCurrentItem(tab.getPosition());
             }
 
@@ -216,98 +203,29 @@ public class news_feed extends BatchAppCompatActivity
                 false);
         listView.addHeaderView(header, null, false);
 
-        drawerSetup(userId, profile.getFirstName(), profile.getLastName());
+        System.out.println("News_Feed: 8");
+        final Profile profile = Profile.getCurrentProfile();
+        accessToken = checkAccessToken();
+        userId = accessToken.getUserId();
 
-        populateFriendsList(userId);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Bundle bundle = new Bundle();
+                bundle.putString("name", profile.getFirstName() + " " + profile.getLastName());
+                Intent intent = new Intent(news_feed.this, CreatePost.class);
+                if (intent != null) {
+                    intent.putExtras(bundle);
+                    startActivity(intent);
+                }
+            }
+        });
+
+        drawerSetup(userId, profile.getFirstName(), profile.getLastName());
+        populateFriendsList();
 
         //populateNewsFeedList();
-    }
-
-    public void populatePublicFeed(){
-        RecyclerView rv = (RecyclerView) findViewById(R.id.rv_public_feed);
-        Location location = LocationService.getLastLocation();
-        //Set a 24140.2 meter, or a 15 mile radius.
-        PostRecyclerViewAdapter adapter;
-        adapter = new PostRecyclerViewAdapter(postsDataSource.getAllPublicPosts(location.getLatitude(), location.getLongitude(), 24140.2), getApplicationContext(), true);
-        rv.setAdapter(adapter);
-    }
-
-    private void populateMyTabs(String userId){
-        RecyclerView rv = (RecyclerView) findViewById(R.id.rv_my_tabs_feed);
-        PostRecyclerViewAdapter adapter;
-        adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByUser(userId), getApplicationContext(), false);
-        rv.setAdapter(adapter);
-    }
-
-    private void populatePrivateFeed(String userId){
-        RecyclerView rv = (RecyclerView) findViewById(R.id.rv_private_feed);
-        List<Friend> friends = datasource.getAllAddedFriends(userId);
-        PostRecyclerViewAdapter adapter;
-        adapter = new PostRecyclerViewAdapter(postsDataSource.getPostsByFriends(friends), getApplicationContext(), false);
-        rv.setAdapter(adapter);
-    }
-
-    private void getPostsFromFriends(final Friend friend){
-        System.out.println("Friend Test User Id: " + friend.getUserId());
-        firebaseRef.child("Posts/" + friend.getUserId()).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                for (DataSnapshot postSnapShot : snapshot.getChildren()) {
-                    Post post = postSnapShot.getValue(Post.class);
-                    String id = post.getId();
-                    String name = post.getName();
-                    String status = post.getStatus();
-                    String posterUserId = post.getPosterUserId();
-                    String timeStamp = post.getTimeStamp();
-                    Integer privacy = post.getPrivacy();
-                    Double latitude = post.getLatitude();
-                    Double longitude = post.getLongitude();
-                    Post newPost = postsDataSource.getPost(id);
-                    System.out.println("New Post Id Test: " + id);
-                    if (newPost == null) {
-                        Post createdPost = postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
-                        System.out.println("Created Post Id: " + createdPost.getId());
-//                        savePostToFirebase(newPost);
-                    }
-                    getComments(id);
-                    System.out.println("Done getting stuff from friend: " + posterUserId);
-                    //No need to populate your own feed if you are changing friends
-//                    else {
-//                        populateMyTabs(friend.getUser());
-//                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-            }
-        });
-    }
-
-    private void getComments(String postId) {
-        //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Comments").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
-                    Comment comment = commentSnapShot.getValue(Comment.class);
-                    String id = comment.getId();
-                    String postId = comment.getPostId();
-                    String commenter = comment.getCommenter();
-                    String commentText = comment.getComment();
-                    String commenterUserId = comment.getCommenterUserId();
-                    String timeStamp = comment.getTimeStamp();
-                    Comment newComment = commentsDataSource.getComment(id);
-                    if (newComment == null) {
-                        commentsDataSource.createCommentFromFirebase(id, postId, commenter, commentText, commenterUserId, timeStamp);
-                        saveCommentToFirebase(newComment);
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-            }
-        });
     }
 
     /**
@@ -326,16 +244,11 @@ public class news_feed extends BatchAppCompatActivity
         firebaseRef.child("Comments/" + comment.getPostId()).setValue(comment);
     }
 
-    private void updateFriendToFirebase(Friend friend) {
-        Map<String, Object> isFriend = new HashMap<String, Object>();
-        isFriend.put("isFriend", friend.getIsFriend());
-        firebaseRef.child("Friends/" + friend.getUser() + "/" + friend.getUserId()).updateChildren(isFriend);
-    }
-
     @Override
     public void onResume(){
         super.onResume();
         LocationService.getLocationManager(this);
+        AppEventsLogger.activateApp(this);
     }
 
     private void drawerSetup(String id, String firstName, String lastName) {
@@ -392,6 +305,10 @@ public class news_feed extends BatchAppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
+            Intent startMain = new Intent(Intent.ACTION_MAIN);
+            startMain.addCategory(Intent.CATEGORY_HOME);
+            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(startMain);
         }
     }
 
@@ -437,74 +354,78 @@ public class news_feed extends BatchAppCompatActivity
 
         activityContext = this;
 
-        friendsAdapter = new FriendsListAdapter(this, friendItems);
+        friendsAdapter = application.getFriendsAdapter();
         friendsList.setAdapter(friendsAdapter);
-        if(datasource.isTablePopulated()) {
-            System.out.println("Friends data source is populated");
-            for (Friend i : datasource.getAllFriends(userId)) {
-                System.out.println("Friend name: " + i.getName());
-                friendItems.add(i);
-            }
+        System.out.println("Freinds Adapter: " + friendsAdapter);
+        for (Friend i : datasource.getAllFriends(userId)) {
+            System.out.println("Friend name: " + i.getName());
+            friendItems.add(i);
         }
     }
 
-    class UpdateNewsFeedListTask extends AsyncTask<Void,String, Void>
-    {
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            //TODO keep array that holds strings up to date
-            //Get the currently selected tab and populate that tab's information
-            TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
-            if(tabLayout.getSelectedTabPosition() == 0) {
-                populatePublicFeed();
-            }
-            else if(tabLayout.getSelectedTabPosition() == 1) {
-                populatePrivateFeed(userId);
-            }
-            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-            System.out.println("DONEDONE");
-            //news_feed_adapter = (ArrayAdapter<String>)newsFeedListView.getAdapter();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            System.out.println("HALFHALF");
-            for (Friend i : datasource.getAllFriends(userId)) {
-                System.out.println("Friend: " + i.getName());
-                updateFriendToFirebase(i);
-                getPostsFromFriends(i);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(String... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            System.out.println("STARTSTART");
-            AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
-        }
+    private void populateFriendsList() {
+        friendsList = (ListView) findViewById(R.id.friends_list);
+        friendsAdapter = application.getFriendsAdapter();
+        System.out.println("News_feed: Friends list adapter size: " + friendsAdapter.getCount());
+        friendsList.setAdapter(friendsAdapter);
     }
-
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//
-//        // Logs 'install' and 'app activate' App Events.
-//        AppEventsLogger.activateApp(this);
-//  //      adapter.notifyDataSetChanged();
-//    }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         // Logs 'app deactivate' App Event.
         AppEventsLogger.deactivateApp(this);
     }
+
+    private void startDatabases() {
+        //Open DB and get freinds from db & posts.
+        datasource = new FriendsDataSource(this);
+        datasource.open();
+        postsDataSource = new PostsDataSource(this);
+        postsDataSource.open();
+        commentsDataSource = new CommentsDataSource(this);
+        commentsDataSource.open();
+    }
+
+    private AccessToken checkAccessToken() {
+        try {
+            accessToken = AccessToken.getCurrentAccessToken();
+            if(accessToken == null) {
+                setContentView(R.layout.loading_panel);
+                Thread.sleep(1000);
+                System.out.println("News_Feed: 7");
+//                if(findViewById(R.id.loadingPanel).getVisibility() == View.VISIBLE){
+//                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+//                }
+            }
+            return AccessToken.getCurrentAccessToken();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void updateFriendToFirebase(List<Friend> friends) {
+        Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Friends");
+        Map<String, Object> updatedFriends = new HashMap<String, Object>();
+        for(Friend friend: friends) {
+            updatedFriends.put(friend.getUser() + "/" + friend.getUserId() + "/isFriend", friend.getIsFriend());
+        }
+        application.setFromAnotherActivity(true);
+        reference.updateChildren(updatedFriends, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if (firebaseError != null) {
+                    System.out.println("There was an error saving data. ");
+                } else {
+                    if(application.getFromAnotherActivity() == true) {
+                        application.setFromAnotherActivity(false);
+                    }
+                }
+                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+            }
+        });
+    }
+
+
 }

@@ -65,6 +65,7 @@ public class Comments extends AppCompatActivity {
     private CommentsDataSource commentsDatasource;
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
+    private FireBaseApplication application;
     private List<Comment> commentItems;
     private CommentsRecyclerViewAdapter commentsRecyclerViewAdapter;
     private RecyclerView commentsView;
@@ -81,6 +82,13 @@ public class Comments extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        application = ((FireBaseApplication) getApplication());
+
+        if (savedInstanceState != null)       {
+            Intent intent = new Intent(Comments.this, news_feed.class);
+            System.out.println("Starting news feed activity app from Comments.");
+            startActivity(intent);
+        }
 
         userId = AccessToken.getCurrentAccessToken().getUserId();
         setContentView(R.layout.comments);
@@ -331,7 +339,11 @@ public class Comments extends AppCompatActivity {
     }
 
     private void saveCommentInCloud(Comment comment){
-        firebaseRef.child("Comments/"+ comment.getPostId()).setValue(comment);
+        firebaseRef.child("Comments").push().setValue(comment);
+//        application.getFriendsAdapter().notifyDataSetChanged();
+//        application.getPublicAdapter().notifyDataSetChanged();
+//        application.getPrivateAdapter().notifyDataSetChanged();
+//        application.getMyTabsAdapter().notifyDataSetChanged();
     }
 
     public String convertDate(String timestamp) {

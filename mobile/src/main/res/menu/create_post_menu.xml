@@ -5,12 +5,12 @@
     tools:context=".CreatePost">
 
 
-    <item
-        android:title=""
-        android:id="@+id/toggle_test"
-        app:showAsAction="always"
-        android:orderInCategory="1"
-        />
+    <!--<item-->
+        <!--android:title=""-->
+        <!--android:id="@+id/toggle_test"-->
+        <!--app:showAsAction="always"-->
+        <!--android:orderInCategory="1"-->
+        <!--/>-->
     <!--
     <item
         android:id="@+id/toggle_test"

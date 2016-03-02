@@ -2,6 +2,8 @@ package com.test.tabs.tabs.com.tabs.database.posts;
 
 import android.content.Intent;
 import android.database.DataSetObserver;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -24,7 +26,9 @@ import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
+import com.test.tabs.tabs.com.tabs.activity.LocationService;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
+import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
@@ -35,6 +39,22 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     List<Post> posts;
     Context context;
     boolean isPublic;
+
+    public List<Post> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
+    }
+
+    public boolean getIsPublic() {
+        return isPublic;
+    }
+
+    public void setIsPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
         CardView cardViewPost;
@@ -85,10 +105,10 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         postViewHolder.numComments.setText(datasource.getNumberComments(posts.get(i).getId()).toString() + " Comments");
         postViewHolder.numComments.setTextSize(14);
         System.out.println("Context: " + context);
-        if (posts.get(i).getPrivacy() == 1 && !isPublic) {
+        if (posts.get(i).getPrivacy().equals("1") && !isPublic) {
             //If it is a private post, set the text to be "Private"
             postViewHolder.privacyStatus.setText("Private");
-        } else if (posts.get(i).getPrivacy() == 0 && !isPublic) {
+        } else if (posts.get(i).getPrivacy().equals("0") && !isPublic) {
             postViewHolder.privacyStatus.setText("Public");
             //Set text to be public
         } else {
@@ -113,6 +133,43 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         this.posts = posts;
         this.context = context;
         this.isPublic = isPublic;
+    }
+
+
+    public void add(Post item){
+        for(int i = 0; i < posts.size(); i++) {
+            if(item.getId().equals(posts.get(i).getId())) {
+                return;
+            }
+        }
+        posts.add(item);
+        notifyItemInserted(posts.size() - 1);
+        notifyItemRangeChanged(posts.size() - 1, posts.size());
+    }
+
+    public void remove(Post item, Context context) {
+//        System.out.println("PostRecyclerViewAdapter: Removing Post: " + item.getId());
+//        PostsDataSource postsDataSource = new PostsDataSource(context);
+//        postsDataSource.open();
+//        if(item.getPrivacy().equals("1")) {
+//            posts = postsDataSource.getAllPrivatePosts();
+//        }
+//        else {
+//            LocationService.getLocationManager(context);
+//            Location location = LocationService.getLastLocation();
+//            double latitude = location.getLatitude();
+//            double longitude = location.getLongitude();
+//            posts = postsDataSource.getAllPublicPosts(latitude, longitude, 24140.2);
+//        }
+//        for(int i = 0; i < posts.size(); i++) {
+//            System.out.println("PostRecyclerViewAdapter: Post Id: " + posts.get(i).getId());
+//            if(posts.get(i).getId().equals(item.getId())) {
+//                System.out.println("PostRecyclerViewAdapter: Removing post from list");
+//                posts.remove(i);
+//                notifyItemRemoved(i);
+//                notifyItemRangeChanged(i, getItemCount() - i);
+//            }
+//        }
     }
 
     @Override

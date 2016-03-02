@@ -48,7 +48,7 @@ public class PostsDataSource {
         return dateFormat.format(date);
     }
 
-    public Post createPost(String postId, String posterUserId, String status, String posterName, Integer privacy, double latitude, double longitude) {
+    public Post createPost(String postId, String posterUserId, String status, String posterName, String privacy, double latitude, double longitude) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
@@ -62,15 +62,17 @@ public class PostsDataSource {
         values.put(DatabaseHelper.COLUMN_LATITUDE, latitude);
         values.put(DatabaseHelper.COLUMN_LONGITUDE, longitude);
         //Insert into the database
-        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_POSTS + " (" +
-                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
-                new String[]{postId, posterName, posterUserId, status, privacy.toString(), Double.toString(latitude), Double.toString(longitude)});
+        database.insert(DatabaseHelper.TABLE_POSTS, null, values);
+
+//        database.rawQuery("INSERT OR IGNORE INTO " + DatabaseHelper.TABLE_POSTS + " (" +
+//                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
+//                new String[]{postId, posterName, posterUserId, status, privacy.toString(), Double.toString(latitude), Double.toString(longitude)});
 
         Post post = new Post(postId, posterName, status, posterUserId, dateTime, privacy, latitude, longitude);
         return post;
     }
 
-    public Post createPostFromFireBase(String postId, String posterUserId, String status, String timeStamp, String posterName, Integer privacy, double latitude, double longitude) {
+    public Post createPostFromFireBase(String postId, String posterUserId, String status, String timeStamp, String posterName, String privacy, double latitude, double longitude) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
@@ -124,7 +126,7 @@ public class PostsDataSource {
         System.out.println("Latitude: " + cursor.getString(6));
 
         Post post = new Post(cursor.getString(0), cursor.getString(1), cursor.getString(3),
-                cursor.getString(2), cursor.getString(4), cursor.getInt(5), cursor.getDouble(6), cursor.getDouble(7));
+                cursor.getString(2), cursor.getString(4), cursor.getString(5), cursor.getDouble(6), cursor.getDouble(7));
         return post;
     }
 
@@ -189,6 +191,7 @@ public class PostsDataSource {
             cursor.moveToNext();
         }
         // make sure to close the cursor
+        System.out.println("Number of posts from public: " + posts.size());
         cursor.close();
         return posts;
     }
@@ -201,7 +204,7 @@ public class PostsDataSource {
         List<Post> posts = new ArrayList<Post>();
 
         Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
-                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? ", new String[]{Integer.toString(1)}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? ", new String[]{"1"}, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -269,6 +272,16 @@ public class PostsDataSource {
         Integer count = cursor.getCount();
         cursor.close();
         return count;
+    }
+
+    public boolean updatePost(Post post){
+        database = dbHelper.getWritableDatabase();
+        ContentValues newValues = new ContentValues();
+        newValues.put(DatabaseHelper.COLUMN_PRIVACY, post.getPrivacy());
+
+        String[] args = new String[]{post.getId()};
+        int value = database.update("posts", newValues, "id= ?", args);
+        return value > 0;
     }
 
     /**

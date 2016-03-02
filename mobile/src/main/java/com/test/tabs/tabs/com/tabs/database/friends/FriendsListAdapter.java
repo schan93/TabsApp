@@ -27,6 +27,23 @@ public class FriendsListAdapter extends BaseAdapter{
     private Activity activity;
     private LayoutInflater inflater;
     private List<Friend> friendItems;
+
+    public List<Friend> getFriends() {
+        return friendItems;
+    }
+
+    public void setFriends(List<Friend> friendItems) {
+        this.friendItems = friendItems;
+    }
+
+    public static boolean containsId(List<Friend> list, String id) {
+        for (Friend object : list) {
+            if (object.getUserId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
     //ImageLoader imageLoader = AppController.getInstance().getImageLoader();
 
     //Local Database for storing friends
@@ -71,10 +88,13 @@ public class FriendsListAdapter extends BaseAdapter{
         roundingParams.setRoundAsCircle(true);
         draweeView.getHierarchy().setRoundingParams(roundingParams);
         CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.friend_checkbox);
-        if(friendItems.get(position).getIsFriend() == 1){
+        System.out.println("FriendsListAdapter: " + friendItems.get(position).getName() + " Is friend: " + friendItems.get(position).getIsFriend());
+        if(friendItems.get(position).getIsFriend().equals("1")){
+            System.out.println("FriendsListAdapter: is true.");
             checkBox.setChecked(true);
         }
         else{
+            System.out.println("FriendsListAdapter: is false.");
             checkBox.setChecked(false);
 
         }
@@ -84,22 +104,30 @@ public class FriendsListAdapter extends BaseAdapter{
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                boolean updateSuccessful;
                 if(((CheckBox) v).isChecked()){
                     //Display their posts to the newsfeed and update db
                     System.out.println("Friend User Id: " + friendItems.get(itemPosition).getUserId());
                     System.out.println("Friend user: " + friendItems.get(itemPosition).getUser());
-                    datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), 1);
+                    updateSuccessful = datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), "1");
+                    if(updateSuccessful){
+                        friendItems.get(itemPosition).setIsFriend("1");
+                    }
+                    System.out.println("FriendsListAdapter: Friend was updated." + friendItems.get(itemPosition).getName() + " Is friend: " + friendItems.get(itemPosition).getIsFriend());
                 }
                 else {
+                    System.out.println("FriendsListAdapter: Wrong one");
                     //Update this friend in DB
-                    datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), 0);
+                    updateSuccessful = datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), "0");
+                    if(updateSuccessful){
+                        friendItems.get(itemPosition).setIsFriend("0");
+                    }
                     //Remove posts from newsfeed. Probably need some sort of loader icon thing.
                 }
             }
         });
         //Set the views
         Friend item = friendItems.get(position);
-        System.out.println("Friend");
         name.setText(item.getName());
 
         //TODO: set the other data fields in Post
