@@ -1,13 +1,26 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
 import android.app.Application;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.widget.Toast;
 
 import com.batch.android.Batch;
 import com.batch.android.Config;
 import com.firebase.client.Firebase;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.extensions.android.json.AndroidJsonFactory;
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
+import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+import com.tabs.gcm.registration.Registration;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by KCKusumi on 2/1/2016.
@@ -31,6 +44,9 @@ public class FireBaseApplication extends Application {
         //Batch.setConfig(new Config("DEV56BC2B1738EFE251617C406E76D"));
         Batch.Push.setGCMSenderId("213033849274");
         Batch.setConfig(new Config("AIzaSyCP0MX6xM67bdd3-2cqCVjHqVFvF4HgcIw"));
+
+        //GCM push notifications
+        //new GcmRegistrationAsyncTask(this).execute();
     }
 
     private void stateDataBase(){
@@ -42,4 +58,64 @@ public class FireBaseApplication extends Application {
         friendsDataSource.open();
     }
 
+}
+
+class GcmRegistrationAsyncTask extends AsyncTask<Void, Void, String> {
+    private static Registration regService = null;
+    private GoogleCloudMessaging gcm;
+    private Context context;
+
+    // TODO: change to your own sender ID to Google Developers Console project number, as per instructions above
+    private static final String SENDER_ID = "213033849274";
+
+    public GcmRegistrationAsyncTask(Context context) {
+        this.context = context;
+    }
+
+    @Override
+    protected String doInBackground(Void... params) {
+        if (regService == null) {
+            Registration.Builder builder = new Registration.Builder(AndroidHttp.newCompatibleTransport(),
+                    new AndroidJsonFactory(), null)
+                    // Need setRootUrl and setGoogleClientRequestInitializer only for local testing,
+                    // otherwise they can be skipped
+                    .setRootUrl("http://10.0.2.2:8080/_ah/api/")
+                    .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
+                        @Override
+                        public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest)
+                                throws IOException {
+                            abstractGoogleClientRequest.setDisableGZipContent(true);
+                        }
+                    });
+            // end of optional local run code
+
+            regService = builder.build();
+        }
+
+        String msg = "";
+        try {
+            if (gcm == null) {
+                gcm = GoogleCloudMessaging.getInstance(context);
+            }
+            String regId = gcm.register(SENDER_ID);
+            msg = "Device registered, registration ID=" + regId;
+
+            // You should send the registration ID to your server over HTTP,
+            // so it can use GCM/HTTP or CCS to send messages to your app.
+            // The request to your server should be authenticated if your app
+            // is using accounts.
+            regService.register(regId).execute();
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            msg = "Error: " + ex.getMessage();
+        }
+        return msg;
+    }
+
+    @Override
+    protected void onPostExecute(String msg) {
+        Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+        Logger.getLogger("REGISTRATION").log(Level.INFO, msg);
+    }
 }
