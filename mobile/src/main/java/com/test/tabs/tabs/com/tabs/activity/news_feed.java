@@ -118,6 +118,8 @@ public class news_feed extends BatchAppCompatActivity
 
     FireBaseApplication application;
 
+    List<String> currentFriendItems = new ArrayList<String>();
+
     public news_feed(){
 
     }
@@ -153,12 +155,26 @@ public class news_feed extends BatchAppCompatActivity
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
 
+
+
+            public void onDrawerOpened(View view) {
+                super.onDrawerOpened(view);
+                if(currentFriendItems.size() > 0) {
+                    currentFriendItems.clear();
+                }
+                for(Friend friend: application.getFriendsAdapter().getFriends()) {
+                    currentFriendItems.add(friend.getIsFriend());
+                }
+//                for(int i = 0; i < application.getFriendsAdapter().getFriends().size(); i++) {
+//                    currentFriendItems.add(application.getFriendsAdapter().getFriends().get(i));
+//                }
+            }
+
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
                 List<Friend> friends = application.getFriendsAdapter().getFriends();
-                updateFriendToFirebase(friends);
+                updateFriendToFirebase(friends, currentFriendItems);
             }
         };
 
@@ -204,7 +220,7 @@ public class news_feed extends BatchAppCompatActivity
         listView.addHeaderView(header, null, false);
 
         System.out.println("News_Feed: 8");
-        final Profile profile = Profile.getCurrentProfile();
+        final String name = getIntent().getExtras().getString("name");
         accessToken = checkAccessToken();
         userId = accessToken.getUserId();
 
@@ -213,7 +229,7 @@ public class news_feed extends BatchAppCompatActivity
             @Override
             public void onClick(View view) {
                 Bundle bundle = new Bundle();
-                bundle.putString("name", profile.getFirstName() + " " + profile.getLastName());
+                bundle.putString("name", name);
                 Intent intent = new Intent(news_feed.this, CreatePost.class);
                 if (intent != null) {
                     intent.putExtras(bundle);
@@ -222,7 +238,7 @@ public class news_feed extends BatchAppCompatActivity
             }
         });
 
-        drawerSetup(userId, profile.getFirstName(), profile.getLastName());
+        drawerSetup(userId, name);
         populateFriendsList();
 
         //populateNewsFeedList();
@@ -251,12 +267,12 @@ public class news_feed extends BatchAppCompatActivity
         AppEventsLogger.activateApp(this);
     }
 
-    private void drawerSetup(String id, String firstName, String lastName) {
+    private void drawerSetup(String id, String name) {
         DraweeController controller = getImage(id);
         SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.avatarImageView);
         draweeView.setController(controller);
         TextView headerName = (TextView) findViewById(R.id.user_name);
-        headerName.setText(firstName + " " + lastName);
+        headerName.setText(name);
     }
 
     public static DraweeController getImage(String userId){
@@ -326,6 +342,10 @@ public class news_feed extends BatchAppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_logout) {
             LoginManager.getInstance().logOut();
+//            application.getPublicAdapter().getPosts().clear();
+//            application.getPrivateAdapter().getPosts().clear();
+//            application.getFriendsAdapter().getFriends().clear();
+//            application.getMyTabsAdapter().getPosts().clear();
             Intent intent = new Intent(news_feed.this, login.class);
             if(intent != null) {
                 startActivity(intent);
@@ -365,9 +385,8 @@ public class news_feed extends BatchAppCompatActivity
 
     private void populateFriendsList() {
         friendsList = (ListView) findViewById(R.id.friends_list);
-        friendsAdapter = application.getFriendsAdapter();
-        System.out.println("News_feed: Friends list adapter size: " + friendsAdapter.getCount());
-        friendsList.setAdapter(friendsAdapter);
+        System.out.println("News_feed: Friends list adapter size: " + application.getFriendsAdapter().getCount());
+        friendsList.setAdapter(application.getFriendsAdapter());
     }
 
     @Override
@@ -405,26 +424,61 @@ public class news_feed extends BatchAppCompatActivity
         return null;
     }
 
-    public void updateFriendToFirebase(List<Friend> friends) {
-        Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Friends");
-        Map<String, Object> updatedFriends = new HashMap<String, Object>();
-        for(Friend friend: friends) {
-            updatedFriends.put(friend.getUser() + "/" + friend.getUserId() + "/isFriend", friend.getIsFriend());
-        }
-        application.setFromAnotherActivity(true);
-        reference.updateChildren(updatedFriends, new Firebase.CompletionListener() {
-            @Override
-            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
-                if (firebaseError != null) {
-                    System.out.println("There was an error saving data. ");
-                } else {
-                    if(application.getFromAnotherActivity() == true) {
-                        application.setFromAnotherActivity(false);
-                    }
-                }
-                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+    public void updateFriendToFirebase(List<Friend> friends, List<String> currentFriendItems) {
+        //Need to check if the we should even update the freinds list
+
+        boolean areUpdated = checkUpdatedFriends(friends, currentFriendItems);
+        if(areUpdated) {
+            AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
+            Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Friends");
+            Map<String, Object> updatedFriends = new HashMap<String, Object>();
+            for(Friend friend: friends) {
+                updatedFriends.put(friend.getUser() + "/" + friend.getUserId() + "/isFriend", friend.getIsFriend());
             }
-        });
+            application.setFromAnotherActivity(true);
+            //Need to clear posts and friends because we have updated the friends and posts at this point
+            System.out.println("Login: Adding to Clearing posts: " +  application.getPrivateAdapter().getPosts().size());
+            application.getPrivateAdapter().getPosts().clear();
+//            application.getPrivateAdapter().notifyDataSetChanged();
+            System.out.println("Login: Adding to After clearing posts: " + application.getPrivateAdapter().getPosts().size());
+            reference.updateChildren(updatedFriends, new Firebase.CompletionListener() {
+                @Override
+                public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                    if (firebaseError != null) {
+                        System.out.println("There was an error saving data. ");
+                    } else {
+                        if(application.getFromAnotherActivity() == true) {
+                            application.setFromAnotherActivity(false);
+                        }
+                    }
+                    application.getPrivateAdapter().notifyDataSetChanged();
+                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                }
+            });
+        }
+    }
+
+    public boolean checkUpdatedFriends(List<Friend> friends, List<String> currentFriendItems) {
+        if(friends.size() != currentFriendItems.size()){
+            System.out.println("Error: There was an unexpected error.");
+            System.out.println("news_feed: Returning false");
+            return false;
+        }
+        for(int i = 0; i < friends.size(); i++) {
+            System.out.println("news_feed: Friend 1: " + friends.get(i).getName() + "'s isFriend is: "
+                    + friends.get(i).getIsFriend() + ". Friend 2's isFriend is: " +
+                    currentFriendItems.get(i));
+            if(friends.get(i).getIsFriend() == currentFriendItems.get(i)) {
+                continue;
+            } else {
+                System.out.println("news_feed: There was a difference because: " + friends.get(i).getName() + "'s isFriend is: "
+                        + friends.get(i).getIsFriend() + " but Friend 2's isFriend is: " +
+                currentFriendItems.get(i));
+                return true;
+            }
+        }
+        System.out.println("news_feed: Returning false");
+        return false;
     }
 
 

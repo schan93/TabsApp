@@ -79,6 +79,7 @@ public class FriendsListAdapter extends BaseAdapter{
             convertView = inflater.inflate(R.layout.friend_item, null);
 
         datasource = new FriendsDataSource(parent.getContext());
+        datasource.open();
         TextView name = (TextView) convertView.findViewById(R.id.friend_name);
 
         //Set profile picture
@@ -109,19 +110,19 @@ public class FriendsListAdapter extends BaseAdapter{
                     //Display their posts to the newsfeed and update db
                     System.out.println("Friend User Id: " + friendItems.get(itemPosition).getUserId());
                     System.out.println("Friend user: " + friendItems.get(itemPosition).getUser());
-                    updateSuccessful = datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), "1");
-                    if(updateSuccessful){
+//                    updateSuccessful = datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), "1");
+//                    if(updateSuccessful){
                         friendItems.get(itemPosition).setIsFriend("1");
-                    }
+//                    }
                     System.out.println("FriendsListAdapter: Friend was updated." + friendItems.get(itemPosition).getName() + " Is friend: " + friendItems.get(itemPosition).getIsFriend());
                 }
                 else {
                     System.out.println("FriendsListAdapter: Wrong one");
                     //Update this friend in DB
-                    updateSuccessful = datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), "0");
-                    if(updateSuccessful){
+//                    updateSuccessful = datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), "0");
+//                    if(updateSuccessful){
                         friendItems.get(itemPosition).setIsFriend("0");
-                    }
+//                    }
                     //Remove posts from newsfeed. Probably need some sort of loader icon thing.
                 }
             }

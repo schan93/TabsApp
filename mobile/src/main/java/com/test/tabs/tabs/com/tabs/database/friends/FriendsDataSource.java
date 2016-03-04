@@ -69,11 +69,11 @@ public class FriendsDataSource {
         return friend;
     }
 
-    public Friend getFriend(String id) {
+    public Friend getFriend(String userId, String user) {
         //Get the values from the database, querying by email
         Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
-                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?",
-                new String[]{id}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ? and " + DatabaseHelper.COLUMN_USER + " = ?",
+                new String[]{userId, user}, null, null, null);
         if(cursor.moveToFirst()) {
             Friend newFriend = cursorToFriend(cursor);
             cursor.close();
@@ -163,12 +163,46 @@ public class FriendsDataSource {
     }
 
     public boolean updateFriend(String userId, String user, String isFriend){
-        database = dbHelper.getWritableDatabase();
+        if(database == null) {
+            open();
+        }
         ContentValues newValues = new ContentValues();
         newValues.put(DatabaseHelper.COLUMN_IS_FRIEND, isFriend);
 
         String[] args = new String[]{userId, user};
-        int value = database.update("friends", newValues, "user_id= ? AND user= ?", args);
+
+        System.out.println("FriendsDataSource: Before");
+        //Debugging purposes
+        Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
+                allColumns, DatabaseHelper.COLUMN_USER + " = ? and " + DatabaseHelper.COLUMN_USER_ID + " = ?" , args, null, null, null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            Friend friend = cursorToFriend(cursor);
+            System.out.println("FriendsDataSource: Name: " + friend.getName() + " User of person logged in: " +
+                    friend.getUser() + " user id of the friend: " + friend.getUserId());
+            System.out.println("FriendsDataSource: Friend is friend: " + friend.getIsFriend());
+            cursor.moveToNext();
+        }
+        // make sure to close the cursor
+        cursor.close();
+
+
+        int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
+
+        System.out.println("FriendsDataSource: After");
+        //Debugging purposes
+        Cursor cursor2 = database.query(DatabaseHelper.TABLE_FRIENDS,
+                allColumns, DatabaseHelper.COLUMN_USER + " = ? and " + DatabaseHelper.COLUMN_USER_ID + " = ?" , new String[]{userId, user}, null, null, null);
+        cursor2.moveToFirst();
+        while (!cursor2.isAfterLast()) {
+            Friend friend = cursorToFriend(cursor2);
+            System.out.println("FriendsDataSource: Name2: " + friend.getName() + " User of person logged in2: " +
+                    friend.getUser() + " user id of the friend2: " + friend.getUserId());
+            System.out.println("FriendsDataSource: Friend is friend2: " + friend.getIsFriend());
+            cursor2.moveToNext();
+        }
+
+
         System.out.println("FriendsDataSource: " + "Number of rows affecteD: " + value + " isFreind: " + isFriend);
         System.out.println("FriendsDataSource: " + "Friend " + userId + " is a friend of " + user + " and his is friend");
         return value > 0;

@@ -92,7 +92,7 @@ public class login extends Activity implements Serializable{
     private UsersDataSource usersDataSource;
 
     //Variable for current user facebook user id
-    private String userId;
+    private String currentUserId;
 
     //Boolean to tell us whether or not we are actually logged in already if we are then we show the loading screen
     Boolean loggedIn = false;
@@ -108,6 +108,9 @@ public class login extends Activity implements Serializable{
     //Application
     FireBaseApplication application;
 
+    //Name of current user
+    String name;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,7 +120,7 @@ public class login extends Activity implements Serializable{
         //Configure Fresco so that image loads quickly
         configFresco();
         //Remove DB first this is because we have to change the schema
-        deleteDatabase();
+//        deleteDatabase();
         //Initialize DB
         startDatabases();
         //Initialize Handler
@@ -138,11 +141,13 @@ public class login extends Activity implements Serializable{
         System.out.println("Login: App has started");
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
+            Profile profile = Profile.getCurrentProfile();
+            name = profile.getName();
             loggedIn = true;
             setContentView(R.layout.loading_panel);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
-            userId = accessToken.getUserId();
-            getUserInfo(userId);
+            currentUserId = accessToken.getUserId();
+            getUserInfo(currentUserId);
         }
         else {
             loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
@@ -158,14 +163,20 @@ public class login extends Activity implements Serializable{
                         profileTracker = new ProfileTracker() {
                             @Override
                             protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                                System.out.println("Current profile get name: " + currentProfile.getName());
+                                name = currentProfile.getName();
                                 profileTracker.stopTracking();
                             }
                         };
                         profileTracker.startTracking();
+                    } else {
+                        Profile profile = Profile.getCurrentProfile();
+                        System.out.println("Current profile get name2: " + profile.getName());
+                        name = profile.getName();
                     }
                     AccessToken accessToken = loginResult.getAccessToken();
-                    userId = accessToken.getUserId();
-                    getUserInfo(userId);
+                    currentUserId = accessToken.getUserId();
+                    getUserInfo(currentUserId);
                 }
 
                 @Override
@@ -299,7 +310,14 @@ public class login extends Activity implements Serializable{
                     String user = friend.getUser();
                     String isFriend = friend.getIsFriend();
                     //System.out.println("Newest Friend id: " + id + " Name: " + name + " User id: " + userId + " User: " + user + " isFriend: " + isFriend);
-                    Friend newFriend = friendsDataSource.getFriend(userId);
+                    Friend newFriend = friendsDataSource.getFriend(userId, user);
+
+                    //Update the friends in the internal SQL lite db
+                    if(newFriend != null && !friend.getIsFriend().equals(newFriend.getIsFriend())) {
+                        System.out.println("login: Is friend first: " + friend.getIsFriend() + " Is friend second: " + newFriend.getIsFriend());
+                        friendsDataSource.updateFriend(currentUserId, userId, friend.getIsFriend());
+                    }
+
 //                    System.out.println("New Friend Name: " + newFriend.getName());
                     if(newFriend == null) {
                         newFriend = friendsDataSource.createFriend(id, name, userId, user, isFriend);
@@ -371,7 +389,7 @@ public class login extends Activity implements Serializable{
                             String id = generateUniqueId();
                             String friendId = jsonObject.getString("id");
                             String name = jsonObject.getString("name");
-                            Friend friend = friendsDataSource.getFriend(friendId);
+                            Friend friend = friendsDataSource.getFriend(friendId, currentUserId);
                             if(friend == null) {
                                 System.out.println("FriendsDataSource: LoginFB: " + "Friend " + friendId + "is a friend of " + userId);
                                 friend = friendsDataSource.createFriend(id, name, friendId, userId, "0");
@@ -396,6 +414,7 @@ public class login extends Activity implements Serializable{
                             @Override
                             public void run() {
                                 System.out.println("Running.");
+
                                 getPosts(userId);
                             }
                         });
@@ -419,7 +438,8 @@ public class login extends Activity implements Serializable{
             //findViewById(R.id.loadingPanel).setVisibility(View.GONE);
         }
         Bundle parameters = new Bundle();
-        parameters.putString("id", userId);
+        parameters.putString("id", currentUserId);
+        parameters.putString("name", name);
         Intent intent = new Intent(login.this, news_feed.class);
         if (intent != null) {
             intent.putExtras(parameters);
@@ -437,7 +457,9 @@ public class login extends Activity implements Serializable{
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
+        if (callbackManager.onActivityResult(requestCode, resultCode, data)) {
+            return;
+        }
     }
 
     /**
@@ -488,6 +510,9 @@ public class login extends Activity implements Serializable{
                     String postCreator = postSnapShot.getKey();
                     int i = 0;
                     for(DataSnapshot userSnapShot : postSnapShot.getChildren()){
+                        if(postSnapShot.getChildrenCount() == 0) {
+                            setupNextActivity();
+                        }
                         Post post = userSnapShot.getValue(Post.class);
                         String id = post.getId();
                         String name = post.getName();
@@ -526,12 +551,14 @@ public class login extends Activity implements Serializable{
                         if(post.getPrivacy().equals("0")) {
                             application.getPublicAdapter().add(post);
                         } else {
-                            Friend friend = friendsDataSource.getFriend(posterUserId);
+                            Friend friend = friendsDataSource.getFriend(posterUserId, currentUserId);
                             if(friend != null && friend.getIsFriend().equals("1") && !friend.getUserId().equals(userId)){
+                                System.out.println("Login: Adding to post to  Private adapter!");
+                                System.out.println("Login: Adding to Private adapter");
                                 application.getPrivateAdapter().add(post);
                             }
                         }
-                        if(post.getPosterUserId().equals(userId)) {
+                        if(post.getPosterUserId().equals(currentUserId)) {
                             application.getMyTabsAdapter().add(post);
                         }
                         System.out.println("Login: Done getting Posts, now getting comments");
