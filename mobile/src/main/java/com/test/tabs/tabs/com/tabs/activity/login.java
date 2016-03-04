@@ -635,10 +635,10 @@ public class login extends Activity implements Serializable{
         List<Post> publicPosts = new ArrayList<Post>();
         List<Post> myTabsPosts = new ArrayList<Post>();
 
-        application.setFriendsAdapter(new FriendsListAdapter(this, friends));
-        application.setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false));
-        application.setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false));
-        application.setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false));
+        application.setFriendsAdapter(new FriendsListAdapter(this, friends, "friends"));
+        application.setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, "public"));
+        application.setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false, "private"));
+        application.setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false, "mytabs"));
     }
 
 }

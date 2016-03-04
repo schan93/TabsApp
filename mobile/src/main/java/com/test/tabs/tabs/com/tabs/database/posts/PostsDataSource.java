@@ -266,6 +266,7 @@ public class PostsDataSource {
     }
 
     public Integer getNumberComments(String postId){
+        System.out.println("Getting number of comments from Post Id: " + postId);
         Cursor cursor = database.query(DatabaseHelper.TABLE_COMMENTS,
                 new String[]{DatabaseHelper.COLUMN_POST_ID}, DatabaseHelper.COLUMN_POST_ID + " = ?", new String[]{postId},
                 null, null, null);

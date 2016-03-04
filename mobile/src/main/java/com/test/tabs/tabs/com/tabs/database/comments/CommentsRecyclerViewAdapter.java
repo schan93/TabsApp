@@ -108,6 +108,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     public void add(Comment item, int position){
         comments.add(item);
         notifyItemInserted(position);
+        //Also need to update the post that you are updating
     }
 
     public void remove(Comment item) {

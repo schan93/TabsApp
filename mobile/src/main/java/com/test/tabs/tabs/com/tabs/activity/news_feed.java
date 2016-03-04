@@ -220,7 +220,11 @@ public class news_feed extends BatchAppCompatActivity
         listView.addHeaderView(header, null, false);
 
         System.out.println("News_Feed: 8");
-        final String name = getIntent().getExtras().getString("name");
+        String name = getIntent().getExtras().getString("name");
+        if(name == null && Profile.getCurrentProfile() != null) {
+            name = Profile.getCurrentProfile().getName();
+        }
+        final String finalName = name;
         accessToken = checkAccessToken();
         userId = accessToken.getUserId();
 
@@ -229,7 +233,7 @@ public class news_feed extends BatchAppCompatActivity
             @Override
             public void onClick(View view) {
                 Bundle bundle = new Bundle();
-                bundle.putString("name", name);
+                bundle.putString("name", finalName);
                 Intent intent = new Intent(news_feed.this, CreatePost.class);
                 if (intent != null) {
                     intent.putExtras(bundle);

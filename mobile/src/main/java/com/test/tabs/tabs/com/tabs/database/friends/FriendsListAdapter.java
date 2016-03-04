@@ -27,6 +27,7 @@ public class FriendsListAdapter extends BaseAdapter{
     private Activity activity;
     private LayoutInflater inflater;
     private List<Friend> friendItems;
+    private String tab;
 
     public List<Friend> getFriends() {
         return friendItems;
@@ -49,9 +50,10 @@ public class FriendsListAdapter extends BaseAdapter{
     //Local Database for storing friends
     private FriendsDataSource datasource;
 
-    public FriendsListAdapter(Activity activity, List<Friend> friendItems) {
+    public FriendsListAdapter(Activity activity, List<Friend> friendItems, String tab) {
         this.activity = activity;
         this.friendItems = friendItems;
+        this.tab = tab;
     }
 
     @Override

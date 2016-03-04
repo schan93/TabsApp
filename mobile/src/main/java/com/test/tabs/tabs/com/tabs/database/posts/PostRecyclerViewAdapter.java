@@ -38,6 +38,7 @@ import com.test.tabs.tabs.com.tabs.database.posts.Post;
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostViewHolder> {
     List<Post> posts;
     Context context;
+    String tab;
     boolean isPublic;
 
     public List<Post> getPosts() {
@@ -56,6 +57,10 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         this.isPublic = isPublic;
     }
 
+    public String getTab() { return tab; }
+
+    public void setTab(String tab) { this.tab = tab; }
+
     public static class PostViewHolder extends RecyclerView.ViewHolder {
         CardView cardViewPost;
         TextView name;
@@ -67,6 +72,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
         PostViewHolder(View itemView) {
             super(itemView);
+            System.out.println("PostRecyclerViewAdapter: Constructor");
             cardViewPost = (CardView) itemView.findViewById(R.id.cv_news_feed);
             name = (TextView) itemView.findViewById(R.id.txt_name);
             timestamp = (TextView) itemView.findViewById(R.id.txt_timestamp);
@@ -123,16 +129,18 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                 Intent intent = new Intent(v.getContext(), Comments.class);
                 Bundle bundle = new Bundle();
                 bundle.putString("id", (post.getId()));
+                bundle.putString("tab", tab);
                 intent.putExtras(bundle);
                 v.getContext().startActivity(intent);
             }
         });
     }
 
-    public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic) {
+    public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic, String tab) {
         this.posts = posts;
         this.context = context;
         this.isPublic = isPublic;
+        this.tab = tab;
     }
 
 

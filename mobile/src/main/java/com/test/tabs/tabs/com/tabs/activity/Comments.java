@@ -93,6 +93,7 @@ public class Comments extends AppCompatActivity {
         userId = AccessToken.getCurrentAccessToken().getUserId();
         setContentView(R.layout.comments);
         final String postId = getPostId();
+        final String tab = getTab();
         toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         setSupportActionBar(toolbar);
         final Profile profile = Profile.getCurrentProfile();
@@ -183,7 +184,7 @@ public class Comments extends AppCompatActivity {
                     comment.setCursorVisible(false);
                     //TODO: fix this because we dont want to query for the entire database every time we get the post
                     //Display comment onto layout
-                    populateComment(createdComment, commentsView.getAdapter().getItemCount());
+                    populateComment(createdComment, commentsView.getAdapter().getItemCount(), tab);
                     saveCommentInCloud(createdComment);
                     if(noCommentsView.getVisibility() == View.VISIBLE){
                         noCommentsView.setVisibility(View.GONE);
@@ -248,8 +249,9 @@ public class Comments extends AppCompatActivity {
         }
     }
 
-    private void populateComment(Comment comment, int position){
+    private void populateComment(Comment comment, int position, String tab){
         commentsRecyclerViewAdapter.add(comment, position);
+        updatePostAdapter(tab);
         commentsView.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -258,6 +260,16 @@ public class Comments extends AppCompatActivity {
 
             }
         }, 1000);
+    }
+
+    private void updatePostAdapter(String tab) {
+        if(tab.equals("public")) {
+            application.getPublicAdapter().notifyDataSetChanged();
+        } else if(tab.equals("private")) {
+            application.getPrivateAdapter().notifyDataSetChanged();
+        } else {
+            application.getMyTabsAdapter().notifyDataSetChanged();
+        }
     }
 
     private void checkAdapterIsEmpty () {
@@ -333,6 +345,16 @@ public class Comments extends AppCompatActivity {
         String value;
         if (extras != null) {
             value = extras.getString("id");
+            return value;
+        }
+        return "";
+    }
+
+    public String getTab(){
+        Bundle extras = getIntent().getExtras();
+        String value;
+        if (extras != null) {
+            value = extras.getString("tab");
             return value;
         }
         return "";
