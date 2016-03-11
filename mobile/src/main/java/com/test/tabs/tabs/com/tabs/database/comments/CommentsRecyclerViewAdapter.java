@@ -18,6 +18,7 @@ import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
 import com.test.tabs.tabs.com.tabs.activity.CommentsHeader;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -48,6 +49,16 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     public CommentsHeader getCommentsHeader(){
         return this.commentsHeader;
+    }
+
+    public static Comment containsId(List<Comment> list, String id) {
+        System.out.println("CommentsAdapter: id: " + id);
+        for (Comment object : list) {
+            if (object.getId().equals(id)) {
+                return object;
+            }
+        }
+        return null;
     }
 
     //+1 for header
@@ -107,7 +118,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     public void add(Comment item, int position){
         comments.add(item);
-        notifyItemInserted(position);
         //Also need to update the post that you are updating
     }
 

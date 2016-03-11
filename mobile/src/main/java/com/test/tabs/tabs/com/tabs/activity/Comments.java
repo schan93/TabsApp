@@ -37,9 +37,15 @@ import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.MutableData;
+import com.firebase.client.Transaction;
+import com.firebase.client.ValueEventListener;
 import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
@@ -53,7 +59,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -74,44 +83,43 @@ public class Comments extends AppCompatActivity {
     private LinearLayoutManager llm;
     private NotificationManager notificationManager;
     private boolean isNotificationActive;
+    private String postId;
+    private String tab;
     private String userId;
-    String uniqueCommentId;
+    List<Post> posts;
+    //Progress overlay
+    View progressOverlay;
+    DatabaseQuery databaseQuery;
+    String name;
 
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        application = ((FireBaseApplication) getApplication());
-
-        if (savedInstanceState != null)       {
-            Intent intent = new Intent(Comments.this, news_feed.class);
-            System.out.println("Starting news feed activity app from Comments.");
-            startActivity(intent);
-        }
-
-        userId = AccessToken.getCurrentAccessToken().getUserId();
         setContentView(R.layout.comments);
-        final String postId = getPostId();
-        final String tab = getTab();
-        toolbar = (Toolbar) findViewById(R.id.comments_appbar);
-        setSupportActionBar(toolbar);
-        final Profile profile = Profile.getCurrentProfile();
+        setupActionBar();
 
+        databaseQuery = new DatabaseQuery(this);
+        application = ((FireBaseApplication) getApplication());
+        progressOverlay = findViewById(R.id.progress_overlay);
+        postId = getPostId();
+        tab = getTab();
+        name = getName();
+        userId = getUserId();
+        toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         notificationManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
+        commentsView = (RecyclerView) findViewById(R.id.view_comments);
+        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
+        llm = new LinearLayoutManager(this);
+        commentsView.setLayoutManager(llm);
 
-        //Back bar enabled
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         final EditText comment = (EditText) findViewById(R.id.write_comment);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        commentsView = (RecyclerView) findViewById(R.id.view_comments);
-        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
 
-        llm = new LinearLayoutManager(this);
-        commentsView.setLayoutManager(llm);
         //Once we send the post, we want to
         comment.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
@@ -127,8 +135,6 @@ public class Comments extends AppCompatActivity {
                 return false;
             }
         });
-
-        openDatasources();
 
         //Hide the cursor until view is clicked on
         View.OnTouchListener onTouchListener = new View.OnTouchListener(){
@@ -149,19 +155,7 @@ public class Comments extends AppCompatActivity {
                 return false;
             }
         };
-
-//        comment.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-//            @Override
-//            public void onFocusChange(View v, boolean hasFocus) {
-//                if(hasFocus){
-//                    commentsView.scrollToPosition(commentsView.getAdapter().getItemCount()-1);
-//                }
-//            }
-//        });
-
         comment.setOnTouchListener(onTouchListener);
-
-        final String commenter = profile.getFirstName() + " " + profile.getLastName();
 
         //Button for sending post
         final Button button = (Button) findViewById(R.id.send_comment);
@@ -174,19 +168,18 @@ public class Comments extends AppCompatActivity {
                 if (TextUtils.isEmpty(comment.getText())) {
                     Toast.makeText(Comments.this, "Please enter in a comment first.", Toast.LENGTH_SHORT).show();
                 } else {
-                    uniqueCommentId = UUID.randomUUID().toString();
-                    Comment createdComment = commentsDatasource.createComment(uniqueCommentId, postId, commenter, comment.getText().toString(), profile.getId());
-                    //Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
+                    String text = comment.getText().toString();
+                    Comment createdComment = new Comment("", postId, name, text, userId, getDateTime());
+                    Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
                     //Make comment blank and set cursor to disappear once again. Also hide keyboard again.
                     comment.setText("");
                     InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
                     comment.setCursorVisible(false);
-                    //TODO: fix this because we dont want to query for the entire database every time we get the post
-                    //Display comment onto layout
-                    populateComment(createdComment, commentsView.getAdapter().getItemCount(), tab);
-                    saveCommentInCloud(createdComment);
-                    if(noCommentsView.getVisibility() == View.VISIBLE){
+                    updatePost();
+                    databaseQuery.saveCommentToFirebase(createdComment);
+                    saveCommentInCloud(createdComment, tab);
+                    if (noCommentsView.getVisibility() == View.VISIBLE) {
                         noCommentsView.setVisibility(View.GONE);
                     }
                     //Notify friends that user has posted a comment on their post. Don't get notification if you posted on your own post.
@@ -199,8 +192,32 @@ public class Comments extends AppCompatActivity {
             }
         });
 
-        //populatePost(postId);
-        populateComments(postId);
+        //Now we have to show a loading bar so that we are loading the comments. While we are loading the comments, we update the comments header
+        populateCommentView(postId);
+    }
+
+    public void populateCommentView(String postId) {
+        commentItems = new ArrayList<Comment>();
+        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentItems));
+        application.getCommentsRecyclerViewAdapter().registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                checkAdapterIsEmpty();
+            }
+        });
+        commentsView.setLayoutManager(llm);
+        commentsView.setAdapter(application.getCommentsRecyclerViewAdapter());
+        checkAdapterIsEmpty();
+        databaseQuery.getComments(postId);
+    }
+
+    private void setupActionBar() {
+        toolbar = (Toolbar) findViewById(R.id.comments_appbar);
+        setSupportActionBar(toolbar);
+        //Back bar enabled
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
     @Override
@@ -249,9 +266,7 @@ public class Comments extends AppCompatActivity {
         }
     }
 
-    private void populateComment(Comment comment, int position, String tab){
-        commentsRecyclerViewAdapter.add(comment, position);
-        updatePostAdapter(tab);
+    public void updatePost(){
         commentsView.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -273,7 +288,7 @@ public class Comments extends AppCompatActivity {
     }
 
     private void checkAdapterIsEmpty () {
-        if(commentsRecyclerViewAdapter.getItemCount() == 1){
+        if(application.getCommentsRecyclerViewAdapter().getItemCount() == 1){
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) noCommentsView.getLayoutParams();
             params.addRule(RelativeLayout.BELOW, R.id.view_post);
             noCommentsView.setVisibility(View.VISIBLE);
@@ -283,27 +298,20 @@ public class Comments extends AppCompatActivity {
         }
     }
 
-
-    public void populateComments(String postId) {
-        System.out.println("populating comment of post id: " + postId);
-        commentsRecyclerViewAdapter = new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentsDatasource.getCommentsForPost(postId));
-        commentsRecyclerViewAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                checkAdapterIsEmpty();
-            }
-        });
-        commentsView.setLayoutManager(llm);
-        commentsView.setAdapter(commentsRecyclerViewAdapter);
-        checkAdapterIsEmpty();
-    }
-
     public CommentsHeader getCommentsHeader(String id)
     {
         System.out.println("Going to inflate header");
-        post = postsDataSource.getPost(id);
-        System.out.println("Post Status after inflating header: " + post.getStatus());
+        String tab = getTab();
+        if(tab.equals("public")) {
+            posts = application.getPublicAdapter().getPosts();
+            post = application.getPublicAdapter().containsId(posts, id);
+        } else if(tab.equals("private")) {
+            posts = application.getPrivateAdapter().getPosts();
+            post = application.getPrivateAdapter().containsId(posts, id);
+        } else {
+            posts = application.getMyTabsAdapter().getPosts();
+            post = application.getMyTabsAdapter().containsId(posts, id);
+        }
         CommentsHeader header = new CommentsHeader();
         header.setPosterUserId(post.getPosterUserId());
         header.setPosterName(post.getName());
@@ -340,6 +348,26 @@ public class Comments extends AppCompatActivity {
         postsDataSource.open();
     }
 
+    public String getUserId(){
+        Bundle extras = getIntent().getExtras();
+        String value;
+        if (extras != null) {
+            value = extras.getString("userId");
+            return value;
+        }
+        return "";
+    }
+
+    public String getName(){
+        Bundle extras = getIntent().getExtras();
+        String value;
+        if (extras != null) {
+            value = extras.getString("name");
+            return value;
+        }
+        return "";
+    }
+
     public String getPostId(){
         Bundle extras = getIntent().getExtras();
         String value;
@@ -360,12 +388,36 @@ public class Comments extends AppCompatActivity {
         return "";
     }
 
-    private void saveCommentInCloud(Comment comment){
-        firebaseRef.child("Comments").push().setValue(comment);
-//        application.getFriendsAdapter().notifyDataSetChanged();
-//        application.getPublicAdapter().notifyDataSetChanged();
-//        application.getPrivateAdapter().notifyDataSetChanged();
-//        application.getMyTabsAdapter().notifyDataSetChanged();
+    private void saveCommentInCloud(Comment comment, String tab){
+        updatePostComments(comment.getPostId(), tab);
+    }
+
+    private void updatePostComments(String postId, final String tab) {
+        Firebase reference = firebaseRef.child("Posts/" + postId + "/numComments");
+        reference.runTransaction(new Transaction.Handler() {
+            @Override
+            public Transaction.Result doTransaction(MutableData mutableData) {
+                if (mutableData.getValue() == null) {
+                    System.out.println("Comments: Setting value to 1");
+                    mutableData.setValue(1);
+                } else {
+                    System.out.println("Comments: Setting value from " + mutableData.getValue());
+                    mutableData.setValue((Long) mutableData.getValue() + 1);
+                    System.out.println("Comments: Updated value from " + mutableData.getValue());
+                }
+                System.out.println("Comments: Success!");
+                return Transaction.success(mutableData); //we can also abort by calling Transaction.abort()
+            }
+
+            @Override
+            public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
+                //This method will be called once with the results of the transaction.
+                if(firebaseError != null){
+                    System.out.println("Comments: Error: " + firebaseError);
+                }
+                updatePostAdapter(tab);
+            }
+        });
     }
 
     public String convertDate(String timestamp) {
@@ -425,6 +477,13 @@ public class Comments extends AppCompatActivity {
 //        long mins = secs / 60;
 //        secs = secs % 60;
         return hours;
+    }
+
+    private String getDateTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "MM/dd/yyyy hh:mm:ss a", Locale.getDefault());
+        Date date = new Date();
+        return dateFormat.format(date);
     }
 
 

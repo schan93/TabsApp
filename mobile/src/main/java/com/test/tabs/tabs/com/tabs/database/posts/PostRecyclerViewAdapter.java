@@ -29,6 +29,7 @@ import com.test.tabs.tabs.com.tabs.activity.Comments;
 import com.test.tabs.tabs.com.tabs.activity.LocationService;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
+import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
@@ -97,10 +98,9 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
     @Override
     public void onBindViewHolder(PostViewHolder postViewHolder, int i) {
-        PostsDataSource datasource;
-        datasource = new PostsDataSource(context);
-        datasource.open();
-        postViewHolder.name.setText(posts.get(i).getName());
+        final String name = posts.get(i).getName();
+        final String userId = posts.get(i).getPosterUserId();
+        postViewHolder.name.setText(name);
         postViewHolder.timestamp.setText(convertDate(posts.get(i).getTimeStamp()));
         postViewHolder.statusMsg.setText(posts.get(i).getStatus());
         DraweeController controller = news_feed.getImage(posts.get(i).getPosterUserId());
@@ -108,13 +108,13 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         roundingParams.setRoundAsCircle(true);
         postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
         postViewHolder.posterPhoto.setController(controller);
-        postViewHolder.numComments.setText(datasource.getNumberComments(posts.get(i).getId()).toString() + " Comments");
+        postViewHolder.numComments.setText(posts.get(i).getNumComments() + " Comments");
         postViewHolder.numComments.setTextSize(14);
         System.out.println("Context: " + context);
-        if (posts.get(i).getPrivacy().equals("1") && !isPublic) {
+        if (posts.get(i).getPrivacy().equals("Private") && !isPublic) {
             //If it is a private post, set the text to be "Private"
             postViewHolder.privacyStatus.setText("Private");
-        } else if (posts.get(i).getPrivacy().equals("0") && !isPublic) {
+        } else if (posts.get(i).getPrivacy().equals("Public") && !isPublic) {
             postViewHolder.privacyStatus.setText("Public");
             //Set text to be public
         } else {
@@ -128,8 +128,10 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             public void onClick(View v) {
                 Intent intent = new Intent(v.getContext(), Comments.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("id", (post.getId()));
+                bundle.putString("id", post.getId());
                 bundle.putString("tab", tab);
+                bundle.putString("name", name);
+                bundle.putString("userId", userId);
                 intent.putExtras(bundle);
                 v.getContext().startActivity(intent);
             }
@@ -178,6 +180,16 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 //                notifyItemRangeChanged(i, getItemCount() - i);
 //            }
 //        }
+    }
+
+    public static Post containsId(List<Post> list, String id) {
+        System.out.println("PostRecyclerViewAdapter: id: " + id);
+        for (Post object : list) {
+            if (object.getId().equals(id)) {
+                return object;
+            }
+        }
+        return null;
     }
 
     @Override

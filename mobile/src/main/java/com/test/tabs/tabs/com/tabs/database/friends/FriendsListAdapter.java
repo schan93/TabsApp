@@ -37,13 +37,13 @@ public class FriendsListAdapter extends BaseAdapter{
         this.friendItems = friendItems;
     }
 
-    public static boolean containsId(List<Friend> list, String id) {
+    public static Friend containsId(List<Friend> list, String id) {
         for (Friend object : list) {
             if (object.getUserId().equals(id)) {
-                return true;
+                return object;
             }
         }
-        return false;
+        return null;
     }
     //ImageLoader imageLoader = AppController.getInstance().getImageLoader();
 
@@ -73,7 +73,8 @@ public class FriendsListAdapter extends BaseAdapter{
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        System.out.println("Getting view");
+        System.out.println("FriendsListAdapter: Position: " + position);
+        System.out.println("FriendsListAdapter: Getting view");
         if (inflater == null)
             inflater = (LayoutInflater) activity
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -92,7 +93,7 @@ public class FriendsListAdapter extends BaseAdapter{
         draweeView.getHierarchy().setRoundingParams(roundingParams);
         CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.friend_checkbox);
         System.out.println("FriendsListAdapter: " + friendItems.get(position).getName() + " Is friend: " + friendItems.get(position).getIsFriend());
-        if(friendItems.get(position).getIsFriend().equals("1")){
+        if(friendItems.get(position).getIsFriend().equals("true")){
             System.out.println("FriendsListAdapter: is true.");
             checkBox.setChecked(true);
         }
@@ -114,7 +115,7 @@ public class FriendsListAdapter extends BaseAdapter{
                     System.out.println("Friend user: " + friendItems.get(itemPosition).getUser());
 //                    updateSuccessful = datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), "1");
 //                    if(updateSuccessful){
-                        friendItems.get(itemPosition).setIsFriend("1");
+                        friendItems.get(itemPosition).setIsFriend("true");
 //                    }
                     System.out.println("FriendsListAdapter: Friend was updated." + friendItems.get(itemPosition).getName() + " Is friend: " + friendItems.get(itemPosition).getIsFriend());
                 }
@@ -123,7 +124,7 @@ public class FriendsListAdapter extends BaseAdapter{
                     //Update this friend in DB
 //                    updateSuccessful = datasource.updateFriend(friendItems.get(itemPosition).getUserId(), friendItems.get(itemPosition).getUser(), "0");
 //                    if(updateSuccessful){
-                        friendItems.get(itemPosition).setIsFriend("0");
+                        friendItems.get(itemPosition).setIsFriend("false");
 //                    }
                     //Remove posts from newsfeed. Probably need some sort of loader icon thing.
                 }

@@ -168,44 +168,57 @@ public class FriendsDataSource {
         }
         ContentValues newValues = new ContentValues();
         newValues.put(DatabaseHelper.COLUMN_IS_FRIEND, isFriend);
-
         String[] args = new String[]{userId, user};
-
-        System.out.println("FriendsDataSource: Before");
-        //Debugging purposes
-        Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
-                allColumns, DatabaseHelper.COLUMN_USER + " = ? and " + DatabaseHelper.COLUMN_USER_ID + " = ?" , args, null, null, null);
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            Friend friend = cursorToFriend(cursor);
-            System.out.println("FriendsDataSource: Name: " + friend.getName() + " User of person logged in: " +
-                    friend.getUser() + " user id of the friend: " + friend.getUserId());
-            System.out.println("FriendsDataSource: Friend is friend: " + friend.getIsFriend());
-            cursor.moveToNext();
-        }
-        // make sure to close the cursor
-        cursor.close();
-
-
         int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
-
-        System.out.println("FriendsDataSource: After");
-        //Debugging purposes
-        Cursor cursor2 = database.query(DatabaseHelper.TABLE_FRIENDS,
-                allColumns, DatabaseHelper.COLUMN_USER + " = ? and " + DatabaseHelper.COLUMN_USER_ID + " = ?" , new String[]{userId, user}, null, null, null);
-        cursor2.moveToFirst();
-        while (!cursor2.isAfterLast()) {
-            Friend friend = cursorToFriend(cursor2);
-            System.out.println("FriendsDataSource: Name2: " + friend.getName() + " User of person logged in2: " +
-                    friend.getUser() + " user id of the friend2: " + friend.getUserId());
-            System.out.println("FriendsDataSource: Friend is friend2: " + friend.getIsFriend());
-            cursor2.moveToNext();
-        }
-
-
-        System.out.println("FriendsDataSource: " + "Number of rows affecteD: " + value + " isFreind: " + isFriend);
-        System.out.println("FriendsDataSource: " + "Friend " + userId + " is a friend of " + user + " and his is friend");
         return value > 0;
     }
+
+    private boolean updateName(String userId, String user, String attribute) {
+        if(database == null) {
+            open();
+        }
+        ContentValues newValues = new ContentValues();
+        newValues.put(DatabaseHelper.COLUMN_NAME, attribute);
+        String[] args = new String[]{userId, user};
+        int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
+        return value > 0;
+    }
+
+    private boolean updateUserId(String userId, String user, String attribute) {
+        if(database == null) {
+            open();
+        }
+        ContentValues newValues = new ContentValues();
+        newValues.put(DatabaseHelper.COLUMN_USER_ID, attribute);
+        String[] args = new String[]{userId, user};
+        int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
+        return value > 0;
+    }
+
+    private boolean updateUser(String userId, String user, String attribute) {
+        if(database == null) {
+            open();
+        }
+        ContentValues newValues = new ContentValues();
+        newValues.put(DatabaseHelper.COLUMN_USER, attribute);
+        String[] args = new String[]{userId, user};
+        int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
+        return value > 0;
+    }
+
+    public void checkFriendChanged(Friend firebaseFriend, Friend localDatabaseFriend) {
+        String id = firebaseFriend.getId();
+        String name = firebaseFriend.getName();
+        String userId = firebaseFriend.getUserId();
+        String user = firebaseFriend.getUser();
+        String isFriend = firebaseFriend.getIsFriend();
+        if(!firebaseFriend.getName().equals(localDatabaseFriend.getName())) {
+            updateName(localDatabaseFriend.getUser(), localDatabaseFriend.getUserId(), firebaseFriend.getName());
+        }
+        if(!firebaseFriend.getUserId().equals(localDatabaseFriend.getUserId())) {
+            updateName(localDatabaseFriend.getUser(), localDatabaseFriend.getUserId(), firebaseFriend.getName());
+        }
+    }
+
 
 }

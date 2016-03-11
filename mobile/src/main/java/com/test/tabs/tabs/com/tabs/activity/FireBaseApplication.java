@@ -22,6 +22,8 @@ public class FireBaseApplication extends Application {
     private CommentsDataSource commentsDataSource;
     private static boolean fromAnotherActivity = false;
 
+    private static String name = "";
+
     private static FriendsListAdapter friendsAdapter;
     private static PostRecyclerViewAdapter publicAdapter;
     private static PostRecyclerViewAdapter privateAdapter;
@@ -34,6 +36,12 @@ public class FireBaseApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Firebase.setAndroidContext(this);
+        //Firebase apps automatically handle temporary network interruptions for you.
+        //Cached data will still be available while offline and your writes will be resent when network connectivity is recovered.
+        // Enabling disk persistence allows our app to also keep all of its state even after an app restart.
+        // We can enable disk persistence with just one line of code.
+        Firebase.getDefaultConfig().setPersistenceEnabled(true);
+
 
         myFirebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
         //Batch push notifications
@@ -43,6 +51,14 @@ public class FireBaseApplication extends Application {
 
         //Make sure that adapters don't
 
+    }
+
+    public static String getName() {
+        return name;
+    }
+
+    public void setName(String userName) {
+        name = userName;
     }
 
     public static PostRecyclerViewAdapter getPublicAdapter() {

@@ -50,6 +50,7 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
@@ -111,6 +112,8 @@ public class login extends Activity implements Serializable{
     //Name of current user
     String name;
 
+    DatabaseQuery databaseQuery;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,8 +125,9 @@ public class login extends Activity implements Serializable{
         //Remove DB first this is because we have to change the schema
 //        deleteDatabase();
         //Initialize DB
-        startDatabases();
+//        startDatabases();
         //Initialize Handler
+        databaseQuery = new DatabaseQuery(this);
         handler = new Handler();
         application =  (FireBaseApplication) getApplication();
         initializeAdapters();
@@ -235,14 +239,10 @@ public class login extends Activity implements Serializable{
      * @param userId
      */
     private void getUserInfo(String userId) {
-        User user = usersDataSource.getUser(userId);
-        if(user == null) {
-            getUserFromFacebook(userId);
-        }
-        else {
-            getFriendsFromFirebase(user);
-            getFriendsFromFacebook(userId);
-        }
+        application.setName(name);
+        databaseQuery.getMyTabsPosts(userId);
+        databaseQuery.getPublicPosts();
+        getUserFromFacebook(userId);
     }
 
     /**
@@ -253,6 +253,7 @@ public class login extends Activity implements Serializable{
      */
     private void getUserFromFacebook(final String userId) {
         final User[] user = new User[1];
+//        User user = new User(id, userId, name);
         GraphRequest meRequest = GraphRequest.newMeRequest(
                 AccessToken.getCurrentAccessToken(),
                 new GraphRequest.GraphJSONObjectCallback() {
@@ -261,11 +262,9 @@ public class login extends Activity implements Serializable{
                             JSONObject jsonObject,
                             GraphResponse response) {
                         try {
-                            String id = generateUniqueId();
                             String userId = jsonObject.getString("id");
                             String name = jsonObject.getString("name");
-                            user[0] = usersDataSource.createUser(id, userId, name);
-                            saveUserToFirebase(user[0]);
+                            databaseQuery.saveUserToFirebase(userId, name);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         } finally {
@@ -275,7 +274,7 @@ public class login extends Activity implements Serializable{
                                 @Override
                                 public void run() {
                                     System.out.println("Running user");
-                                    getFriendsFromFirebase(user[0]);
+                                    databaseQuery.getFriends(userId);
                                     getFriendsFromFacebook(userId);
                                 }
                             });
@@ -284,94 +283,6 @@ public class login extends Activity implements Serializable{
                 });
         meRequest.executeAsync();
         return;
-    }
-
-    /**
-     * This method generates a random unique UUID for each entry in our database.
-     * @return
-     */
-    private String generateUniqueId() {
-        return UUID.randomUUID().toString();
-    }
-
-    /**
-     * This method is designed to get all the friends of a user from Firebase, and store into our local database.
-     * @param user
-     */
-    private void getFriendsFromFirebase(User user) {
-        firebaseRef.child("Friends/" + user.getUserId()).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                for (DataSnapshot friendSnapShot : snapshot.getChildren()) {
-                    Friend friend = friendSnapShot.getValue(Friend.class);
-                    String id = friend.getId();
-                    String name = friend.getName();
-                    String userId = friend.getUserId();
-                    String user = friend.getUser();
-                    String isFriend = friend.getIsFriend();
-                    //System.out.println("Newest Friend id: " + id + " Name: " + name + " User id: " + userId + " User: " + user + " isFriend: " + isFriend);
-                    Friend newFriend = friendsDataSource.getFriend(userId, user);
-
-                    //Update the friends in the internal SQL lite db
-                    if(newFriend != null && !friend.getIsFriend().equals(newFriend.getIsFriend())) {
-                        System.out.println("login: Is friend first: " + friend.getIsFriend() + " Is friend second: " + newFriend.getIsFriend());
-                        friendsDataSource.updateFriend(currentUserId, userId, friend.getIsFriend());
-                    }
-
-//                    System.out.println("New Friend Name: " + newFriend.getName());
-                    if(newFriend == null) {
-                        newFriend = friendsDataSource.createFriend(id, name, userId, user, isFriend);
-                        System.out.println("FriendsDataSource: Login123: " + "Friend " + userId + "is a friend of " + user);
-
-                    }
-                    List<Friend> friends = application.getFriendsAdapter().getFriends();
-                    if(!application.getFriendsAdapter().containsId(friends, newFriend.getUserId())){
-                        System.out.println("Login: Adding friend: " + newFriend.getUserId() + " because it is not in friends from Firebase");
-                        System.out.println("Login: Firebase count: " + application.getFriendsAdapter().getCount());
-                        application.getFriendsAdapter().getFriends().add(newFriend);
-                    }
-                    getPosts(userId);
-                }
-                //In case that the data set changes when we are on Resume or something.. I guess we have to check if the dataset changes
-//                application.getFriendsAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                System.out.println("Failed getting friends: " + firebaseError.getMessage());
-            }
-        });
-    }
-
-    /**
-     * This method is designed to save a freind to Firebase database.
-     * User = the user id of the person logged in
-     * User_id = the user id of the friend
-     * @param friend
-     */
-    private void saveFriendToFirebase(Friend friend) {
-        firebaseRef.child("Friends/" + friend.getUser() + "/" + friend.getUserId()).setValue(friend);
-    }
-
-    /**
-     * This method is designed to save a Post to Firebase database.
-     * @param post
-     */
-    private void savePostToFirebase(Post post) {
-        System.out.println("Posting!");
-        firebaseRef.child("Posts/" + post.getPosterUserId()).push().setValue(post);
-    }
-
-    /**
-     * This method is designed to save a Comment to Firebase database.
-     * @param comment
-     */
-    private void saveCommentToFirebase(Comment comment) {
-        firebaseRef.child("Comments").push().setValue(comment);
-    }
-
-    private void saveUserToFirebase(User user) {
-        firebaseRef.child("Users/" + user.getUserId()).setValue(user);
     }
 
     /**
@@ -385,23 +296,17 @@ public class login extends Activity implements Serializable{
                 public void onCompleted(final JSONArray jsonArray, GraphResponse response) {
                     try {
                         for (int i = 0; i < jsonArray.length(); i++) {
+                            System.out.println("login: Length: " + jsonArray.length());
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
-                            String id = generateUniqueId();
                             String friendId = jsonObject.getString("id");
                             String name = jsonObject.getString("name");
-                            Friend friend = friendsDataSource.getFriend(friendId, currentUserId);
-                            if(friend == null) {
-                                System.out.println("FriendsDataSource: LoginFB: " + "Friend " + friendId + "is a friend of " + userId);
-                                friend = friendsDataSource.createFriend(id, name, friendId, userId, "0");
-                                //Insert into Cloud database
-                                System.out.println("Login: Setting up friend in Facebook");
-                                saveFriendToFirebase(friend);
-                            }
+                            System.out.println("login: Name: " + name);
+                            Friend friend = new Friend("", friendId, name, currentUserId, "false");
                             List<Friend> friends = application.getFriendsAdapter().getFriends();
-                            if(!application.getFriendsAdapter().containsId(friends, friend.getUserId())) {
-                                System.out.println("Login: Adding friend: " + friend.getUserId() + " because it is not in friends from Facebook");
-                                System.out.println("Login: Facebook count: " + application.getFriendsAdapter().getCount());
+                            if(application.getFriendsAdapter().containsId(friends, friend.getUserId()) == null) {
                                 application.getFriendsAdapter().getFriends().add(friend);
+                                System.out.println("login2: Saving " + name  + " to firebase.");
+                                databaseQuery.saveFriendToFirebase(friend);
                             }
                         }
                     } catch (JSONException e) {
@@ -413,9 +318,10 @@ public class login extends Activity implements Serializable{
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                System.out.println("Running.");
-
-                                getPosts(userId);
+                                System.out.println("Done.");
+                                if (application.getFromAnotherActivity() == false) {
+                                    setupNextActivity();
+                                }
                             }
                         });
                     }
@@ -486,136 +392,8 @@ public class login extends Activity implements Serializable{
     }
 
 
-    private void deleteDatabase(){
+    private void deleteDatabase() {
         this.deleteDatabase("databaseManager.db");
-    }
-
-    /**
-     * This method is designed to get all the Posts from Firebase, store them in local.
-     * If a Post does not exist in local database already so we need to also create the post in local db.
-     * @param userId
-     */
-    private void getPosts(final String userId) {
-        System.out.println("Getting posts from Firebase");
-        //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Posts").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                System.out.println("Snapshot Count: " + snapshot.getChildrenCount());
-                if(snapshot.getChildrenCount() == 0) {
-                    setupNextActivity();
-                }
-                for (DataSnapshot postSnapShot : snapshot.getChildren()) {
-                    System.out.println("POsts children count: " + postSnapShot.getChildrenCount());
-                    String postCreator = postSnapShot.getKey();
-                    int i = 0;
-                    for(DataSnapshot userSnapShot : postSnapShot.getChildren()){
-                        if(postSnapShot.getChildrenCount() == 0) {
-                            setupNextActivity();
-                        }
-                        Post post = userSnapShot.getValue(Post.class);
-                        String id = post.getId();
-                        String name = post.getName();
-                        String status = post.getStatus();
-                        String posterUserId = post.getPosterUserId();
-                        String timeStamp = post.getTimeStamp();
-                        String privacy = post.getPrivacy();
-                        Double latitude = post.getLatitude();
-                        Double longitude = post.getLongitude();
-                        Post newPost = postsDataSource.getPost(id);
-                        //TODO: This is basically when we update the Post in Firebase we need to be able to handle this change
-//                        if(newPost != null && !newPost.getPrivacy().equals(post.getPrivacy())) {
-//                            //update the post in the db, then you may need to swap whatever is out from the db to / from the supposed adapters
-//                            postsDataSource.updatePost(newPost);
-//                            if(newPost.getPrivacy().equals("1")) {
-//                                Friend friend = friendsDataSource.getFriend(posterUserId);
-//                                if(friend != null && friend.getIsFriend().equals("1")) {
-//                                    application.getPrivateAdapter().add(post);
-//                                }
-//                                application.getPublicAdapter().remove(post, getApplicationContext());
-//                            } else {
-//                                System.out.println("The new post's privacy = 0. Therefore, it goes into public, out of private");
-//                                application.getPublicAdapter().add(post);
-//                                application.getPrivateAdapter().remove(post, getApplicationContext());
-//                            }
-//                            //also need to refresh my tabs
-//                            application.getMyTabsAdapter().notifyDataSetChanged();
-//                        }
-                        //System.out.println("New Post Id: " + id);
-                        if (newPost == null) {
-                            postsDataSource.createPostFromFireBase(id, posterUserId, status, timeStamp, name, privacy, latitude, longitude);
-                        }
-                        else {
-                            System.out.println("Login: Already have post id: " + newPost.getId());
-                        }
-                        if(post.getPrivacy().equals("0")) {
-                            application.getPublicAdapter().add(post);
-                        } else {
-                            Friend friend = friendsDataSource.getFriend(posterUserId, currentUserId);
-                            if(friend != null && friend.getIsFriend().equals("1") && !friend.getUserId().equals(userId)){
-                                System.out.println("Login: Adding to post to  Private adapter!");
-                                System.out.println("Login: Adding to Private adapter");
-                                application.getPrivateAdapter().add(post);
-                            }
-                        }
-                        if(post.getPosterUserId().equals(currentUserId)) {
-                            application.getMyTabsAdapter().add(post);
-                        }
-                        System.out.println("Login: Done getting Posts, now getting comments");
-                        i++;
-                        getComments(id);
-                        if(i == postSnapShot.getChildrenCount() && application.getFromAnotherActivity() == false) {
-                            System.out.println("SETTING UP NEXT ACTIVITY");
-                            setupNextActivity();
-                        }
-                    }
-                }
-                //In case that the data set changes when we are on Resume or something.. I guess we have to check if the dataset changes
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-            }
-        });
-    }
-
-
-    /**
-     * This method is designed to get all the Comments from Firebase, store them in local.
-     * If a Comment does not exist in local database already so we need to also create the comment in local db.
-     * @param postId
-     */
-    private void getComments(String postId) {
-        //TODO: Query longitude and latitude by 15 mile distance
-        firebaseRef.child("Comments").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                for (DataSnapshot commentSnapShot : snapshot.getChildren()) {
-                    System.out.println("Comment snapshot: " + commentSnapShot.getKey());
-                    System.out.println("Value of comment: " + commentSnapShot.getValue());
-                    System.out.println("String: comment: " + commentSnapShot.getValue().toString());
-                    Comment comment = commentSnapShot.getValue(Comment.class);
-                    String id = comment.getId();
-                    String postId = comment.getPostId();
-                    String commenter = comment.getCommenter();
-                    String commentText = comment.getComment();
-                    String commenterUserId = comment.getCommenterUserId();
-                    String timeStamp = comment.getTimeStamp();
-                    Comment newComment = commentsDataSource.getComment(id);
-                    if (newComment == null) {
-                        commentsDataSource.createCommentFromFirebase(id, postId, commenter, commentText, commenterUserId, timeStamp);
-                    }
-                    System.out.println("Login: Done getting comments.");
-//                    application.getCommentsRecyclerViewAdapter().getComments().add(comment);
-                }
-                System.out.println("Login: Done getting Everything.");
-//                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-            }
-        });
     }
 
     private void startDatabases(){

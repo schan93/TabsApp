@@ -86,9 +86,6 @@ import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
 public class news_feed extends BatchAppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    private CardView newsFeedCardView;
-    private PostRecyclerViewAdapter postListAdapter;
-    private List<Post> posts;
 
     //Firebase reference
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
@@ -102,11 +99,8 @@ public class news_feed extends BatchAppCompatActivity
     //Local Database for storing posts
     private PostsDataSource postsDataSource;
     private CommentsDataSource commentsDataSource;
-    private List<Post> postItems;
     //Progress overlay
     View progressOverlay;
-
-    int callResume = 0;
 
     String userId;
 
@@ -148,14 +142,11 @@ public class news_feed extends BatchAppCompatActivity
             FacebookSdk.sdkInitialize(getApplicationContext());
             accessToken = checkAccessToken();
         }
-//            populateFriendsList(userId);
 
         //Listen for navigation events
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
-
-
 
             public void onDrawerOpened(View view) {
                 super.onDrawerOpened(view);
@@ -165,14 +156,12 @@ public class news_feed extends BatchAppCompatActivity
                 for(Friend friend: application.getFriendsAdapter().getFriends()) {
                     currentFriendItems.add(friend.getIsFriend());
                 }
-//                for(int i = 0; i < application.getFriendsAdapter().getFriends().size(); i++) {
-//                    currentFriendItems.add(application.getFriendsAdapter().getFriends().get(i));
-//                }
             }
 
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
+                System.out.println("Drawer closed");
                 List<Friend> friends = application.getFriendsAdapter().getFriends();
                 updateFriendToFirebase(friends, currentFriendItems);
             }
@@ -218,13 +207,12 @@ public class news_feed extends BatchAppCompatActivity
         ViewGroup header = (ViewGroup) inflater.inflate(R.layout.add_friends_header, listView,
                 false);
         listView.addHeaderView(header, null, false);
-
         System.out.println("News_Feed: 8");
-        String name = getIntent().getExtras().getString("name");
-        if(name == null && Profile.getCurrentProfile() != null) {
-            name = Profile.getCurrentProfile().getName();
-        }
-        final String finalName = name;
+
+
+
+
+        final String finalName = application.getName();
         accessToken = checkAccessToken();
         userId = accessToken.getUserId();
 
@@ -242,26 +230,10 @@ public class news_feed extends BatchAppCompatActivity
             }
         });
 
-        drawerSetup(userId, name);
+        drawerSetup(userId, finalName);
         populateFriendsList();
 
         //populateNewsFeedList();
-    }
-
-    /**
-     * This method is designed to save a Post to Firebase database.
-     * @param post
-     */
-    private void savePostToFirebase(Post post) {
-        firebaseRef.child("Posts/" + post.getPosterUserId() + "/" + post.getId()).setValue(post);
-    }
-
-    /**
-     * This method is designed to save a Comment to Firebase database.
-     * @param comment
-     */
-    private void saveCommentToFirebase(Comment comment) {
-        firebaseRef.child("Comments/" + comment.getPostId()).setValue(comment);
     }
 
     @Override
@@ -346,10 +318,6 @@ public class news_feed extends BatchAppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_logout) {
             LoginManager.getInstance().logOut();
-//            application.getPublicAdapter().getPosts().clear();
-//            application.getPrivateAdapter().getPosts().clear();
-//            application.getFriendsAdapter().getFriends().clear();
-//            application.getMyTabsAdapter().getPosts().clear();
             Intent intent = new Intent(news_feed.this, login.class);
             if(intent != null) {
                 startActivity(intent);
@@ -366,7 +334,6 @@ public class news_feed extends BatchAppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -417,9 +384,6 @@ public class news_feed extends BatchAppCompatActivity
                 setContentView(R.layout.loading_panel);
                 Thread.sleep(1000);
                 System.out.println("News_Feed: 7");
-//                if(findViewById(R.id.loadingPanel).getVisibility() == View.VISIBLE){
-//                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-//                }
             }
             return AccessToken.getCurrentAccessToken();
         } catch (Exception e) {
@@ -463,6 +427,7 @@ public class news_feed extends BatchAppCompatActivity
     }
 
     public boolean checkUpdatedFriends(List<Friend> friends, List<String> currentFriendItems) {
+        boolean result = false;
         if(friends.size() != currentFriendItems.size()){
             System.out.println("Error: There was an unexpected error.");
             System.out.println("news_feed: Returning false");
@@ -477,12 +442,17 @@ public class news_feed extends BatchAppCompatActivity
             } else {
                 System.out.println("news_feed: There was a difference because: " + friends.get(i).getName() + "'s isFriend is: "
                         + friends.get(i).getIsFriend() + " but Friend 2's isFriend is: " +
-                currentFriendItems.get(i));
-                return true;
+                        currentFriendItems.get(i));
+//                friends.get(i).setIsFriend(currentFriendItems.get(i));
+                System.out.println("news_feed: The friend get is friend " + friends.get(i).getName() + " is now: " + friends.get(i).getIsFriend());
+                result = true;
             }
         }
-        System.out.println("news_feed: Returning false");
-        return false;
+        if(result == true) {
+            application.getFriendsAdapter().notifyDataSetChanged();
+        }
+        System.out.println("news_feed: Final Returning Result: " + result);
+        return result;
     }
 
 
