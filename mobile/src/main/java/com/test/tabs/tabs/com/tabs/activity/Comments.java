@@ -99,22 +99,7 @@ public class Comments extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.comments);
         setupActionBar();
-
-        databaseQuery = new DatabaseQuery(this);
-        application = ((FireBaseApplication) getApplication());
-        progressOverlay = findViewById(R.id.progress_overlay);
-        postId = getPostId();
-        tab = getTab();
-        name = getName();
-        userId = getUserId();
-        toolbar = (Toolbar) findViewById(R.id.comments_appbar);
-        notificationManager = (NotificationManager)
-                getSystemService(NOTIFICATION_SERVICE);
-        commentsView = (RecyclerView) findViewById(R.id.view_comments);
-        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
-        llm = new LinearLayoutManager(this);
-        commentsView.setLayoutManager(llm);
-
+        setupActivity(savedInstanceState);
 
         final EditText comment = (EditText) findViewById(R.id.write_comment);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
@@ -161,17 +146,12 @@ public class Comments extends AppCompatActivity {
         final Button button = (Button) findViewById(R.id.send_comment);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                //Store into Database the text that the individual writes. For now I will store it my own local DB since I don't have
-                //Google cloud running yet.
-                //Get Id and user name
-                //Check if the comment is empty. Don't allow an empty post.
                 if (TextUtils.isEmpty(comment.getText())) {
                     Toast.makeText(Comments.this, "Please enter in a comment first.", Toast.LENGTH_SHORT).show();
                 } else {
                     String text = comment.getText().toString();
                     Comment createdComment = new Comment("", postId, name, text, userId, getDateTime());
                     Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
-                    //Make comment blank and set cursor to disappear once again. Also hide keyboard again.
                     comment.setText("");
                     InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
@@ -191,7 +171,6 @@ public class Comments extends AppCompatActivity {
 
             }
         });
-
         //Now we have to show a loading bar so that we are loading the comments. While we are loading the comments, we update the comments header
         populateCommentView(postId);
     }
@@ -303,6 +282,10 @@ public class Comments extends AppCompatActivity {
         System.out.println("Going to inflate header");
         String tab = getTab();
         if(tab.equals("public")) {
+            System.out.println("Comments: Posts should be null: " + posts);
+            System.out.println("Comments: But getting adapter shoudl not be null: " + application.getPublicAdapter());
+            System.out.println("Comments: But getting posts shoudl not be null: " + application.getPublicAdapter().getPosts());
+
             posts = application.getPublicAdapter().getPosts();
             post = application.getPublicAdapter().containsId(posts, id);
         } else if(tab.equals("private")) {
@@ -358,32 +341,26 @@ public class Comments extends AppCompatActivity {
         return "";
     }
 
-    public String getName(){
-        Bundle extras = getIntent().getExtras();
-        String value;
-        if (extras != null) {
-            value = extras.getString("name");
-            return value;
-        }
-        return "";
-    }
-
     public String getPostId(){
-        Bundle extras = getIntent().getExtras();
-        String value;
-        if (extras != null) {
-            value = extras.getString("id");
-            return value;
+        if(getIntent().getExtras() != null) {
+            Bundle extras = getIntent().getExtras();
+            String value;
+            if (extras != null) {
+                value = extras.getString("id");
+                return value;
+            }
         }
         return "";
     }
 
-    public String getTab(){
-        Bundle extras = getIntent().getExtras();
-        String value;
-        if (extras != null) {
-            value = extras.getString("tab");
-            return value;
+    public String getTab() {
+        if (getIntent().getExtras() != null) {
+            Bundle extras = getIntent().getExtras();
+            String value;
+            if (extras != null) {
+                value = extras.getString("tab");
+                return value;
+            }
         }
         return "";
     }
@@ -412,7 +389,7 @@ public class Comments extends AppCompatActivity {
             @Override
             public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
                 //This method will be called once with the results of the transaction.
-                if(firebaseError != null){
+                if (firebaseError != null) {
                     System.out.println("Comments: Error: " + firebaseError);
                 }
                 updatePostAdapter(tab);
@@ -486,5 +463,43 @@ public class Comments extends AppCompatActivity {
         return dateFormat.format(date);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state
+        userId = getUserId();
+        savedInstanceState.putString("postId", postId);
+        savedInstanceState.putString("tab", tab);
+        savedInstanceState.putString("userId", userId);
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    private void setupActivity(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            // Restore value of members from saved state
+            tab = savedInstanceState.getString("tab");
+            postId = savedInstanceState.getString("postId");
+            userId = savedInstanceState.getString("userId");
+        } else {
+            postId = getPostId();
+            tab = getTab();
+            userId = getUserId();
+            // Probably initialize members with default values for a new instance
+        }
+
+        databaseQuery = new DatabaseQuery(this);
+        application = ((FireBaseApplication) getApplication());
+        progressOverlay = findViewById(R.id.progress_overlay);
+
+        name = application.getName();
+        toolbar = (Toolbar) findViewById(R.id.comments_appbar);
+        notificationManager = (NotificationManager)
+                getSystemService(NOTIFICATION_SERVICE);
+        commentsView = (RecyclerView) findViewById(R.id.view_comments);
+        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
+        llm = new LinearLayoutManager(this);
+        commentsView.setLayoutManager(llm);
+    }
 
 }

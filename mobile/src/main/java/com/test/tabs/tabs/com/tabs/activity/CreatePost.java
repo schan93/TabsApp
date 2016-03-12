@@ -99,22 +99,14 @@ public class CreatePost extends BatchAppCompatActivity {
 
         //Set up action bar
         setupActionBar();
-
-        //Open posts database for storage
-        datasource = new PostsDataSource(this);
-        datasource.open();
-
         uniquePostId = UUID.randomUUID().toString();
         userId = AccessToken.getCurrentAccessToken().getUserId();
-
         //Pop up keyboard
         post = (EditText) findViewById(R.id.type_status);
         post.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(post, InputMethodManager.SHOW_IMPLICIT);
-
         setupPrivacyToggle();
-
         //First posts are always private
         privacy = "Private";
     }
@@ -143,7 +135,7 @@ public class CreatePost extends BatchAppCompatActivity {
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
             case R.id.send_post:
-                String name = getIntent().getExtras().getString("name");
+                String name = application.getName();
                 if(post.getText().length() == 0){
                     Toast.makeText(CreatePost.this, "Please enter something in the post.", Toast.LENGTH_SHORT).show();
                 }
@@ -151,9 +143,7 @@ public class CreatePost extends BatchAppCompatActivity {
                 Post createdPost = new Post("", name, post.getText().toString(), userId, getDateTime(), privacy, Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), 0);
                 System.out.println("CreatePost: Created post id: " + uniquePostId + " Name: " + name + " userId: " + userId);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
-
                 databaseQuery.savePostToFirebase(createdPost);
-
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
                 if(intent != null) {
                     startActivity(intent);

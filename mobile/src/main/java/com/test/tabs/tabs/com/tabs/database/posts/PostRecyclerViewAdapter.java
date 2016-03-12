@@ -130,7 +130,6 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                 Bundle bundle = new Bundle();
                 bundle.putString("id", post.getId());
                 bundle.putString("tab", tab);
-                bundle.putString("name", name);
                 bundle.putString("userId", userId);
                 intent.putExtras(bundle);
                 v.getContext().startActivity(intent);

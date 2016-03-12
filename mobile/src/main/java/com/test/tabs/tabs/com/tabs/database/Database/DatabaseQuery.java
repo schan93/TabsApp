@@ -206,6 +206,7 @@ public class DatabaseQuery implements Serializable {
         //Need to do order by / equal to.
         Firebase postsRef = firebaseRef.child("Posts");
         Query query = postsRef.orderByChild("posterUserId").equalTo(userId);
+        System.out.println("login3: Getting posts from " + userId);
         query.keepSynced(true);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -213,7 +214,7 @@ public class DatabaseQuery implements Serializable {
                 for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
                     Post post = postSnapShot.getValue(Post.class);
                     List<Post> privatePosts = application.getPrivateAdapter().getPosts();
-                    if (post.getPrivacy().equals("Private") && application.getPrivateAdapter().containsId(privatePosts, post.getId()) == null) {
+                    if (post.getPosterUserId().equals(userId) && post.getPrivacy().equals("Private") && application.getPrivateAdapter().containsId(privatePosts, post.getId()) == null) {
                         List<Friend> friends = application.getFriendsAdapter().getFriends();
                         Friend friend = application.getFriendsAdapter().containsId(friends, userId);
                         if (friend != null && friend.getIsFriend().equals("true")) {

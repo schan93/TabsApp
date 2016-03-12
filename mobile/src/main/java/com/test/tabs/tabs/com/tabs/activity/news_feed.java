@@ -101,19 +101,12 @@ public class news_feed extends BatchAppCompatActivity
     private CommentsDataSource commentsDataSource;
     //Progress overlay
     View progressOverlay;
-
     String userId;
-
     Activity activityContext;
-
     Handler handler;
-
     AccessToken accessToken;
-
     FireBaseApplication application;
-
     List<String> currentFriendItems = new ArrayList<String>();
-
     public news_feed(){
 
     }
@@ -125,6 +118,8 @@ public class news_feed extends BatchAppCompatActivity
         System.out.println("CREATING THE NEWS FEED ACTIVITY BEFORE GOING INTO FRAGMENT");
         Fresco.initialize(this);
         setContentView(R.layout.activity_main);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        checkSavedState(savedInstanceState);
         System.out.println("News_Feed: 0");
         application =  (FireBaseApplication) getApplication();
         System.out.println("News_Feed: 1");
@@ -144,7 +139,6 @@ public class news_feed extends BatchAppCompatActivity
         }
 
         //Listen for navigation events
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
 
@@ -166,11 +160,14 @@ public class news_feed extends BatchAppCompatActivity
                 updateFriendToFirebase(friends, currentFriendItems);
             }
         };
-
+        System.out.println("news_feed: toolbar: " + toolbar);
+        System.out.println("news_feed: Drawer: " + drawer);
+        System.out.println("news_feed: toggle: " + toggle);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        System.out.println("Tab Layout: " + tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("Public"));
         tabLayout.addTab(tabLayout.newTab().setText("Friends"));
         tabLayout.addTab(tabLayout.newTab().setText("My Tabs"));
@@ -221,7 +218,6 @@ public class news_feed extends BatchAppCompatActivity
             @Override
             public void onClick(View view) {
                 Bundle bundle = new Bundle();
-                bundle.putString("name", finalName);
                 Intent intent = new Intent(news_feed.this, CreatePost.class);
                 if (intent != null) {
                     intent.putExtras(bundle);
@@ -401,7 +397,7 @@ public class news_feed extends BatchAppCompatActivity
             Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Friends");
             Map<String, Object> updatedFriends = new HashMap<String, Object>();
             for(Friend friend: friends) {
-                updatedFriends.put(friend.getUser() + "/" + friend.getUserId() + "/isFriend", friend.getIsFriend());
+                updatedFriends.put(friend.getUser() + "/" + friend.getId() + "/isFriend", friend.getIsFriend());
             }
             application.setFromAnotherActivity(true);
             //Need to clear posts and friends because we have updated the friends and posts at this point
@@ -455,5 +451,13 @@ public class news_feed extends BatchAppCompatActivity
         return result;
     }
 
+    private void checkSavedState(Bundle savedInstanceState) {
+        if(savedInstanceState != null) {
+
+        }
+        else {
+
+        }
+    }
 
 }
