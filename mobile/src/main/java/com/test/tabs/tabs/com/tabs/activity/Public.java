@@ -30,7 +30,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 

@@ -1,11 +1,17 @@
 package com.test.tabs.tabs.com.tabs.database.posts;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.firebase.client.Firebase;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Chiharu on 10/26/2015.
  */
-public class Post {
+public class Post{
     private String id;
     private String name;
     private String status;
@@ -96,5 +102,4 @@ public class Post {
     public Integer getNumComments() { return numComments; }
 
     public void setNumComments(Integer numComments) { this.numComments = numComments; }
-
 }

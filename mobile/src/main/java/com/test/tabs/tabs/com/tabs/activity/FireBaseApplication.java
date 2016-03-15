@@ -4,31 +4,36 @@ import android.app.Application;
 
 import com.batch.android.Batch;
 import com.batch.android.Config;
+import com.facebook.cache.disk.DiskCacheConfig;
+import com.facebook.common.internal.Supplier;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.firebase.client.Firebase;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
+import com.test.tabs.tabs.com.tabs.database.friends.Friend;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by KCKusumi on 2/1/2016.
  */
 public class FireBaseApplication extends Application {
-    //Local Database for storing friends, posts, comments
-    private FriendsDataSource friendsDataSource;
-    private PostsDataSource postsDataSource;
-    private CommentsDataSource commentsDataSource;
     private static boolean fromAnotherActivity = false;
-
     private static String name = "";
-
-    private static FriendsListAdapter friendsAdapter;
+    private static FriendRecyclerViewAdapter friendsAdapter;
     private static PostRecyclerViewAdapter publicAdapter;
     private static PostRecyclerViewAdapter privateAdapter;
     private static PostRecyclerViewAdapter myTabsAdapter;
     private static CommentsRecyclerViewAdapter commentsRecyclerViewAdapter;
+    private static Post currentPost;
 
     private Firebase myFirebaseRef;
 
@@ -49,6 +54,9 @@ public class FireBaseApplication extends Application {
         Batch.Push.setGCMSenderId("213033849274");
         Batch.setConfig(new Config("AIzaSyCP0MX6xM67bdd3-2cqCVjHqVFvF4HgcIw"));
 
+        initializeAdapters();
+        //Configure Fresco so that image loads quickly
+        configFresco();
         //Make sure that adapters don't
 
     }
@@ -85,11 +93,11 @@ public class FireBaseApplication extends Application {
         this.myTabsAdapter = myTabsAdapter;
     }
 
-    public static FriendsListAdapter getFriendsAdapter() {
+    public static FriendRecyclerViewAdapter getFriendsRecyclerViewAdapter() {
         return friendsAdapter;
     }
 
-    public void setFriendsAdapter(FriendsListAdapter friendsAdapter) {
+    public void setFriendsAdapter(FriendRecyclerViewAdapter friendsAdapter) {
         this.friendsAdapter = friendsAdapter;
     }
 
@@ -109,13 +117,48 @@ public class FireBaseApplication extends Application {
         return fromAnotherActivity;
     }
 
-    private void stateDataBase(){
-        postsDataSource = new PostsDataSource(this);
-        postsDataSource.open();
-        commentsDataSource = new CommentsDataSource(this);
-        commentsDataSource.open();
-        friendsDataSource = new FriendsDataSource(this);
-        friendsDataSource.open();
+    public void setCurrentPost(Post post) {
+        this.currentPost = post;
+    }
+
+    public Post getCurrentPost() {
+        return this.getCurrentPost();
+    }
+
+    private void initializeAdapters() {
+        System.out.println("FireBaseApplication. Initializing Adapters");
+        List<Friend> friends = new ArrayList<Friend>();
+        List<Post> privatePosts = new ArrayList<Post>();
+        List<Post> publicPosts = new ArrayList<Post>();
+        List<Post> myTabsPosts = new ArrayList<Post>();
+        System.out.println("FriendRecyclerViewAdapter2: Setting freinds adapter header");
+        setFriendsAdapter(new FriendRecyclerViewAdapter(friends));
+        setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, "public"));
+        setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false, "private"));
+        setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false, "mytabs"));
+    }
+
+    /**
+     * Initialize Fresco.
+     */
+    public void configFresco() {
+        Supplier<File> diskSupplier = new Supplier<File>() {
+            @Override
+            public File get() {
+                return getApplicationContext().getCacheDir();
+            }
+        };
+
+        DiskCacheConfig diskCacheConfig = DiskCacheConfig.newBuilder()
+                .setBaseDirectoryName("images")
+                .setBaseDirectoryPathSupplier(diskSupplier)
+                .build();
+
+        ImagePipelineConfig frescoConfig = ImagePipelineConfig.newBuilder(this)
+                .setMainDiskCacheConfig(diskCacheConfig)
+                .build();
+
+        Fresco.initialize(this, frescoConfig);
     }
 
 }

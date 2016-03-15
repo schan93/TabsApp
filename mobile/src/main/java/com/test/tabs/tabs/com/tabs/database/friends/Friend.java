@@ -1,5 +1,10 @@
 package com.test.tabs.tabs.com.tabs.database.friends;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
+
 /**
  * Created by schan on 10/28/15.
  */

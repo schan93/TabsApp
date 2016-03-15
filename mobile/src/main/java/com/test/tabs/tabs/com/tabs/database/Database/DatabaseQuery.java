@@ -140,10 +140,10 @@ public class DatabaseQuery implements Serializable {
                 for (DataSnapshot friendSnapShot : dataSnapshot.getChildren()) {
                     Friend friend = friendSnapShot.getValue(Friend.class);
                     String userId = friend.getUserId();
-                    List<Friend> friends = application.getFriendsAdapter().getFriends();
-                    if (application.getFriendsAdapter().containsId(friends, userId) == null) {
+                    List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                    if (application.getFriendsRecyclerViewAdapter().containsId(friends, userId) == null) {
                         System.out.println("login2: Adding Friend " + friend.getName() + " to array");
-                        application.getFriendsAdapter().getFriends().add(friend);
+                        application.getFriendsRecyclerViewAdapter().getFriends().add(friend);
                     }
                     getPrivatePosts(userId);
                 }
@@ -159,35 +159,35 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Friend newFriend = dataSnapshot.getValue(Friend.class);
-                List<Friend> friends = application.getFriendsAdapter().getFriends();
-                if (application.getFriendsAdapter().containsId(friends, newFriend.getUserId()) == null) {
-                    application.getFriendsAdapter().getFriends().add(newFriend);
-                    application.getFriendsAdapter().notifyDataSetChanged();
+                List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                if (application.getFriendsRecyclerViewAdapter().containsId(friends, newFriend.getUserId()) == null) {
+                    application.getFriendsRecyclerViewAdapter().getFriends().add(newFriend);
+                    application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
                 }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 Friend changedFriend = dataSnapshot.getValue(Friend.class);
-                int length = application.getFriendsAdapter().getCount();
+                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
                 for (int i = 0; i < length; i++) {
-                    if (application.getFriendsAdapter().getFriends().get(i).getId().equals(changedFriend.getId())) {
-                        application.getFriendsAdapter().getFriends().set(i, changedFriend);
+                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(changedFriend.getId())) {
+                        application.getFriendsRecyclerViewAdapter().getFriends().set(i, changedFriend);
                     }
                 }
-                application.getFriendsAdapter().notifyDataSetChanged();
+                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 Friend removedFriend = dataSnapshot.getValue(Friend.class);
-                int length = application.getFriendsAdapter().getCount();
+                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
                 for (int i = 0; i < length; i++) {
-                    if (application.getFriendsAdapter().getFriends().get(i).getId().equals(removedFriend.getId())) {
-                        application.getFriendsAdapter().getFriends().remove(i);
+                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(removedFriend.getId())) {
+                        application.getFriendsRecyclerViewAdapter().getFriends().remove(i);
                     }
                 }
-                application.getFriendsAdapter().notifyDataSetChanged();
+                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
             }
 
             @Override
@@ -215,8 +215,8 @@ public class DatabaseQuery implements Serializable {
                     Post post = postSnapShot.getValue(Post.class);
                     List<Post> privatePosts = application.getPrivateAdapter().getPosts();
                     if (post.getPosterUserId().equals(userId) && post.getPrivacy().equals("Private") && application.getPrivateAdapter().containsId(privatePosts, post.getId()) == null) {
-                        List<Friend> friends = application.getFriendsAdapter().getFriends();
-                        Friend friend = application.getFriendsAdapter().containsId(friends, userId);
+                        List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                        Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, userId);
                         if (friend != null && friend.getIsFriend().equals("true")) {
                             application.getPrivateAdapter().add(post);
                         }
@@ -236,11 +236,11 @@ public class DatabaseQuery implements Serializable {
                 Post newPost = dataSnapshot.getValue(Post.class);
                 List<Post> privatePosts = application.getPrivateAdapter().getPosts();
                 if (newPost.getPrivacy().equals("Private") && application.getPrivateAdapter().containsId(privatePosts, newPost.getId()) == null) {
-                    List<Friend> friends = application.getFriendsAdapter().getFriends();
-                    Friend friend = application.getFriendsAdapter().containsId(friends, userId);
+                    List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                    Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, userId);
                     if (friend != null && friend.getIsFriend().equals("true")) {
                         application.getPrivateAdapter().add(newPost);
-                        application.getFriendsAdapter().notifyDataSetChanged();
+                        application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
                     }
                 }
             }
@@ -407,73 +407,6 @@ public class DatabaseQuery implements Serializable {
                     }
                 }
                 application.getMyTabsAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                //Not sure if used
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-    }
-
-    public void getComments(final String postId) {
-        Firebase commentsRef = firebaseRef.child("Comments");
-        Query query = commentsRef.orderByChild("postId").equalTo(postId);
-        query.keepSynced(true);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot commentSnapShot : dataSnapshot.getChildren()) {
-                    Comment comment = commentSnapShot.getValue(Comment.class);
-                    application.getCommentsRecyclerViewAdapter().getCommentsList().add(comment);
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-
-        commentsRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Comment newComment = dataSnapshot.getValue(Comment.class);
-                List<Comment> comments = application.getCommentsRecyclerViewAdapter().getCommentsList();
-                if(application.getCommentsRecyclerViewAdapter().containsId(comments, newComment.getId()) == null && newComment.getPostId().equals(postId)) {
-                    application.getCommentsRecyclerViewAdapter().getCommentsList().add(newComment);
-                    application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Comment changedComment = dataSnapshot.getValue(Comment.class);
-                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
-                for (int i = 0; i < length; i++) {
-                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(changedComment.getId())) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().set(i, changedComment);
-                    }
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Comment removedComment = dataSnapshot.getValue(Comment.class);
-                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
-                for (int i = 0; i < length; i++) {
-                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(removedComment.getId())) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().remove(i);
-                    }
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
             }
 
             @Override

@@ -23,13 +23,13 @@
             android:layout_height="match_parent">
 
             <include
-                layout="@layout/nav_header_friends_list"
+                layout="@layout/friends_list_header"
                 android:id="@+id/navigation_header"/>
 
-            <ListView
+            <android.support.v7.widget.RecyclerView
                 android:id="@+id/friends_list"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"></ListView>
+                android:layout_height="wrap_content"></android.support.v7.widget.RecyclerView>
 
         </LinearLayout>
 

@@ -55,7 +55,6 @@ import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
@@ -120,8 +119,6 @@ public class login extends Activity implements Serializable{
         //Initialize Facebook SDK & Callback Manager
         FacebookSdk.sdkInitialize(getApplicationContext());
         callbackManager = CallbackManager.Factory.create();
-        //Configure Fresco so that image loads quickly
-        configFresco();
         //Remove DB first this is because we have to change the schema
 //        deleteDatabase();
         //Initialize DB
@@ -130,7 +127,6 @@ public class login extends Activity implements Serializable{
         databaseQuery = new DatabaseQuery(this);
         handler = new Handler();
         application =  (FireBaseApplication) getApplication();
-        initializeAdapters();
         //Set up location services
         LocationService.getLocationManager(this);
 
@@ -302,9 +298,9 @@ public class login extends Activity implements Serializable{
                             String name = jsonObject.getString("name");
                             System.out.println("login: Name: " + name);
                             Friend friend = new Friend("", friendId, name, currentUserId, "false");
-                            List<Friend> friends = application.getFriendsAdapter().getFriends();
-                            if(application.getFriendsAdapter().containsId(friends, friend.getUserId()) == null) {
-                                application.getFriendsAdapter().getFriends().add(friend);
+                            List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                            if(application.getFriendsRecyclerViewAdapter().containsId(friends, friend.getUserId()) == null) {
+                                application.getFriendsRecyclerViewAdapter().getFriends().add(friend);
                                 System.out.println("login2: Saving " + name  + " to firebase.");
                                 databaseQuery.saveFriendToFirebase(friend);
                             }
@@ -368,30 +364,6 @@ public class login extends Activity implements Serializable{
         }
     }
 
-    /**
-     * Initialize Fresco.
-     */
-    public void configFresco() {
-        Supplier<File> diskSupplier = new Supplier<File>() {
-            @Override
-            public File get() {
-                return getApplicationContext().getCacheDir();
-            }
-        };
-
-        DiskCacheConfig diskCacheConfig = DiskCacheConfig.newBuilder()
-                .setBaseDirectoryName("images")
-                .setBaseDirectoryPathSupplier(diskSupplier)
-                .build();
-
-        ImagePipelineConfig frescoConfig = ImagePipelineConfig.newBuilder(this)
-                .setMainDiskCacheConfig(diskCacheConfig)
-                .build();
-
-        Fresco.initialize(this, frescoConfig);
-    }
-
-
     private void deleteDatabase() {
         this.deleteDatabase("databaseManager.db");
     }
@@ -405,18 +377,6 @@ public class login extends Activity implements Serializable{
         commentsDataSource.open();
         friendsDataSource = new FriendsDataSource(this);
         friendsDataSource.open();
-    }
-
-    private void initializeAdapters() {
-        List<Friend> friends = new ArrayList<Friend>();
-        List<Post> privatePosts = new ArrayList<Post>();
-        List<Post> publicPosts = new ArrayList<Post>();
-        List<Post> myTabsPosts = new ArrayList<Post>();
-
-        application.setFriendsAdapter(new FriendsListAdapter(this, friends, "friends"));
-        application.setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, "public"));
-        application.setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false, "private"));
-        application.setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false, "mytabs"));
     }
 
 }

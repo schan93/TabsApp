@@ -28,6 +28,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -75,11 +76,13 @@ import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
+import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
@@ -92,7 +95,6 @@ public class news_feed extends BatchAppCompatActivity
 
     //Friends list values
     private ListView friendsList;
-    private FriendsListAdapter friendsAdapter;
     //Local Database for storing friends
     private FriendsDataSource datasource;
     private List<Friend> friendItems;
@@ -107,6 +109,8 @@ public class news_feed extends BatchAppCompatActivity
     AccessToken accessToken;
     FireBaseApplication application;
     List<String> currentFriendItems = new ArrayList<String>();
+    TabLayout tabLayout;
+    DatabaseQuery databaseQuery;
     public news_feed(){
 
     }
@@ -116,14 +120,13 @@ public class news_feed extends BatchAppCompatActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         System.out.println("CREATING THE NEWS FEED ACTIVITY BEFORE GOING INTO FRAGMENT");
-        Fresco.initialize(this);
         setContentView(R.layout.activity_main);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         checkSavedState(savedInstanceState);
         System.out.println("News_Feed: 0");
         application =  (FireBaseApplication) getApplication();
+        databaseQuery = new DatabaseQuery(this);
         System.out.println("News_Feed: 1");
-        startDatabases();
         System.out.println("News_Feed: 2");
         progressOverlay = findViewById(R.id.progress_overlay);
         System.out.println("News_Feed: 3");
@@ -147,7 +150,7 @@ public class news_feed extends BatchAppCompatActivity
                 if(currentFriendItems.size() > 0) {
                     currentFriendItems.clear();
                 }
-                for(Friend friend: application.getFriendsAdapter().getFriends()) {
+                for(Friend friend: application.getFriendsRecyclerViewAdapter().getFriends()) {
                     currentFriendItems.add(friend.getIsFriend());
                 }
             }
@@ -156,7 +159,7 @@ public class news_feed extends BatchAppCompatActivity
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
                 System.out.println("Drawer closed");
-                List<Friend> friends = application.getFriendsAdapter().getFriends();
+                List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
                 updateFriendToFirebase(friends, currentFriendItems);
             }
         };
@@ -166,7 +169,7 @@ public class news_feed extends BatchAppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         System.out.println("Tab Layout: " + tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("Public"));
         tabLayout.addTab(tabLayout.newTab().setText("Friends"));
@@ -195,20 +198,6 @@ public class news_feed extends BatchAppCompatActivity
             }
         });
 
-        //Set things such as facebook profile picture, facebook friends photos, etc.
-        //Set up recycler view
-        ListView listView = (ListView) findViewById(R.id.friends_list);
-
-        //Inflate ListView header
-        LayoutInflater inflater = getLayoutInflater();
-        ViewGroup header = (ViewGroup) inflater.inflate(R.layout.add_friends_header, listView,
-                false);
-        listView.addHeaderView(header, null, false);
-        System.out.println("News_Feed: 8");
-
-
-
-
         final String finalName = application.getName();
         accessToken = checkAccessToken();
         userId = accessToken.getUserId();
@@ -227,7 +216,7 @@ public class news_feed extends BatchAppCompatActivity
         });
 
         drawerSetup(userId, finalName);
-        populateFriendsList();
+        populateFriendsList(userId);
 
         //populateNewsFeedList();
     }
@@ -336,24 +325,14 @@ public class news_feed extends BatchAppCompatActivity
     }
 
     private void populateFriendsList(String userId) {
-        friendsList = (ListView) findViewById(R.id.friends_list);
-        friendItems = new ArrayList<>();
-
-        activityContext = this;
-
-        friendsAdapter = application.getFriendsAdapter();
-        friendsList.setAdapter(friendsAdapter);
-        System.out.println("Freinds Adapter: " + friendsAdapter);
-        for (Friend i : datasource.getAllFriends(userId)) {
-            System.out.println("Friend name: " + i.getName());
-            friendItems.add(i);
+        RecyclerView rv = (RecyclerView) findViewById(R.id.friends_list);
+        RecyclerView.ItemAnimator animator = rv.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
         }
-    }
-
-    private void populateFriendsList() {
-        friendsList = (ListView) findViewById(R.id.friends_list);
-        System.out.println("News_feed: Friends list adapter size: " + application.getFriendsAdapter().getCount());
-        friendsList.setAdapter(application.getFriendsAdapter());
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        rv.setLayoutManager(llm);
+        rv.setAdapter(application.getFriendsRecyclerViewAdapter());
     }
 
     @Override
@@ -361,16 +340,6 @@ public class news_feed extends BatchAppCompatActivity
         super.onPause();
         // Logs 'app deactivate' App Event.
         AppEventsLogger.deactivateApp(this);
-    }
-
-    private void startDatabases() {
-        //Open DB and get freinds from db & posts.
-        datasource = new FriendsDataSource(this);
-        datasource.open();
-        postsDataSource = new PostsDataSource(this);
-        postsDataSource.open();
-        commentsDataSource = new CommentsDataSource(this);
-        commentsDataSource.open();
     }
 
     private AccessToken checkAccessToken() {
@@ -393,7 +362,9 @@ public class news_feed extends BatchAppCompatActivity
 
         boolean areUpdated = checkUpdatedFriends(friends, currentFriendItems);
         if(areUpdated) {
-            AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
+            if(tabLayout.getSelectedTabPosition() == 1) {
+                AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
+            }
             Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Friends");
             Map<String, Object> updatedFriends = new HashMap<String, Object>();
             for(Friend friend: friends) {
@@ -416,7 +387,9 @@ public class news_feed extends BatchAppCompatActivity
                         }
                     }
                     application.getPrivateAdapter().notifyDataSetChanged();
-                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                    if(progressOverlay.getVisibility() == View.VISIBLE) {
+                        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                    }
                 }
             });
         }
@@ -445,7 +418,7 @@ public class news_feed extends BatchAppCompatActivity
             }
         }
         if(result == true) {
-            application.getFriendsAdapter().notifyDataSetChanged();
+            application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
         }
         System.out.println("news_feed: Final Returning Result: " + result);
         return result;

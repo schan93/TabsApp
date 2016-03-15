@@ -128,7 +128,11 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             public void onClick(View v) {
                 Intent intent = new Intent(v.getContext(), Comments.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("id", post.getId());
+                bundle.putString("postId", post.getId());
+                bundle.putString("posterUserId", post.getPosterUserId());
+                bundle.putString("posterName", post.getName());
+                bundle.putString("postTimeStamp", post.getTimeStamp());;
+                bundle.putString("postStatus", post.getStatus());
                 bundle.putString("tab", tab);
                 bundle.putString("userId", userId);
                 intent.putExtras(bundle);
@@ -256,72 +260,4 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         return hours;
     }
 }
-
-//        private Activity activity;
-//    private LayoutInflater inflater;
-//    private List<Post> posts;
-//
-//    //Local Database for storing friends
-//    private PostsDataSource datasource;
-//
-//
-//    public PostListAdapter(Activity activity, List<Post> posts) {
-//        this.activity = activity;
-//        this.posts = posts;
-//    }
-//
-//    @Override
-//    public int getCount() {
-//        return posts.size();
-//    }
-//
-//    @Override
-//    public Object getItem(int position) {
-//        return posts.get(position);
-//    }
-//
-//    @Override
-//    public long getItemId(int position) {
-//        return position;
-//    }
-//
-//    @Override
-//    public View getView(int position, View convertView, ViewGroup parent) {
-//        if (inflater == null)
-//            inflater = (LayoutInflater) activity
-//                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//        if (convertView == null)
-//            convertView = inflater.inflate(R.layout.news_feed_item, null);
-//
-////        TextView name = (TextView) convertView.findViewById(R.id.friend_name);
-////        ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.friend_profile_picture);
-////        if(profilePictureView != null) {
-////            profilePictureView.setProfileId(friendItems.get(position).getId());
-////        }
-//
-//        TextView name = (TextView) convertView.findViewById(R.id.txt_name);
-//        TextView timestamp = (TextView)convertView.findViewById(R.id.txt_timestamp);
-//        TextView statusMsg = (TextView)convertView.findViewById(R.id.txt_statusMsg);
-//        TextView numComments = (TextView)convertView.findViewById(R.id.num_comments);
-//
-//        //Set profile picture
-//        DraweeController controller = news_feed.getImage(posts.get(position).getPosterUserId());
-//        SimpleDraweeView draweeView = (SimpleDraweeView) convertView.findViewById(R.id.poster_profile_photo);
-//        draweeView.setController(controller);
-//
-//
-//        //Set the views
-//        Post item = posts.get(position);
-//        name.setText(item.getName());
-//        timestamp.setText(convertDate(item.getTimeStamp()));
-//        statusMsg.setText((item.getStatus()));
-//
-//        datasource = new PostsDataSource(parent.getContext());
-//        datasource.open();
-//        System.out.println("Item id: " + item.getId());
-//        numComments.setText(datasource.getNumberComments(item.getId()).toString() + " Comments");
-//        numComments.setTextSize(12);
-//
-//        return convertView;
-//    }
 
