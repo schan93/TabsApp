@@ -62,11 +62,10 @@ public class FriendsTab extends Fragment {
         fragmentView = inflater.inflate(R.layout.private_tab, container, false);
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-        if(application.getUserId() != null) {
+        if(application.getUserId() != null && application.getUserId() != null) {
             userId = application.getUserId();
-        } else {
-            setupActivity(savedInstanceState);
         }
+        setupActivity(savedInstanceState);
         getPrivatePosts(progressOverlay, userId, fragmentView);
         return fragmentView;
     }

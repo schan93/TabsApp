@@ -411,6 +411,7 @@ public class Comments extends AppCompatActivity {
         savedInstanceState.putString("postId", postId);
         savedInstanceState.putString("tab", tab);
         savedInstanceState.putString("userId", userId);
+        savedInstanceState.putString("name", name);
         savedInstanceState.putString("posterUserId", posterUserId);
         savedInstanceState.putString("posterName", posterName);
         savedInstanceState.putString("postTimeStamp", postTimeStamp);
@@ -430,6 +431,9 @@ public class Comments extends AppCompatActivity {
             }
             if(savedInstanceState.containsKey("userId")) {
                 userId = savedInstanceState.getString("userId");
+            }
+            if(savedInstanceState.containsKey("name")) {
+                name = savedInstanceState.getString("name");
             }
             if(savedInstanceState.containsKey("posterUserId")) {
                 posterUserId = savedInstanceState.getString("posterUserId");
@@ -457,8 +461,13 @@ public class Comments extends AppCompatActivity {
         databaseQuery = new DatabaseQuery(this);
         application = ((FireBaseApplication) getApplication());
         progressOverlay = findViewById(R.id.progress_overlay);
-
-        name = application.getName();
+        if(application.getName() != null && application.getName() != "") {
+            name = application.getName();
+        } else {
+            if(savedInstanceState.containsKey("name")) {
+                name = savedInstanceState.getString("name");
+            }
+        }
         toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         notificationManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);

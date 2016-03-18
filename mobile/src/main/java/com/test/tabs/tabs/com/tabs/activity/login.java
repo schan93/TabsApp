@@ -251,7 +251,7 @@ public class login extends Activity implements Serializable{
                                 @Override
                                 public void run() {
                                     System.out.println("Running user");
-                                    databaseQuery.getFriends(userId);
+//                                    databaseQuery.getFriends(userId);
                                     getFriendsFromFacebook(userId);
                                 }
                             });

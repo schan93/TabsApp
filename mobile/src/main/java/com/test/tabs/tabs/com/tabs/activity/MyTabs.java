@@ -57,7 +57,7 @@ public class MyTabs extends Fragment {
         System.out.println("MyTabs: Create view");
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-        if(application.getUserId() != null) {
+        if(application.getUserId() != null && application.getUserId() != null) {
             userId = application.getUserId();
         } else {
             setupActivity(savedInstanceState);
