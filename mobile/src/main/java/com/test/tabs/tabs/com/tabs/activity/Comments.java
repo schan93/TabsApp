@@ -278,7 +278,7 @@ public class Comments extends AppCompatActivity {
         statusMsg.setText(post.getStatus());
 
         //Set profile picture
-        DraweeController controller = news_feed.getImage(post.getPosterUserId());
+        DraweeController controller = news_feed.getImage(userId);
         SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.poster_picture);
         draweeView.setController(controller);
 
@@ -464,8 +464,10 @@ public class Comments extends AppCompatActivity {
         if(application.getName() != null && application.getName() != "") {
             name = application.getName();
         } else {
-            if(savedInstanceState.containsKey("name")) {
-                name = savedInstanceState.getString("name");
+            if(savedInstanceState != null) {
+                if(savedInstanceState.containsKey("name")) {
+                    name = savedInstanceState.getString("name");
+                }
             }
         }
         toolbar = (Toolbar) findViewById(R.id.comments_appbar);
@@ -489,8 +491,10 @@ public class Comments extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot commentSnapShot : dataSnapshot.getChildren()) {
-                    Comment comment = commentSnapShot.getValue(Comment.class);
-                    application.getCommentsRecyclerViewAdapter().getCommentsList().add(comment);
+                    Comment newComment = commentSnapShot.getValue(Comment.class);
+                    if (application.getCommentsRecyclerViewAdapter().containsId(commentItems, newComment.getId()) == null && newComment.getPostId().equals(postId) ) {
+                        application.getCommentsRecyclerViewAdapter().getCommentsList().add(newComment);
+                    }
                 }
                 application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
                 commentItems = application.getCommentsRecyclerViewAdapter().getCommentsList();

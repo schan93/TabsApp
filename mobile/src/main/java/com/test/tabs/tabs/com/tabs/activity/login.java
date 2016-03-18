@@ -219,6 +219,9 @@ public class login extends Activity implements Serializable{
     private void getUserInfo(String userId) {
         application.setName(name);
         application.setUserId(userId);
+        application.getPublicAdapter().setUserId(userId);
+        application.getPrivateAdapter().setUserId(userId);
+        application.getMyTabsAdapter().setUserId(userId);
         getUserFromFacebook(userId);
     }
 

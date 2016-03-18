@@ -26,6 +26,7 @@ import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
+import com.test.tabs.tabs.com.tabs.activity.FireBaseApplication;
 import com.test.tabs.tabs.com.tabs.activity.LocationService;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
@@ -41,6 +42,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     Context context;
     String tab;
     boolean isPublic;
+    String userId;
 
     public List<Post> getPosts() {
         return posts;
@@ -61,6 +63,10 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     public String getTab() { return tab; }
 
     public void setTab(String tab) { this.tab = tab; }
+
+    public String getUserId() { return userId; }
+
+    public void setUserId(String userId) {this.userId = userId; }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
         CardView cardViewPost;
@@ -99,7 +105,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     @Override
     public void onBindViewHolder(PostViewHolder postViewHolder, int i) {
         final String name = posts.get(i).getName();
-        final String userId = posts.get(i).getPosterUserId();
+        final String userId = getUserId();
         postViewHolder.name.setText(name);
         postViewHolder.timestamp.setText(convertDate(posts.get(i).getTimeStamp()));
         postViewHolder.statusMsg.setText(posts.get(i).getStatus());
