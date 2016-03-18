@@ -19,27 +19,40 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.facebook.AccessToken;
+import com.firebase.client.ChildEventListener;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by schan on 12/30/15.
  */
 public class Public extends Fragment implements LocationListener {
 
+    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
     private View fragmentView;
     PostRecyclerViewAdapter adapter;
     //Local Database for storing posts
@@ -54,6 +67,8 @@ public class Public extends Fragment implements LocationListener {
     private static boolean isNetworkEnabled;
     public static double lat = 0.0;
     public static double lng = 0.0;
+    private DatabaseQuery databaseQuery;
+    private View progressOverlay;
 
     //GoogleApiClient
     private GoogleApiClient mGoogleApiClient;
@@ -62,6 +77,18 @@ public class Public extends Fragment implements LocationListener {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         application = ((FireBaseApplication) getActivity().getApplication());
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+//        ProgressBar progressBar = (TextView)view.findViewById(R.id.prog);
+
     }
 
     /**
@@ -73,11 +100,88 @@ public class Public extends Fragment implements LocationListener {
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setupDatabase();
         fragmentView = inflater.inflate(R.layout.public_tab, container, false);
-        populateNewsFeedList(fragmentView);
+        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
+        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
+        getPublicPosts(progressOverlay, fragmentView);
         return fragmentView;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+//        getPublicPosts();
+    }
+
+//    public void getPublicPosts() {
+//        //Need to do order by / equal to.
+//        Firebase postsRef = firebaseRef.child("Posts");
+//        Query query = postsRef.orderByChild("privacy").equalTo("Public");
+//        query.keepSynced(true);
+//        query.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
+//                    Post post = postSnapShot.getValue(Post.class);
+//                    List<Post> publicPosts = application.getPublicAdapter().getPosts();
+//                    if (post.getPrivacy().equals("Public") && application.getPublicAdapter().containsId(publicPosts, post.getId()) == null) {
+//                        application.getPublicAdapter().add(post);
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//
+//            }
+//        });
+//
+//        postsRef.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                Post newPost = dataSnapshot.getValue(Post.class);
+//                List<Post> publicPosts = application.getPublicAdapter().getPosts();
+//                if (application.getPublicAdapter().containsId(publicPosts, newPost.getId()) == null && newPost.getPrivacy().equals("Public")) {
+//                    application.getPublicAdapter().getPosts().add(newPost);
+//                    application.getPublicAdapter().notifyDataSetChanged();
+//                }
+//            }
+//
+//            @Override
+//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+//                Post changedPost = dataSnapshot.getValue(Post.class);
+//                int length = application.getPublicAdapter().getPosts().size();
+//                for (int i = 0; i < length; i++) {
+//                    if (application.getPublicAdapter().getPosts().get(i).getId().equals(changedPost.getId())) {
+//                        application.getPublicAdapter().getPosts().set(i, changedPost);
+//                    }
+//                }
+//                application.getPublicAdapter().notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onChildRemoved(DataSnapshot dataSnapshot) {
+//                Post removedPost = dataSnapshot.getValue(Post.class);
+//                int length = application.getPublicAdapter().getPosts().size();
+//                for (int i = 0; i < length; i++) {
+//                    if (application.getPublicAdapter().getPosts().get(i).getId().equals(removedPost.getId())) {
+//                        application.getPublicAdapter().getPosts().remove(i);
+//                    }
+//                }
+//                application.getPublicAdapter().notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+//                //Not sure if used
+//            }
+//
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//
+//            }
+//        });
+//    }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
@@ -197,11 +301,78 @@ public class Public extends Fragment implements LocationListener {
 
     }
 
-    void setupDatabase() {
-        //Open DB and get freinds from db & posts.
-        datasource = new FriendsDataSource(getContext());
-        datasource.open();
-        postsDataSource = new PostsDataSource(getContext());
-        postsDataSource.open();
+    public void getPublicPosts(final View progressOverlay, final View fragmentView) {
+        //Need to do order by / equal to.
+        Firebase postsRef = firebaseRef.child("Posts");
+        Query query = postsRef.orderByChild("privacy").equalTo("Public");
+        query.keepSynced(true);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
+                    Post post = postSnapShot.getValue(Post.class);
+                    List<Post> publicPosts = application.getPublicAdapter().getPosts();
+                    if (post.getPrivacy().equals("Public") && application.getPublicAdapter().containsId(publicPosts, post.getId()) == null) {
+                        application.getPublicAdapter().add(post);
+                    }
+                }
+                System.out.println("Public: Visiblity: " + progressOverlay);
+                if (progressOverlay.getVisibility() == View.VISIBLE) {
+                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                }
+                populateNewsFeedList(fragmentView);
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+//                populateNewsFeedList(fragmentView);
+            }
+        });
+
+        postsRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Post newPost = dataSnapshot.getValue(Post.class);
+                List<Post> publicPosts = application.getPublicAdapter().getPosts();
+                if (application.getPublicAdapter().containsId(publicPosts, newPost.getId()) == null && newPost.getPrivacy().equals("Public")) {
+                    application.getPublicAdapter().getPosts().add(newPost);
+                    application.getPublicAdapter().notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Post changedPost = dataSnapshot.getValue(Post.class);
+                int length = application.getPublicAdapter().getPosts().size();
+                for (int i = 0; i < length; i++) {
+                    if (application.getPublicAdapter().getPosts().get(i).getId().equals(changedPost.getId())) {
+                        application.getPublicAdapter().getPosts().set(i, changedPost);
+                    }
+                }
+                application.getPublicAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Post removedPost = dataSnapshot.getValue(Post.class);
+                int length = application.getPublicAdapter().getPosts().size();
+                for (int i = 0; i < length; i++) {
+                    if (application.getPublicAdapter().getPosts().get(i).getId().equals(removedPost.getId())) {
+                        application.getPublicAdapter().getPosts().remove(i);
+                    }
+                }
+                application.getPublicAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                //Not sure if used
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
     }
 }

@@ -28,6 +28,7 @@ import java.util.List;
 public class FireBaseApplication extends Application {
     private static boolean fromAnotherActivity = false;
     private static String name = "";
+    private static String userId = "";
     private static FriendRecyclerViewAdapter friendsAdapter;
     private static PostRecyclerViewAdapter publicAdapter;
     private static PostRecyclerViewAdapter privateAdapter;
@@ -67,6 +68,14 @@ public class FireBaseApplication extends Application {
 
     public void setName(String userName) {
         name = userName;
+    }
+
+    public static String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String currentUserId) {
+         userId = currentUserId;
     }
 
     public static PostRecyclerViewAdapter getPublicAdapter() {

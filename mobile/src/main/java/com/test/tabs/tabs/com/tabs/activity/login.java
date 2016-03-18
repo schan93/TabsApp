@@ -81,36 +81,17 @@ public class login extends Activity implements Serializable{
     //Firebase reference
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
     private LoginButton loginButton;
-
     //Manage callbacks in app
     private CallbackManager callbackManager;
-
-    //Local Database for storing posts
-    private PostsDataSource postsDataSource;
-    private CommentsDataSource commentsDataSource;
-    private FriendsDataSource friendsDataSource;
-    private UsersDataSource usersDataSource;
-
     //Variable for current user facebook user id
     private String currentUserId;
-
     //Boolean to tell us whether or not we are actually logged in already if we are then we show the loading screen
     Boolean loggedIn = false;
-
     Handler handler;
-
-    //Initialize location service
     LocationService locationService;
-
-    //Progress overlay
     View progressOverlay;
-
-    //Application
     FireBaseApplication application;
-
-    //Name of current user
     String name;
-
     DatabaseQuery databaseQuery;
 
     @Override
@@ -143,6 +124,7 @@ public class login extends Activity implements Serializable{
             //Check if user is already logged in
             Profile profile = Profile.getCurrentProfile();
             name = profile.getName();
+
             loggedIn = true;
             setContentView(R.layout.loading_panel);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
@@ -236,8 +218,7 @@ public class login extends Activity implements Serializable{
      */
     private void getUserInfo(String userId) {
         application.setName(name);
-        databaseQuery.getMyTabsPosts(userId);
-        databaseQuery.getPublicPosts();
+        application.setUserId(userId);
         getUserFromFacebook(userId);
     }
 
@@ -345,6 +326,7 @@ public class login extends Activity implements Serializable{
         Intent intent = new Intent(login.this, news_feed.class);
         if (intent != null) {
             intent.putExtras(parameters);
+            System.out.println("news_feed: Starting intent all over again");
             startActivity(intent);
         }
     }
@@ -366,17 +348,6 @@ public class login extends Activity implements Serializable{
 
     private void deleteDatabase() {
         this.deleteDatabase("databaseManager.db");
-    }
-
-    private void startDatabases(){
-        usersDataSource = new UsersDataSource(this);
-        usersDataSource.open();
-        postsDataSource = new PostsDataSource(this);
-        postsDataSource.open();
-        commentsDataSource = new CommentsDataSource(this);
-        commentsDataSource.open();
-        friendsDataSource = new FriendsDataSource(this);
-        friendsDataSource.open();
     }
 
 }

@@ -87,12 +87,11 @@ import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
-public class news_feed extends BatchAppCompatActivity
+public class news_feed extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     //Firebase reference
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
-
     //Friends list values
     private ListView friendsList;
     //Local Database for storing friends
@@ -109,8 +108,10 @@ public class news_feed extends BatchAppCompatActivity
     AccessToken accessToken;
     FireBaseApplication application;
     List<String> currentFriendItems = new ArrayList<String>();
-    TabLayout tabLayout;
     DatabaseQuery databaseQuery;
+    private static DrawerLayout drawer;
+    private static TabLayout tabLayout;
+    private static ActionBarDrawerToggle toggle;
     public news_feed(){
 
     }
@@ -121,7 +122,7 @@ public class news_feed extends BatchAppCompatActivity
         super.onCreate(savedInstanceState);
         System.out.println("CREATING THE NEWS FEED ACTIVITY BEFORE GOING INTO FRAGMENT");
         setContentView(R.layout.activity_main);
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         checkSavedState(savedInstanceState);
         System.out.println("News_Feed: 0");
         application =  (FireBaseApplication) getApplication();
@@ -142,7 +143,7 @@ public class news_feed extends BatchAppCompatActivity
         }
 
         //Listen for navigation events
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
 
             public void onDrawerOpened(View view) {
@@ -167,16 +168,16 @@ public class news_feed extends BatchAppCompatActivity
         System.out.println("news_feed: Drawer: " + drawer);
         System.out.println("news_feed: toggle: " + toggle);
         drawer.setDrawerListener(toggle);
-        toggle.syncState();
 
         tabLayout = (TabLayout) findViewById(R.id.tab_layout);
-        System.out.println("Tab Layout: " + tabLayout);
+        System.out.println("news_feed: Tab Layout: " + tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("Public"));
         tabLayout.addTab(tabLayout.newTab().setText("Friends"));
         tabLayout.addTab(tabLayout.newTab().setText("My Tabs"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setOffscreenPageLimit(3);
         final PagerAdapter adapter = new PagerAdapter
                 (getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
@@ -219,6 +220,13 @@ public class news_feed extends BatchAppCompatActivity
         populateFriendsList(userId);
 
         //populateNewsFeedList();
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        toggle.syncState();
+
     }
 
     @Override
@@ -277,7 +285,7 @@ public class news_feed extends BatchAppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
