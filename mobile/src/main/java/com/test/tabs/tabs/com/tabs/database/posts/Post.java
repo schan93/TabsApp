@@ -1,20 +1,26 @@
 package com.test.tabs.tabs.com.tabs.database.posts;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.firebase.client.Firebase;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Chiharu on 10/26/2015.
  */
-public class Post {
+public class Post{
     private String id;
     private String name;
     private String status;
     private String posterUserId;
     private String timeStamp;
-    //Privacy = 0 means public, 1 = private meaning only between friends
     private String privacy;
-    private double longitude;
-    private double latitude;
+    private String longitude;
+    private String latitude;
+    private Integer numComments;
 
     /**
      * Empty default constructor, necessary for Firebase to be able to deserialize Posts
@@ -22,7 +28,7 @@ public class Post {
     public Post(){
     }
 
-    public Post(String id, String name, String status, String posterUserId, String timeStamp, String privacy, double latitude, double longitude) {
+    public Post(String id, String name, String status, String posterUserId, String timeStamp, String privacy, String latitude, String longitude, Integer numComments) {
         super();
         this.id = id;
         this.name = name;
@@ -32,6 +38,7 @@ public class Post {
         this.privacy = privacy;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.numComments = numComments;
     }
 
     public String getPrivacy() { return privacy; }
@@ -78,18 +85,21 @@ public class Post {
         this.timeStamp = timeStamp;
     }
 
-    public double getLatitude() { return latitude; }
+    public String getLatitude() { return latitude; }
 
-    public void setLatitude(double latitude) {
+    public void setLatitude(String latitude) {
         this.latitude = latitude;
     }
 
-    public double getLongitude() {
+    public String getLongitude() {
         return longitude;
     }
 
-    public void getLongitude(double longitude) {
+    public void getLongitude(String longitude) {
         this.longitude = longitude;
     }
 
+    public Integer getNumComments() { return numComments; }
+
+    public void setNumComments(Integer numComments) { this.numComments = numComments; }
 }

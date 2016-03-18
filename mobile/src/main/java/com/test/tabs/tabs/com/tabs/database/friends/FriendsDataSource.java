@@ -69,11 +69,11 @@ public class FriendsDataSource {
         return friend;
     }
 
-    public Friend getFriend(String id) {
+    public Friend getFriend(String userId, String user) {
         //Get the values from the database, querying by email
         Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
-                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?",
-                new String[]{id}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_USER_ID + " = ? and " + DatabaseHelper.COLUMN_USER + " = ?",
+                new String[]{userId, user}, null, null, null);
         if(cursor.moveToFirst()) {
             Friend newFriend = cursorToFriend(cursor);
             cursor.close();
@@ -163,15 +163,62 @@ public class FriendsDataSource {
     }
 
     public boolean updateFriend(String userId, String user, String isFriend){
-        database = dbHelper.getWritableDatabase();
+        if(database == null) {
+            open();
+        }
         ContentValues newValues = new ContentValues();
         newValues.put(DatabaseHelper.COLUMN_IS_FRIEND, isFriend);
-
         String[] args = new String[]{userId, user};
-        int value = database.update("friends", newValues, "user_id= ? AND user= ?", args);
-        System.out.println("FriendsDataSource: " + "Number of rows affecteD: " + value + " isFreind: " + isFriend);
-        System.out.println("FriendsDataSource: " + "Friend " + userId + " is a friend of " + user + " and his is friend");
+        int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
         return value > 0;
     }
+
+    private boolean updateName(String userId, String user, String attribute) {
+        if(database == null) {
+            open();
+        }
+        ContentValues newValues = new ContentValues();
+        newValues.put(DatabaseHelper.COLUMN_NAME, attribute);
+        String[] args = new String[]{userId, user};
+        int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
+        return value > 0;
+    }
+
+    private boolean updateUserId(String userId, String user, String attribute) {
+        if(database == null) {
+            open();
+        }
+        ContentValues newValues = new ContentValues();
+        newValues.put(DatabaseHelper.COLUMN_USER_ID, attribute);
+        String[] args = new String[]{userId, user};
+        int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
+        return value > 0;
+    }
+
+    private boolean updateUser(String userId, String user, String attribute) {
+        if(database == null) {
+            open();
+        }
+        ContentValues newValues = new ContentValues();
+        newValues.put(DatabaseHelper.COLUMN_USER, attribute);
+        String[] args = new String[]{userId, user};
+        int value = database.update(DatabaseHelper.TABLE_FRIENDS, newValues, DatabaseHelper.COLUMN_USER + " = ? AND " + DatabaseHelper.COLUMN_USER_ID + " = ?", args);
+        return value > 0;
+    }
+
+    public void checkFriendChanged(Friend firebaseFriend, Friend localDatabaseFriend) {
+        String id = firebaseFriend.getId();
+        String name = firebaseFriend.getName();
+        String userId = firebaseFriend.getUserId();
+        String user = firebaseFriend.getUser();
+        String isFriend = firebaseFriend.getIsFriend();
+        if(!firebaseFriend.getName().equals(localDatabaseFriend.getName())) {
+            updateName(localDatabaseFriend.getUser(), localDatabaseFriend.getUserId(), firebaseFriend.getName());
+        }
+        if(!firebaseFriend.getUserId().equals(localDatabaseFriend.getUserId())) {
+            updateName(localDatabaseFriend.getUser(), localDatabaseFriend.getUserId(), firebaseFriend.getName());
+        }
+    }
+
 
 }

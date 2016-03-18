@@ -29,6 +29,7 @@ import com.test.tabs.tabs.com.tabs.activity.Comments;
 import com.test.tabs.tabs.com.tabs.activity.LocationService;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
+import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
@@ -38,6 +39,7 @@ import com.test.tabs.tabs.com.tabs.database.posts.Post;
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostViewHolder> {
     List<Post> posts;
     Context context;
+    String tab;
     boolean isPublic;
 
     public List<Post> getPosts() {
@@ -56,6 +58,10 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         this.isPublic = isPublic;
     }
 
+    public String getTab() { return tab; }
+
+    public void setTab(String tab) { this.tab = tab; }
+
     public static class PostViewHolder extends RecyclerView.ViewHolder {
         CardView cardViewPost;
         TextView name;
@@ -67,6 +73,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
         PostViewHolder(View itemView) {
             super(itemView);
+            System.out.println("PostRecyclerViewAdapter: Constructor");
             cardViewPost = (CardView) itemView.findViewById(R.id.cv_news_feed);
             name = (TextView) itemView.findViewById(R.id.txt_name);
             timestamp = (TextView) itemView.findViewById(R.id.txt_timestamp);
@@ -91,10 +98,9 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
     @Override
     public void onBindViewHolder(PostViewHolder postViewHolder, int i) {
-        PostsDataSource datasource;
-        datasource = new PostsDataSource(context);
-        datasource.open();
-        postViewHolder.name.setText(posts.get(i).getName());
+        final String name = posts.get(i).getName();
+        final String userId = posts.get(i).getPosterUserId();
+        postViewHolder.name.setText(name);
         postViewHolder.timestamp.setText(convertDate(posts.get(i).getTimeStamp()));
         postViewHolder.statusMsg.setText(posts.get(i).getStatus());
         DraweeController controller = news_feed.getImage(posts.get(i).getPosterUserId());
@@ -102,13 +108,13 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         roundingParams.setRoundAsCircle(true);
         postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
         postViewHolder.posterPhoto.setController(controller);
-        postViewHolder.numComments.setText(datasource.getNumberComments(posts.get(i).getId()).toString() + " Comments");
+        postViewHolder.numComments.setText(posts.get(i).getNumComments() + " Comments");
         postViewHolder.numComments.setTextSize(14);
         System.out.println("Context: " + context);
-        if (posts.get(i).getPrivacy().equals("1") && !isPublic) {
+        if (posts.get(i).getPrivacy().equals("Private") && !isPublic) {
             //If it is a private post, set the text to be "Private"
             postViewHolder.privacyStatus.setText("Private");
-        } else if (posts.get(i).getPrivacy().equals("0") && !isPublic) {
+        } else if (posts.get(i).getPrivacy().equals("Public") && !isPublic) {
             postViewHolder.privacyStatus.setText("Public");
             //Set text to be public
         } else {
@@ -122,17 +128,24 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             public void onClick(View v) {
                 Intent intent = new Intent(v.getContext(), Comments.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("id", (post.getId()));
+                bundle.putString("postId", post.getId());
+                bundle.putString("posterUserId", post.getPosterUserId());
+                bundle.putString("posterName", post.getName());
+                bundle.putString("postTimeStamp", post.getTimeStamp());;
+                bundle.putString("postStatus", post.getStatus());
+                bundle.putString("tab", tab);
+                bundle.putString("userId", userId);
                 intent.putExtras(bundle);
                 v.getContext().startActivity(intent);
             }
         });
     }
 
-    public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic) {
+    public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic, String tab) {
         this.posts = posts;
         this.context = context;
         this.isPublic = isPublic;
+        this.tab = tab;
     }
 
 
@@ -170,6 +183,16 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 //                notifyItemRangeChanged(i, getItemCount() - i);
 //            }
 //        }
+    }
+
+    public static Post containsId(List<Post> list, String id) {
+        System.out.println("PostRecyclerViewAdapter: id: " + id);
+        for (Post object : list) {
+            if (object.getId().equals(id)) {
+                return object;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -237,72 +260,4 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         return hours;
     }
 }
-
-//        private Activity activity;
-//    private LayoutInflater inflater;
-//    private List<Post> posts;
-//
-//    //Local Database for storing friends
-//    private PostsDataSource datasource;
-//
-//
-//    public PostListAdapter(Activity activity, List<Post> posts) {
-//        this.activity = activity;
-//        this.posts = posts;
-//    }
-//
-//    @Override
-//    public int getCount() {
-//        return posts.size();
-//    }
-//
-//    @Override
-//    public Object getItem(int position) {
-//        return posts.get(position);
-//    }
-//
-//    @Override
-//    public long getItemId(int position) {
-//        return position;
-//    }
-//
-//    @Override
-//    public View getView(int position, View convertView, ViewGroup parent) {
-//        if (inflater == null)
-//            inflater = (LayoutInflater) activity
-//                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//        if (convertView == null)
-//            convertView = inflater.inflate(R.layout.news_feed_item, null);
-//
-////        TextView name = (TextView) convertView.findViewById(R.id.friend_name);
-////        ProfilePictureView profilePictureView = (ProfilePictureView) convertView.findViewById(R.id.friend_profile_picture);
-////        if(profilePictureView != null) {
-////            profilePictureView.setProfileId(friendItems.get(position).getId());
-////        }
-//
-//        TextView name = (TextView) convertView.findViewById(R.id.txt_name);
-//        TextView timestamp = (TextView)convertView.findViewById(R.id.txt_timestamp);
-//        TextView statusMsg = (TextView)convertView.findViewById(R.id.txt_statusMsg);
-//        TextView numComments = (TextView)convertView.findViewById(R.id.num_comments);
-//
-//        //Set profile picture
-//        DraweeController controller = news_feed.getImage(posts.get(position).getPosterUserId());
-//        SimpleDraweeView draweeView = (SimpleDraweeView) convertView.findViewById(R.id.poster_profile_photo);
-//        draweeView.setController(controller);
-//
-//
-//        //Set the views
-//        Post item = posts.get(position);
-//        name.setText(item.getName());
-//        timestamp.setText(convertDate(item.getTimeStamp()));
-//        statusMsg.setText((item.getStatus()));
-//
-//        datasource = new PostsDataSource(parent.getContext());
-//        datasource.open();
-//        System.out.println("Item id: " + item.getId());
-//        numComments.setText(datasource.getNumberComments(item.getId()).toString() + " Comments");
-//        numComments.setTextSize(12);
-//
-//        return convertView;
-//    }
 

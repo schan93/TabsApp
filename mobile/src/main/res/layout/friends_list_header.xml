@@ -10,7 +10,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:theme="@style/ThemeOverlay.AppCompat.Dark"
     android:orientation="vertical"
-    app:showIn="@layout/activity_news_feed">
+    app:showIn="@layout/activity_main">
 
     <com.facebook.drawee.view.SimpleDraweeView
         android:id="@+id/avatarImageView"

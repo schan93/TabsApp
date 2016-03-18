@@ -42,8 +42,11 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
+import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
+import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
 import java.io.IOException;
@@ -54,8 +57,10 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -69,6 +74,7 @@ public class CreatePost extends BatchAppCompatActivity {
     //Local Database for storing posts
     private PostsDataSource datasource;
     private FireBaseApplication application;
+    private DatabaseQuery databaseQuery;
 
     //Edit for post
     private EditText post;
@@ -89,28 +95,20 @@ public class CreatePost extends BatchAppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.create_post);
         application = ((FireBaseApplication) getApplication());
-
+        databaseQuery = new DatabaseQuery(this);
 
         //Set up action bar
         setupActionBar();
-
-        //Open posts database for storage
-        datasource = new PostsDataSource(this);
-        datasource.open();
-
         uniquePostId = UUID.randomUUID().toString();
         userId = AccessToken.getCurrentAccessToken().getUserId();
-
         //Pop up keyboard
         post = (EditText) findViewById(R.id.type_status);
         post.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(post, InputMethodManager.SHOW_IMPLICIT);
-
         setupPrivacyToggle();
-
         //First posts are always private
-        privacy = "1";
+        privacy = "Private";
     }
 
     private void setupActionBar(){
@@ -121,71 +119,11 @@ public class CreatePost extends BatchAppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         //Toggle bar enabled
-        ActionBar actionBar = getSupportActionBar();
-//        actionBar.setCustomView(R.layout.privacy_toggle_layout);
-//        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_CUSTOM);
-//        final RadioGroup privacyToggle = (RadioGroup) findViewById(R.id.privacy_toggle);
-//        final RadioButton publicToggle = (RadioButton) findViewById(R.id.public_toggle);
-//        final RadioButton privateToggle = (RadioButton) findViewById(R.id.private_toggle);
-//
-//        privateToggle.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
-//
-//        //Set listener for clicking on toggle
-//        privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(RadioGroup group, int checkedId) {
-//                if(checkedId == R.id.public_toggle){
-//                    privacy = 0;
-//                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-//                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-//                    System.out.println("Toggled public");
-//                }
-//                else {
-//                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-//                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-//                    System.out.println("Toggled private");
-//                    privacy = 1;
-//                }
-//            }
-//        });
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.create_post_menu, menu);
-//        return true;
-        // Get the action view used in your toggleservice item
         getMenuInflater().inflate(R.menu.create_post_menu, menu);
-        //MenuItem toggleservice = menu.findItem(R.id.toggle_test);
-//        RadioGroup privacyToggle = (RadioGroup) getLayoutInflater().inflate(R.layout.privacy_toggle_layout, null);
-        //toggleservice.setActionView(privacyToggle);
-
-//        final RadioButton publicToggle = (RadioButton) toggleservice.getActionView().findViewById(R.id.public_toggle);
-//        final RadioButton privateToggle = (RadioButton) toggleservice.getActionView().findViewById(R.id.private_toggle);
-//
-//        privateToggle.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
-//
-//        //Set listener for clicking on toggle
-//        privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(RadioGroup group, int checkedId) {
-//                if(checkedId == R.id.public_toggle){
-//                    privacy = 0;
-//                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-//                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-//                    System.out.println("Toggled public");
-//                }
-//                else {
-//                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-//                    publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-//                    System.out.println("Toggled private");
-//                    privacy = 1;
-//                }
-//            }
-//        });
-
-
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -197,27 +135,19 @@ public class CreatePost extends BatchAppCompatActivity {
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
             case R.id.send_post:
-                uniquePostId = UUID.randomUUID().toString();
-                String name = getIntent().getExtras().getString("name");
+                String name = application.getName();
                 if(post.getText().length() == 0){
                     Toast.makeText(CreatePost.this, "Please enter something in the post.", Toast.LENGTH_SHORT).show();
                 }
                 Location location = LocationService.getLastLocation();
-                Post createdPost = datasource.createPost(uniquePostId, userId, post.getText().toString(), name, privacy, location.getLatitude(), location.getLongitude());
-                if(createdPost.getPrivacy().equals("0")) {
-                    application.getPublicAdapter().add(createdPost);
-                }
-                application.getMyTabsAdapter().add(createdPost);
+                Post createdPost = new Post("", name, post.getText().toString(), userId, getDateTime(), privacy, Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), 0);
+                System.out.println("CreatePost: Created post id: " + uniquePostId + " Name: " + name + " userId: " + userId);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
-
+                databaseQuery.savePostToFirebase(createdPost);
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
-
-                savePostInCloud(createdPost);
-
                 if(intent != null) {
                     startActivity(intent);
                 }
-
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -226,36 +156,34 @@ public class CreatePost extends BatchAppCompatActivity {
 
     private void setupPrivacyToggle() {
         RadioGroup privacyToggle = (RadioGroup) findViewById(R.id.privacy_toggle);
-
         final RadioButton publicToggle = (RadioButton) findViewById(R.id.public_toggle);
         final RadioButton privateToggle = (RadioButton) findViewById(R.id.private_toggle);
-
         privateToggle.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
 
         //Set listener for clicking on toggle
         privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if(checkedId == R.id.public_toggle){
-                    privacy = "0";
+                if (checkedId == R.id.public_toggle) {
+                    privacy = "Public";
                     publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
                     privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                     System.out.println("Toggled public");
-                }
-                else {
+                } else {
                     privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
                     publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                     System.out.println("Toggled private");
-                    privacy = "1";
+                    privacy = "Private";
                 }
             }
         });
     }
 
-    private void savePostInCloud(Post post){
-        System.out.println("Poster user id: " + post.getPosterUserId() + " Id: " + post.getId());
-        firebaseRef.child("Posts/" + post.getPosterUserId()).push().setValue(post);
-
+    private String getDateTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "MM/dd/yyyy hh:mm:ss a", Locale.getDefault());
+        Date date = new Date();
+        return dateFormat.format(date);
     }
 
 

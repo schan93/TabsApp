@@ -1,5 +1,10 @@
 package com.test.tabs.tabs.com.tabs.database.comments;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
+
 /**
  * Created by schan on 11/27/15.
  */
@@ -71,5 +76,4 @@ public class Comment {
     public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
     }
-
 }

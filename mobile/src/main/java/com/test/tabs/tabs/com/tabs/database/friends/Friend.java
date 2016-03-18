@@ -1,5 +1,10 @@
 package com.test.tabs.tabs.com.tabs.database.friends;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
+
 /**
  * Created by schan on 10/28/15.
  */
@@ -8,7 +13,7 @@ public class Friend {
     Friend(){
     }
 
-    Friend(String id, String userId, String name, String user, String isFriend){
+    public Friend(String id, String userId, String name, String user, String isFriend){
         this.id = id;
         this.userId = userId;
         this.name = name;

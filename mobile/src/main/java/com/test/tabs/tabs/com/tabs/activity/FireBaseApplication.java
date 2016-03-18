@@ -7,6 +7,10 @@ import android.widget.Toast;
 
 import com.batch.android.Batch;
 import com.batch.android.Config;
+import com.facebook.cache.disk.DiskCacheConfig;
+import com.facebook.common.internal.Supplier;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.firebase.client.Firebase;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -16,8 +20,10 @@ import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 import com.tabs.gcm.registration.Registration;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
+import com.test.tabs.tabs.com.tabs.database.friends.Friend;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 import com.test.tabs.tabs.com.tabs.gcm.GcmIntentService;
@@ -26,21 +32,23 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by KCKusumi on 2/1/2016.
  */
 public class FireBaseApplication extends Application {
-    //Local Database for storing friends, posts, comments
-    private FriendsDataSource friendsDataSource;
-    private PostsDataSource postsDataSource;
-    private CommentsDataSource commentsDataSource;
     private static boolean fromAnotherActivity = false;
-
-    private static FriendsListAdapter friendsAdapter;
+    private static String name = "";
+    private static String userId = "";
+    private static FriendRecyclerViewAdapter friendsAdapter;
     private static PostRecyclerViewAdapter publicAdapter;
     private static PostRecyclerViewAdapter privateAdapter;
     private static PostRecyclerViewAdapter myTabsAdapter;
     private static CommentsRecyclerViewAdapter commentsRecyclerViewAdapter;
+    private static Post currentPost;
 
     private Firebase myFirebaseRef;
 
@@ -48,6 +56,12 @@ public class FireBaseApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Firebase.setAndroidContext(this);
+        //Firebase apps automatically handle temporary network interruptions for you.
+        //Cached data will still be available while offline and your writes will be resent when network connectivity is recovered.
+        // Enabling disk persistence allows our app to also keep all of its state even after an app restart.
+        // We can enable disk persistence with just one line of code.
+        Firebase.getDefaultConfig().setPersistenceEnabled(true);
+
 
         myFirebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
         //Batch push notifications
@@ -59,7 +73,27 @@ public class FireBaseApplication extends Application {
         new GcmRegistrationAsyncTask(this).execute();
         //Starting gcm services
         new GcmIntentService();
+        initializeAdapters();
+        //Configure Fresco so that image loads quickly
+        configFresco();
+        //Make sure that adapters don't
 
+    }
+
+    public static String getName() {
+        return name;
+    }
+
+    public void setName(String userName) {
+        name = userName;
+    }
+
+    public static String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String currentUserId) {
+         userId = currentUserId;
     }
 
     public static PostRecyclerViewAdapter getPublicAdapter() {
@@ -86,11 +120,11 @@ public class FireBaseApplication extends Application {
         this.myTabsAdapter = myTabsAdapter;
     }
 
-    public static FriendsListAdapter getFriendsAdapter() {
+    public static FriendRecyclerViewAdapter getFriendsRecyclerViewAdapter() {
         return friendsAdapter;
     }
 
-    public void setFriendsAdapter(FriendsListAdapter friendsAdapter) {
+    public void setFriendsAdapter(FriendRecyclerViewAdapter friendsAdapter) {
         this.friendsAdapter = friendsAdapter;
     }
 
@@ -110,13 +144,48 @@ public class FireBaseApplication extends Application {
         return fromAnotherActivity;
     }
 
-    private void stateDataBase(){
-        postsDataSource = new PostsDataSource(this);
-        postsDataSource.open();
-        commentsDataSource = new CommentsDataSource(this);
-        commentsDataSource.open();
-        friendsDataSource = new FriendsDataSource(this);
-        friendsDataSource.open();
+    public void setCurrentPost(Post post) {
+        this.currentPost = post;
+    }
+
+    public Post getCurrentPost() {
+        return this.getCurrentPost();
+    }
+
+    private void initializeAdapters() {
+        System.out.println("FireBaseApplication. Initializing Adapters");
+        List<Friend> friends = new ArrayList<Friend>();
+        List<Post> privatePosts = new ArrayList<Post>();
+        List<Post> publicPosts = new ArrayList<Post>();
+        List<Post> myTabsPosts = new ArrayList<Post>();
+        System.out.println("FriendRecyclerViewAdapter2: Setting freinds adapter header");
+        setFriendsAdapter(new FriendRecyclerViewAdapter(friends));
+        setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, "public"));
+        setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false, "private"));
+        setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false, "mytabs"));
+    }
+
+    /**
+     * Initialize Fresco.
+     */
+    public void configFresco() {
+        Supplier<File> diskSupplier = new Supplier<File>() {
+            @Override
+            public File get() {
+                return getApplicationContext().getCacheDir();
+            }
+        };
+
+        DiskCacheConfig diskCacheConfig = DiskCacheConfig.newBuilder()
+                .setBaseDirectoryName("images")
+                .setBaseDirectoryPathSupplier(diskSupplier)
+                .build();
+
+        ImagePipelineConfig frescoConfig = ImagePipelineConfig.newBuilder(this)
+                .setMainDiskCacheConfig(diskCacheConfig)
+                .build();
+
+        Fresco.initialize(this, frescoConfig);
     }
 
 }

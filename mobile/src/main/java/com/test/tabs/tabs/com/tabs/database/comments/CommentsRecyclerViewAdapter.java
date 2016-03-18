@@ -18,6 +18,7 @@ import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
 import com.test.tabs.tabs.com.tabs.activity.CommentsHeader;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
+import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -36,6 +37,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     private CommentsHeader commentsHeader;
     private List<Comment> comments;
+    private static View view;
 
     public CommentsRecyclerViewAdapter(CommentsHeader header, List<Comment> comments) {
         this.commentsHeader = header;
@@ -50,6 +52,16 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         return this.commentsHeader;
     }
 
+    public static Comment containsId(List<Comment> list, String id) {
+        System.out.println("CommentsAdapter: id: " + id);
+        for (Comment object : list) {
+            if (object.getId().equals(id)) {
+                return object;
+            }
+        }
+        return null;
+    }
+
     //+1 for header
     @Override
     public int getItemCount() {
@@ -61,6 +73,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         if(i == TYPE_HEADER)
         {
             System.out.println("Inflating header");
+            System.out.println("View Group Context: " + viewGroup);
+            System.out.println("Context: " + viewGroup.getContext());
             View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.comments_header, viewGroup, false);
             CommentsHeaderView vh = new CommentsHeaderView(v);
             return vh;
@@ -107,7 +121,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     public void add(Comment item, int position){
         comments.add(item);
-        notifyItemInserted(position);
+        //Also need to update the post that you are updating
     }
 
     public void remove(Comment item) {
@@ -163,8 +177,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             status = (TextView)itemView.findViewById(R.id.view_status);
             photo = (SimpleDraweeView) itemView.findViewById(R.id.poster_picture);
         }
-
-
     }
 
     public String convertDate(String timestamp) {
