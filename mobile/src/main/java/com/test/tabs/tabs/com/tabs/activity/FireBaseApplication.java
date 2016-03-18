@@ -20,6 +20,7 @@ import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
 import com.test.tabs.tabs.com.tabs.database.friends.FriendsListAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
+import com.test.tabs.tabs.com.tabs.gcm.GcmIntentService;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -55,8 +56,9 @@ public class FireBaseApplication extends Application {
         Batch.setConfig(new Config("AIzaSyCP0MX6xM67bdd3-2cqCVjHqVFvF4HgcIw"));
 
         //GCM push notifications
-        //new GcmRegistrationAsyncTask(this).execute();
-        //Make sure that adapters don't
+        new GcmRegistrationAsyncTask(this).execute();
+        //Starting gcm services
+        new GcmIntentService();
 
     }
 
@@ -135,17 +137,7 @@ class GcmRegistrationAsyncTask extends AsyncTask<Void, Void, String> {
     protected String doInBackground(Void... params) {
         if (regService == null) {
             Registration.Builder builder = new Registration.Builder(AndroidHttp.newCompatibleTransport(),
-                    new AndroidJsonFactory(), null)
-                    // Need setRootUrl and setGoogleClientRequestInitializer only for local testing,
-                    // otherwise they can be skipped
-                    .setRootUrl("http://10.0.2.2:8080/_ah/api/")
-                    .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
-                        @Override
-                        public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest)
-                                throws IOException {
-                            abstractGoogleClientRequest.setDisableGZipContent(true);
-                        }
-                    });
+                    new AndroidJsonFactory(), null).setRootUrl("https://tabs-1124.appspot.com/_ah/api/");
             // end of optional local run code
 
             regService = builder.build();
