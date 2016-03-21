@@ -25,6 +25,7 @@ import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.activity.AndroidUtils;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
 import com.test.tabs.tabs.com.tabs.activity.FireBaseApplication;
 import com.test.tabs.tabs.com.tabs.activity.LocationService;
@@ -107,7 +108,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         final String name = posts.get(i).getName();
         final String userId = getUserId();
         postViewHolder.name.setText(name);
-        postViewHolder.timestamp.setText(convertDate(posts.get(i).getTimeStamp()));
+        postViewHolder.timestamp.setText(AndroidUtils.convertDate(posts.get(i).getTimeStamp()));
         postViewHolder.statusMsg.setText(posts.get(i).getStatus());
         DraweeController controller = news_feed.getImage(posts.get(i).getPosterUserId());
         RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
@@ -204,66 +205,6 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-    }
-
-    public String convertDate(String timestamp) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-        String dateText = "";
-        Date date = null;
-        try {
-            date = dateFormat.parse(timestamp);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Calendar postDate = Calendar.getInstance();
-        postDate.setTime(date); // your date
-
-        Calendar now = Calendar.getInstance();
-
-        Integer dateOffset = 0;
-        System.out.println("Post Date: " + postDate);
-        System.out.println("Now: " + now);
-        if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
-                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
-                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)) {
-
-            dateOffset = now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR);
-            dateText = "h";
-        } else if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
-                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
-                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)) {
-            dateOffset = now.get(Calendar.MINUTE) - postDate.get(Calendar.MINUTE);
-            dateText = "m";
-        } else if (Math.abs(now.getTime().getTime() - postDate.getTime().getTime()) <= 24 * 60 * 60 * 1000L) {
-            dateOffset = (int) getHoursDifference(now, postDate);
-            if(dateOffset == 24){
-                dateOffset = 1;
-                dateText = "d";
-            }
-            else {
-                dateText = "h";
-            }
-        } else {
-            long hours = getHoursDifference(now, postDate);
-
-            dateOffset = (int)hours / 24;
-            dateText = "d";
-        }
-        String newFormat = dateOffset + dateText;
-        return newFormat;
-    }
-
-
-    private long getHoursDifference(Calendar now, Calendar postDate) {
-        long secs = (now.getTime().getTime() - postDate.getTime().getTime()) / 1000;
-        long hours = secs / 3600;
-//        secs = secs % 3600;
-//        long mins = secs / 60;
-//        secs = secs % 60;
-        return hours;
     }
 }
 

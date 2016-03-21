@@ -464,51 +464,52 @@ public class news_feed extends AppCompatActivity
             }
         });
 
-        friendsRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Friend newFriend = dataSnapshot.getValue(Friend.class);
-                List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
-                if (application.getFriendsRecyclerViewAdapter().containsId(friends, newFriend.getUserId()) == null) {
-                    application.getFriendsRecyclerViewAdapter().getFriends().add(newFriend);
-                    application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Friend changedFriend = dataSnapshot.getValue(Friend.class);
-                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
-                for (int i = 0; i < length; i++) {
-                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(changedFriend.getId())) {
-                        application.getFriendsRecyclerViewAdapter().getFriends().set(i, changedFriend);
-                    }
-                }
-                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Friend removedFriend = dataSnapshot.getValue(Friend.class);
-                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
-                for (int i = 0; i < length; i++) {
-                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(removedFriend.getId())) {
-                        application.getFriendsRecyclerViewAdapter().getFriends().remove(i);
-                    }
-                }
-                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                //Not sure if used
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
+        //Don't need listener anymore because listener will be instantiated on login used for
+//        friendsRef.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                Friend newFriend = dataSnapshot.getValue(Friend.class);
+//                List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+//                if (application.getFriendsRecyclerViewAdapter().containsId(friends, newFriend.getUserId()) == null) {
+//                    application.getFriendsRecyclerViewAdapter().getFriends().add(newFriend);
+//                    application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+//                }
+//            }
+//
+//            @Override
+//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+//                Friend changedFriend = dataSnapshot.getValue(Friend.class);
+//                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
+//                for (int i = 0; i < length; i++) {
+//                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(changedFriend.getId())) {
+//                        application.getFriendsRecyclerViewAdapter().getFriends().set(i, changedFriend);
+//                    }
+//                }
+//                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onChildRemoved(DataSnapshot dataSnapshot) {
+//                Friend removedFriend = dataSnapshot.getValue(Friend.class);
+//                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
+//                for (int i = 0; i < length; i++) {
+//                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(removedFriend.getId())) {
+//                        application.getFriendsRecyclerViewAdapter().getFriends().remove(i);
+//                    }
+//                }
+//                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+//                //Not sure if used
+//            }
+//
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//
+//            }
+//        });
     }
 
 

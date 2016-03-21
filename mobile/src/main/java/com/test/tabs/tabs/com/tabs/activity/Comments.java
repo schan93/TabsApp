@@ -288,14 +288,7 @@ public class Comments extends AppCompatActivity {
 
         //Set date of when post was created
         TextView postDate = (TextView) findViewById(R.id.post_date);
-        postDate.setText(convertDate(post.getTimeStamp()));
-    }
-
-    public void openDatasources(){
-        commentsDatasource = new CommentsDataSource(this);
-        commentsDatasource.open();
-        postsDataSource = new PostsDataSource(this);
-        postsDataSource.open();
+        postDate.setText(AndroidUtils.convertDate(post.getTimeStamp()));
     }
 
     public String getIntentString(String value){
@@ -337,65 +330,6 @@ public class Comments extends AppCompatActivity {
 //                updatePostAdapter(tab);
             }
         });
-    }
-
-    public String convertDate(String timestamp) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-        String dateText = "";
-        Date date = null;
-        try {
-            date = dateFormat.parse(timestamp);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Calendar postDate = Calendar.getInstance();
-        postDate.setTime(date); // your date
-
-        Calendar now = Calendar.getInstance();
-
-        Integer dateOffset = 0;
-        System.out.println("Post Date: " + postDate);
-        System.out.println("Now: " + now);
-        if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
-                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
-                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) > 1)) {
-
-            dateOffset = now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR);
-            dateText = "h";
-        } else if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
-                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
-                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)) {
-            dateOffset = now.get(Calendar.MINUTE) - postDate.get(Calendar.MINUTE);
-            dateText = "m";
-        } else if (Math.abs(now.getTime().getTime() - postDate.getTime().getTime()) <= 24 * 60 * 60 * 1000L) {
-            dateOffset = (int) getHoursDifference(now, postDate);
-            if(dateOffset == 24){
-                dateOffset = 1;
-                dateText = "d";
-            }
-            else {
-                dateText = "h";
-            }
-        } else {
-            long hours = getHoursDifference(now, postDate);
-
-            dateOffset = (int)hours / 24;
-            dateText = "d";
-        }
-        String newFormat = dateOffset + dateText;
-        return newFormat;
-    }
-
-    private long getHoursDifference(Calendar now, Calendar postDate) {
-        long secs = (now.getTime().getTime() - postDate.getTime().getTime()) / 1000;
-        long hours = secs / 3600;
-//        secs = secs % 3600;
-//        long mins = secs / 60;
-//        secs = secs % 60;
-        return hours;
     }
 
     private String getDateTime() {
@@ -481,9 +415,7 @@ public class Comments extends AppCompatActivity {
 
     //Put the loading screen thing
     public void getComments(final String postId) {
-        if(application.getCommentsRecyclerViewAdapter() == null) {
-            application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), commentItems));
-        }
+        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), commentItems));
         Firebase commentsRef = firebaseRef.child("Comments");
         Query query = commentsRef.orderByChild("postId").equalTo(postId);
         query.keepSynced(true);

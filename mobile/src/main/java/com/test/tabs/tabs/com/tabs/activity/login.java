@@ -38,6 +38,7 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -255,7 +256,7 @@ public class login extends Activity implements Serializable{
                                 public void run() {
                                     System.out.println("Running user");
 //                                    databaseQuery.getFriends(userId);
-                                    getFriendsFromFacebook(userId);
+                                    getFriends(userId);
                                 }
                             });
                         }
@@ -271,42 +272,41 @@ public class login extends Activity implements Serializable{
      */
     public void getFriendsFromFacebook(final String userId){
         GraphRequest friendsRequest = GraphRequest.newMyFriendsRequest(AccessToken.getCurrentAccessToken(),
-            new GraphRequest.GraphJSONArrayCallback() {
-                @Override
-                public void onCompleted(final JSONArray jsonArray, GraphResponse response) {
-                    try {
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            System.out.println("login: Length: " + jsonArray.length());
-                            JSONObject jsonObject = jsonArray.getJSONObject(i);
-                            String friendId = jsonObject.getString("id");
-                            String name = jsonObject.getString("name");
-                            System.out.println("login: Name: " + name);
-                            Friend friend = new Friend("", friendId, name, currentUserId, "false");
-                            List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
-                            if(application.getFriendsRecyclerViewAdapter().containsId(friends, friend.getUserId()) == null) {
-                                application.getFriendsRecyclerViewAdapter().getFriends().add(friend);
-                                System.out.println("login2: Saving " + name  + " to firebase.");
-                                databaseQuery.saveFriendToFirebase(friend);
-                            }
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    finally {
-                        System.out.println("Finally.");
-                        //This is after getting all the friends has completed
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                System.out.println("Done.");
-                                if (application.getFromAnotherActivity() == false) {
-                                    setupNextActivity();
+                new GraphRequest.GraphJSONArrayCallback() {
+                    @Override
+                    public void onCompleted(final JSONArray jsonArray, GraphResponse response) {
+                        try {
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                System.out.println("login: Length: " + jsonArray.length());
+                                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                                String friendId = jsonObject.getString("id");
+                                String name = jsonObject.getString("name");
+                                System.out.println("login: Name: " + name);
+                                Friend friend = new Friend("", friendId, name, currentUserId, "false");
+                                List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                                if (application.getFriendsRecyclerViewAdapter().containsId(friends, friend.getUserId()) == null) {
+                                    application.getFriendsRecyclerViewAdapter().getFriends().add(friend);
+                                    System.out.println("login2: Saving " + name + " to firebase.");
+                                    databaseQuery.saveFriendToFirebase(friend);
                                 }
                             }
-                        });
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        } finally {
+                            System.out.println("Finally.");
+                            //This is after getting all the friends has completed
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    System.out.println("Done.");
+                                    if (application.getFromAnotherActivity() == false) {
+                                        setupNextActivity();
+                                    }
+                                }
+                            });
+                        }
                     }
-                }
-            });
+                });
         friendsRequest.executeAsync();
     }
 
@@ -351,6 +351,77 @@ public class login extends Activity implements Serializable{
 
     private void deleteDatabase() {
         this.deleteDatabase("databaseManager.db");
+    }
+
+    public void getFriends(final String userId) {
+        Firebase friendsRef = firebaseRef.child("Friends/" + userId);
+        friendsRef.keepSynced(true);
+        friendsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot friendSnapShot : dataSnapshot.getChildren()) {
+                    Friend friend = friendSnapShot.getValue(Friend.class);
+                    String userId = friend.getUserId();
+                    List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                    if (application.getFriendsRecyclerViewAdapter().containsId(friends, userId) == null) {
+                        System.out.println("login2: Adding Friend " + friend.getName() + " to array");
+                        application.getFriendsRecyclerViewAdapter().getFriends().add(friend);
+                    }
+                }
+                getFriendsFromFacebook(userId);
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
+        friendsRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Friend newFriend = dataSnapshot.getValue(Friend.class);
+                List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                if (application.getFriendsRecyclerViewAdapter().containsId(friends, newFriend.getUserId()) == null) {
+                    application.getFriendsRecyclerViewAdapter().getFriends().add(newFriend);
+                    application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Friend changedFriend = dataSnapshot.getValue(Friend.class);
+                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
+                for (int i = 0; i < length; i++) {
+                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(changedFriend.getId())) {
+                        application.getFriendsRecyclerViewAdapter().getFriends().set(i, changedFriend);
+                    }
+                }
+                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Friend removedFriend = dataSnapshot.getValue(Friend.class);
+                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
+                for (int i = 0; i < length; i++) {
+                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(removedFriend.getId())) {
+                        application.getFriendsRecyclerViewAdapter().getFriends().remove(i);
+                    }
+                }
+                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                //Not sure if used
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
     }
 
 }

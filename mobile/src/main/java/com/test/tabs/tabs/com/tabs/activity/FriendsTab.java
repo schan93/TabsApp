@@ -127,7 +127,7 @@ public class FriendsTab extends Fragment {
                         List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
                         Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, userId);
                         if (friend != null && friend.getIsFriend().equals("true")) {
-                            application.getPrivateAdapter().add(post);
+                            application.getPrivateAdapter().getPosts().add(0, post);
                         }
                     }
                 }
@@ -152,7 +152,7 @@ public class FriendsTab extends Fragment {
                     List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
                     Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, userId);
                     if (friend != null && friend.getIsFriend().equals("true")) {
-                        application.getPrivateAdapter().add(newPost);
+                        application.getPrivateAdapter().getPosts().add(0, newPost);
                         application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
                     }
                 }

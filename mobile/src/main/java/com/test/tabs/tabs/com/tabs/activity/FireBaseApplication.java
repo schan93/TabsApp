@@ -9,6 +9,7 @@ import com.facebook.common.internal.Supplier;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.firebase.client.Firebase;
+import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
@@ -141,6 +142,7 @@ public class FireBaseApplication extends Application {
         List<Post> publicPosts = new ArrayList<Post>();
         List<Post> myTabsPosts = new ArrayList<Post>();
         System.out.println("FriendRecyclerViewAdapter2: Setting freinds adapter header");
+        setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), new ArrayList<Comment>()));
         setFriendsAdapter(new FriendRecyclerViewAdapter(friends));
         setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, "public"));
         setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false, "private"));

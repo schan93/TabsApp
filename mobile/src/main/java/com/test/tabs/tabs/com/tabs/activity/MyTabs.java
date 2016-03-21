@@ -115,7 +115,7 @@ public class MyTabs extends Fragment {
                     Post post = postSnapShot.getValue(Post.class);
                     List<Post> myTabsPosts = application.getMyTabsAdapter().getPosts();
                     if (application.getMyTabsAdapter().containsId(myTabsPosts, post.getId()) == null && post.getPosterUserId().equals(userId)) {
-                        application.getMyTabsAdapter().add(post);
+                        application.getMyTabsAdapter().getPosts().add(0, post);
                     }
                 }
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
@@ -135,7 +135,7 @@ public class MyTabs extends Fragment {
                 Post newPost = dataSnapshot.getValue(Post.class);
                 List<Post> myTabsPosts = application.getMyTabsAdapter().getPosts();
                 if (application.getMyTabsAdapter().containsId(myTabsPosts, newPost.getId()) == null && newPost.getPosterUserId().equals(userId)) {
-                    application.getMyTabsAdapter().getPosts().add(newPost);
+                    application.getMyTabsAdapter().getPosts().add(0, newPost);
                     application.getMyTabsAdapter().notifyDataSetChanged();
                 }
             }
