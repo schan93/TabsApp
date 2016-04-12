@@ -18,6 +18,8 @@ import com.google.api.client.extensions.android.json.AndroidJsonFactory;
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 import com.tabs.gcm.registration.Registration;
+import com.test.tabs.tabs.com.tabs.database.comments.Comment;
+
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
@@ -159,6 +161,7 @@ public class FireBaseApplication extends Application {
         List<Post> publicPosts = new ArrayList<Post>();
         List<Post> myTabsPosts = new ArrayList<Post>();
         System.out.println("FriendRecyclerViewAdapter2: Setting freinds adapter header");
+        setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), new ArrayList<Comment>()));
         setFriendsAdapter(new FriendRecyclerViewAdapter(friends));
         setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, "public"));
         setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false, "private"));

@@ -313,7 +313,7 @@ public class Public extends Fragment implements LocationListener {
                     Post post = postSnapShot.getValue(Post.class);
                     List<Post> publicPosts = application.getPublicAdapter().getPosts();
                     if (post.getPrivacy().equals("Public") && application.getPublicAdapter().containsId(publicPosts, post.getId()) == null) {
-                        application.getPublicAdapter().add(post);
+                        application.getPublicAdapter().getPosts().add(0, post);
                     }
                 }
                 System.out.println("Public: Visiblity: " + progressOverlay);
@@ -333,9 +333,10 @@ public class Public extends Fragment implements LocationListener {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Post newPost = dataSnapshot.getValue(Post.class);
+                System.out.println("Public: New post's priority: " + dataSnapshot.getPriority());
                 List<Post> publicPosts = application.getPublicAdapter().getPosts();
                 if (application.getPublicAdapter().containsId(publicPosts, newPost.getId()) == null && newPost.getPrivacy().equals("Public")) {
-                    application.getPublicAdapter().getPosts().add(newPost);
+                    application.getPublicAdapter().getPosts().add(0, newPost);
                     application.getPublicAdapter().notifyDataSetChanged();
                 }
             }

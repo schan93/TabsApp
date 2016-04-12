@@ -21,6 +21,7 @@ import com.test.tabs.tabs.com.tabs.database.users.User;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -79,7 +80,8 @@ public class DatabaseQuery implements Serializable {
         Firebase commentsRef = firebaseRef.child("Comments").push();
         String commentId = commentsRef.getKey();
         comment.setId(commentId);
-        commentsRef.setValue(comment);
+        Date date = new Date();
+        commentsRef.setValue(comment, 0 - date.getTime());
     }
 
     public void saveUserToFirebase(final String userId, final String name) {
@@ -117,7 +119,8 @@ public class DatabaseQuery implements Serializable {
         Firebase postsRef = firebaseRef.child("Posts").push();
         String postId = postsRef.getKey();
         post.setId(postId);
-        postsRef.setValue(post);
+        Date date = new Date();
+        postsRef.setValue(post, date.getTime() - 0);
     }
 
     /**
@@ -130,7 +133,8 @@ public class DatabaseQuery implements Serializable {
         Firebase commentsRef = firebaseRef.child("Comments").push();
         String postId = commentsRef.getKey();
         comment.setId(postId);
-        commentsRef.setValue(comment);
+        Date date = new Date();
+        commentsRef.setValue(comment, 0 - date.getTime());
     }
 
     public void getFriends(final String userId) {

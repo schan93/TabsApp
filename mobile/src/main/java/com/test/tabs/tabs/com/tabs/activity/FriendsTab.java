@@ -48,6 +48,7 @@ public class FriendsTab extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        application = ((FireBaseApplication) getActivity().getApplication());
     }
 
     /**
@@ -62,11 +63,10 @@ public class FriendsTab extends Fragment {
         fragmentView = inflater.inflate(R.layout.private_tab, container, false);
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-        if(application.getUserId() != null) {
+        if(application.getUserId() != null && application.getUserId() != "") {
             userId = application.getUserId();
-        } else {
-            setupActivity(savedInstanceState);
         }
+        setupActivity(savedInstanceState);
         getPrivatePosts(progressOverlay, userId, fragmentView);
         return fragmentView;
     }
@@ -128,7 +128,7 @@ public class FriendsTab extends Fragment {
                         List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
                         Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, userId);
                         if (friend != null && friend.getIsFriend().equals("true")) {
-                            application.getPrivateAdapter().add(post);
+                            application.getPrivateAdapter().getPosts().add(0, post);
                         }
                     }
                 }
@@ -153,7 +153,7 @@ public class FriendsTab extends Fragment {
                     List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
                     Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, userId);
                     if (friend != null && friend.getIsFriend().equals("true")) {
-                        application.getPrivateAdapter().add(newPost);
+                        application.getPrivateAdapter().getPosts().add(0, newPost);
                         application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
                     }
                 }

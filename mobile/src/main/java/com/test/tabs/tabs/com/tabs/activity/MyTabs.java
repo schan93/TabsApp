@@ -57,11 +57,10 @@ public class MyTabs extends Fragment {
         System.out.println("MyTabs: Create view");
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-        if(application.getUserId() != null) {
+        if(application.getUserId() != null && application.getUserId() != "") {
             userId = application.getUserId();
-        } else {
-            setupActivity(savedInstanceState);
         }
+        setupActivity(savedInstanceState);
         getMyTabsPosts(progressOverlay, userId, fragmentView);
         return fragmentView;
     }
@@ -115,7 +114,7 @@ public class MyTabs extends Fragment {
                     Post post = postSnapShot.getValue(Post.class);
                     List<Post> myTabsPosts = application.getMyTabsAdapter().getPosts();
                     if (application.getMyTabsAdapter().containsId(myTabsPosts, post.getId()) == null && post.getPosterUserId().equals(userId)) {
-                        application.getMyTabsAdapter().add(post);
+                        application.getMyTabsAdapter().getPosts().add(0, post);
                     }
                 }
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
@@ -135,7 +134,7 @@ public class MyTabs extends Fragment {
                 Post newPost = dataSnapshot.getValue(Post.class);
                 List<Post> myTabsPosts = application.getMyTabsAdapter().getPosts();
                 if (application.getMyTabsAdapter().containsId(myTabsPosts, newPost.getId()) == null && newPost.getPosterUserId().equals(userId)) {
-                    application.getMyTabsAdapter().getPosts().add(newPost);
+                    application.getMyTabsAdapter().getPosts().add(0, newPost);
                     application.getMyTabsAdapter().notifyDataSetChanged();
                 }
             }

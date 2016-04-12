@@ -75,6 +75,7 @@ public class CreatePost extends BatchAppCompatActivity {
     private PostsDataSource datasource;
     private FireBaseApplication application;
     private DatabaseQuery databaseQuery;
+    private String name;
 
     //Edit for post
     private EditText post;
@@ -100,7 +101,13 @@ public class CreatePost extends BatchAppCompatActivity {
         //Set up action bar
         setupActionBar();
         uniquePostId = UUID.randomUUID().toString();
-        userId = AccessToken.getCurrentAccessToken().getUserId();
+        if(application.getName() != null && application.getName() != "") {
+            name = application.getName();
+        }
+        if(application.getUserId() != null && application.getUserId() != "") {
+            userId = application.getUserId();
+        }
+        setupActivity(savedInstanceState);
         //Pop up keyboard
         post = (EditText) findViewById(R.id.type_status);
         post.requestFocus();
@@ -135,7 +142,6 @@ public class CreatePost extends BatchAppCompatActivity {
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
             case R.id.send_post:
-                String name = application.getName();
                 if(post.getText().length() == 0){
                     Toast.makeText(CreatePost.this, "Please enter something in the post.", Toast.LENGTH_SHORT).show();
                 }
@@ -185,6 +191,27 @@ public class CreatePost extends BatchAppCompatActivity {
         Date date = new Date();
         return dateFormat.format(date);
     }
+
+    private void setupActivity(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            // Restore value of members from saved state
+            if(savedInstanceState.containsKey("userId")) {
+                userId = savedInstanceState.getString("userId");
+            }
+            if(savedInstanceState.containsKey("name")) {
+                name = savedInstanceState.getString("name");
+            }
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString("userId", userId);
+        savedInstanceState.putString("name", name);
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
 
 
 }
