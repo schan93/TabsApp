@@ -108,11 +108,8 @@ public class CreatePost extends BatchAppCompatActivity {
             userId = application.getUserId();
         }
         setupActivity(savedInstanceState);
-        //Pop up keyboard
-        post = (EditText) findViewById(R.id.type_status);
-        post.requestFocus();
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(post, InputMethodManager.SHOW_IMPLICIT);
+        setupKeyBoard();
+
         setupPrivacyToggle();
         //First posts are always private
         privacy = "Private";
@@ -126,6 +123,14 @@ public class CreatePost extends BatchAppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         //Toggle bar enabled
+    }
+
+    private void setupKeyBoard() {
+        //Pop up keyboard
+        post = (EditText) findViewById(R.id.type_status);
+        post.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(post, InputMethodManager.SHOW_IMPLICIT);
     }
 
     @Override

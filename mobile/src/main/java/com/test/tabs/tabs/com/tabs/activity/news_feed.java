@@ -73,7 +73,6 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
-import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;

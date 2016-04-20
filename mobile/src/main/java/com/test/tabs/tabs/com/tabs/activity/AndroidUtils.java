@@ -5,8 +5,11 @@ import android.animation.AnimatorListenerAdapter;
 import android.view.View;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by schan on 2/17/16.
@@ -42,7 +45,6 @@ public class AndroidUtils {
      */
     public static String convertDate(String timestamp) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-        String dateText = "";
         Date date = null;
         try {
             date = dateFormat.parse(timestamp);
@@ -50,48 +52,33 @@ public class AndroidUtils {
             e.printStackTrace();
         }
 
-        Calendar postDate = Calendar.getInstance();
-        postDate.setTime(date); // your date
-
-        Calendar now = Calendar.getInstance();
-
-        Integer dateOffset = 0;
-        System.out.println("Post Date: " + postDate);
-        System.out.println("Now: " + now);
-        if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
-                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
-                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) >= 1)) {
-            dateOffset = now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR);
-            dateText = "h";
-        } else if (now.get(Calendar.YEAR) == postDate.get(Calendar.YEAR)
-                && now.get(Calendar.MONTH) == postDate.get(Calendar.MONTH)
-                && now.get(Calendar.DAY_OF_YEAR) == postDate.get(Calendar.DAY_OF_YEAR)
-                && (now.get(Calendar.HOUR) - postDate.get(Calendar.HOUR) == 0)) {
-            dateOffset = now.get(Calendar.MINUTE) - postDate.get(Calendar.MINUTE);
-            dateText = "m";
-        } else if (Math.abs(now.getTime().getTime() - postDate.getTime().getTime()) <= 24 * 60 * 60 * 1000L) {
-            dateOffset = (int) getHoursDifference(now, postDate);
-            if(dateOffset == 24){
-                dateOffset = 1;
-                dateText = "d";
-            }
-            else {
-                dateText = "h";
-            }
-        } else {
-            long hours = getHoursDifference(now, postDate);
-
-            dateOffset = (int)hours / 24;
-            dateText = "d";
-        }
-        String newFormat = dateOffset + dateText;
-        return newFormat;
+        return toDuration(date.getTime());
     }
 
-    private static long getHoursDifference(Calendar now, Calendar postDate) {
-        long secs = (now.getTime().getTime() - postDate.getTime().getTime()) / 1000;
-        long hours = secs / 3600;
-        return hours;
+    public static final List<Long> times = Arrays.asList(
+            TimeUnit.DAYS.toMillis(365),
+            TimeUnit.DAYS.toMillis(30),
+            TimeUnit.DAYS.toMillis(7),
+            TimeUnit.DAYS.toMillis(1),
+            TimeUnit.HOURS.toMillis(1),
+            TimeUnit.MINUTES.toMillis(1),
+            TimeUnit.SECONDS.toMillis(1) );
+    public static final List<String> timesString = Arrays.asList("y","m","w","d","h","m","s");
+
+    public static String toDuration(long duration) {
+
+        StringBuffer res = new StringBuffer();
+        for(int i=0;i< times.size(); i++) {
+            Long current = times.get(i);
+            long temp = duration/current;
+            if(temp>0) {
+                res.append(temp).append(" ").append( timesString.get(i) ).append(temp > 1 ? "s" : "");
+                break;
+            }
+        }
+        if("".equals(res.toString()))
+            return "0 second ago";
+        else
+            return res.toString();
     }
 }
