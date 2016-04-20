@@ -31,6 +31,10 @@ android {
         exclude 'META-INF/LICENSE-FIREBASE.txt'
         exclude 'META-INF/NOTICE'
     }
+
+    dexOptions {
+        javaMaxHeapSize "4g"
+    }
 }
 
 repositories {
@@ -45,6 +49,11 @@ dependencies {
     wearApp project(':wear')
     testCompile 'junit:junit:4.12'
 
+    //Firebase Dependencies
+
+    //Batch push notifications
+    //compile 'com.google.android.gms:play-services:8.4.0'
+    compile project(path: ':gcm', configuration: 'android-endpoints')
     compile 'com.facebook.android:facebook-android-sdk:4.6.0'
     compile 'com.android.support:appcompat-v7:23.1.0'
     compile 'com.google.android.gms:play-services-location:8.3.0'
@@ -58,8 +67,7 @@ dependencies {
 
     //Firebase Dependencies
     compile 'com.firebase:firebase-client-android:2.5.2+'
-
-    //Batch push notifications
+    //Batch notifications
     compile 'com.google.android.gms:play-services-base:8.3.0'
     compile 'com.google.android.gms:play-services-gcm:8.3.0'
     compile 'com.google.android.gms:play-services-ads:8.3.0'
