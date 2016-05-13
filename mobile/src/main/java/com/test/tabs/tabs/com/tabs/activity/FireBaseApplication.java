@@ -5,13 +5,12 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
-import com.batch.android.Batch;
-import com.batch.android.Config;
 import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.common.internal.Supplier;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.firebase.client.Firebase;
+import com.google.android.gms.common.api.Batch;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -68,13 +67,13 @@ public class FireBaseApplication extends Application {
         myFirebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
         //Batch push notifications
         //Batch.setConfig(new Config("DEV56BC2B1738EFE251617C406E76D"));
-        Batch.Push.setGCMSenderId("213033849274");
-        Batch.setConfig(new Config("AIzaSyCP0MX6xM67bdd3-2cqCVjHqVFvF4HgcIw"));
+//        Batch.Push.setGCMSenderId("213033849274");
+//        Batch.setConfig(new Config("AIzaSyCP0MX6xM67bdd3-2cqCVjHqVFvF4HgcIw"));
 
         //GCM push notifications
-        new GcmRegistrationAsyncTask(this).execute();
+//        new GcmRegistrationAsyncTask(this).execute();
         //Starting gcm services
-        new GcmIntentService();
+//        new GcmIntentService();
         initializeAdapters();
         //Configure Fresco so that image loads quickly
         configFresco();
@@ -242,7 +241,7 @@ class GcmRegistrationAsyncTask extends AsyncTask<Void, Void, String> {
             // so it can use GCM/HTTP or CCS to send messages to your app.
             // The request to your server should be authenticated if your app
             // is using accounts.
-            regService.register(regId).execute();
+//            regService.register(regId).execute();
 
         } catch (IOException ex) {
             ex.printStackTrace();

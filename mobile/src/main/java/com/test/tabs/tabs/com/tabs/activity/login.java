@@ -13,6 +13,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
@@ -42,6 +45,7 @@ import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -353,6 +357,42 @@ public class login extends Activity implements Serializable{
         this.deleteDatabase("databaseManager.db");
     }
 
+    private void getPrivatePosts(final String userId) {
+        //Need to do order by / equal to.
+        Firebase postsRef = firebaseRef.child("Posts");
+        Query query = postsRef.orderByChild("posterUserId").equalTo(userId);
+        System.out.println("login3: Getting posts from " + userId);
+        query.keepSynced(true);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
+                    Post post = postSnapShot.getValue(Post.class);
+                    //Get all the private posts
+                    List<Post> privatePosts = application.getPrivateAdapter().getPosts();
+                    //If the posts is equal to private, then we add it into the private posts static adapter
+                    if (post.getPosterUserId().equals(userId) && post.getPrivacy().equals("Private") && application.getPrivateAdapter().containsId(privatePosts, post.getId()) == null) {
+                        List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+                        Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, post.getPosterUserId());
+                        if (friend != null && friend.getIsFriend().equals("true")) {
+                            application.getPrivateAdapter().getPosts().add(0, post);
+                        }
+                    }
+                }
+//                if (progressOverlay.getVisibility() == View.VISIBLE) {
+//                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+//                }
+//                populateNewsFeedList(fragmentView);
+                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+//                populateNewsFeedList(fragmentView);
+            }
+        });
+    }
+
     public void getFriends(final String userId) {
         Firebase friendsRef = firebaseRef.child("Friends/" + userId);
         friendsRef.keepSynced(true);
@@ -395,9 +435,13 @@ public class login extends Activity implements Serializable{
                 for (int i = 0; i < length; i++) {
                     if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(changedFriend.getId())) {
                         application.getFriendsRecyclerViewAdapter().getFriends().set(i, changedFriend);
+                        if(changedFriend.getIsFriend().equals("true")) {
+                            getPrivatePosts(application.getFriendsRecyclerViewAdapter().getFriends().get(i).getUserId());
+                        }
                     }
                 }
                 application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+                //If the friend is changed, we also need to add all the posts that comes with a newly added friend
             }
 
             @Override

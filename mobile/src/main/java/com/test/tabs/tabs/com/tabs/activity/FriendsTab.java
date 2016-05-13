@@ -123,10 +123,12 @@ public class FriendsTab extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
                     Post post = postSnapShot.getValue(Post.class);
+                    //Get all the private posts
                     List<Post> privatePosts = application.getPrivateAdapter().getPosts();
+                    //If the posts is equal to private, then we add it into the private posts static adapter
                     if (post.getPosterUserId().equals(userId) && post.getPrivacy().equals("Private") && application.getPrivateAdapter().containsId(privatePosts, post.getId()) == null) {
                         List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
-                        Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, userId);
+                        Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, post.getPosterUserId());
                         if (friend != null && friend.getIsFriend().equals("true")) {
                             application.getPrivateAdapter().getPosts().add(0, post);
                         }
@@ -147,11 +149,12 @@ public class FriendsTab extends Fragment {
         postsRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                //checks if a post is added
                 Post newPost = dataSnapshot.getValue(Post.class);
                 List<Post> privatePosts = application.getPrivateAdapter().getPosts();
                 if (newPost.getPrivacy().equals("Private") && application.getPrivateAdapter().containsId(privatePosts, newPost.getId()) == null) {
                     List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
-                    Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, userId);
+                    Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, newPost.getPosterUserId());
                     if (friend != null && friend.getIsFriend().equals("true")) {
                         application.getPrivateAdapter().getPosts().add(0, newPost);
                         application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();

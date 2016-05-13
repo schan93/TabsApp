@@ -9,7 +9,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import static java.util.concurrent.TimeUnit.DAYS;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Created by schan on 2/17/16.
@@ -52,33 +55,52 @@ public class AndroidUtils {
             e.printStackTrace();
         }
 
-        return toDuration(date.getTime());
+        return getRelativeTime(date.getTime());
+    }
+    public static final List<Long> times = Arrays.asList(
+            DAYS.toMillis(365),
+            DAYS.toMillis(30),
+            DAYS.toMillis(7),
+            DAYS.toMillis(1),
+            HOURS.toMillis(1),
+            MINUTES.toMillis(1),
+            SECONDS.toMillis(1)
+    );
+
+    public static final List<String> timesString = Arrays.asList(
+            "yr", "mo", "wk", "day", "hr", "min", "sec"
+    );
+
+    /**
+     * Get relative time ago for date
+     *
+     * NOTE:
+     *  if (duration > WEEK_IN_MILLIS) getRelativeTimeSpanString prints the date.
+     *
+     * ALT:
+     *  return getRelativeTimeSpanString(date, now, SECOND_IN_MILLIS, FORMAT_ABBREV_RELATIVE);
+     *
+     * @param date String.valueOf(TimeUtils.getRelativeTime(1000L * Date/Time in Millis)
+     * @return relative time
+     */
+    public static String getRelativeTime(final long date) {
+        return toDuration( Math.abs(System.currentTimeMillis() - date) );
     }
 
-    public static final List<Long> times = Arrays.asList(
-            TimeUnit.DAYS.toMillis(365),
-            TimeUnit.DAYS.toMillis(30),
-            TimeUnit.DAYS.toMillis(7),
-            TimeUnit.DAYS.toMillis(1),
-            TimeUnit.HOURS.toMillis(1),
-            TimeUnit.MINUTES.toMillis(1),
-            TimeUnit.SECONDS.toMillis(1) );
-    public static final List<String> timesString = Arrays.asList("y","m","w","d","h","m","s");
-
-    public static String toDuration(long duration) {
-
-        StringBuffer res = new StringBuffer();
+    private static String toDuration(long duration) {
+        StringBuilder sb = new StringBuilder();
         for(int i=0;i< times.size(); i++) {
             Long current = times.get(i);
-            long temp = duration/current;
-            if(temp>0) {
-                res.append(temp).append(" ").append( timesString.get(i) ).append(temp > 1 ? "s" : "");
+            long temp = duration / current;
+            if (temp > 0) {
+                sb.append(temp)
+                        .append(" ")
+                        .append(timesString.get(i))
+                        .append(temp > 1 ? "s" : "");
                 break;
             }
         }
-        if("".equals(res.toString()))
-            return "0 second ago";
-        else
-            return res.toString();
+        return sb.toString().isEmpty() ? "now" : sb.toString();
     }
+
 }

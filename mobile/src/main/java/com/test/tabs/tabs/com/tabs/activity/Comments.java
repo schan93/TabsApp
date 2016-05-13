@@ -106,8 +106,8 @@ public class Comments extends AppCompatActivity {
         setupActivity(savedInstanceState);
 
         final EditText comment = (EditText) findViewById(R.id.write_comment);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+//        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+//        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         //Once we send the post, we want to
         comment.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -137,14 +137,13 @@ public class Comments extends AppCompatActivity {
                     @Override
                     public void run() {
                         commentsView.smoothScrollToPosition(commentsView.getAdapter().getItemCount() - 1);
-                        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-
                     }
                 }, 250);
                 return false;
             }
         };
         comment.setOnTouchListener(onTouchListener);
+
 
         //Button for sending post
         final Button button = (Button) findViewById(R.id.send_comment);
@@ -163,9 +162,9 @@ public class Comments extends AppCompatActivity {
                     updatePost();
                     databaseQuery.saveCommentToFirebase(createdComment);
                     saveCommentInCloud(createdComment, tab);
-                    if (noCommentsView.getVisibility() == View.VISIBLE) {
-                        noCommentsView.setVisibility(View.GONE);
-                    }
+//                    if (noCommentsView.getVisibility() == View.VISIBLE) {
+//                        noCommentsView.setVisibility(View.GONE);
+//                    }
                     //Notify friends that user has posted a comment on their post. Don't get notification if you posted on your own post.
 //                    if(!createdComment.getCommenterUserId().equals(userId)) {
 //                        showNotification(v, commenter);
@@ -251,12 +250,17 @@ public class Comments extends AppCompatActivity {
 
     private void checkAdapterIsEmpty () {
         if(application.getCommentsRecyclerViewAdapter().getItemCount() == 1){
+//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+            System.out.println("Adjust nothing");
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) noCommentsView.getLayoutParams();
             params.addRule(RelativeLayout.BELOW, R.id.view_post);
-            noCommentsView.setVisibility(View.VISIBLE);
+//            noCommentsView.setVisibility(View.VISIBLE);
         }
         else {
             noCommentsView.setVisibility(View.GONE);
+//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         }
     }
 
@@ -269,26 +273,6 @@ public class Comments extends AppCompatActivity {
         header.setPosterDate(postTimeStamp);
         header.setViewStatus(postStatus);
         return header;
-    }
-
-
-    public void populatePost(String id) {
-        TextView statusMsg = (TextView)findViewById(R.id.view_status);
-        System.out.println("Post: " + post);
-        statusMsg.setText(post.getStatus());
-
-        //Set profile picture
-        DraweeController controller = news_feed.getImage(userId);
-        SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.poster_picture);
-        draweeView.setController(controller);
-
-        //Set poster's name
-        TextView posterName = (TextView)findViewById(R.id.poster_name);
-        posterName.setText(post.getName());
-
-        //Set date of when post was created
-        TextView postDate = (TextView) findViewById(R.id.post_date);
-        postDate.setText(AndroidUtils.convertDate(post.getTimeStamp()));
     }
 
     public String getIntentString(String value){
@@ -408,7 +392,7 @@ public class Comments extends AppCompatActivity {
         notificationManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
         commentsView = (RecyclerView) findViewById(R.id.view_comments);
-        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
+//        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
         llm = new LinearLayoutManager(this);
         commentsView.setLayoutManager(llm);
     }
@@ -435,12 +419,12 @@ public class Comments extends AppCompatActivity {
                     @Override
                     public void onChanged() {
                         super.onChanged();
-                        checkAdapterIsEmpty();
+//                        checkAdapterIsEmpty();
                     }
                 });
                 commentsView.setLayoutManager(llm);
                 commentsView.setAdapter(application.getCommentsRecyclerViewAdapter());
-                checkAdapterIsEmpty();
+//                checkAdapterIsEmpty();
             }
 
             @Override

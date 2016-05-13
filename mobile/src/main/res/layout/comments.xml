@@ -78,16 +78,16 @@
                 android:layout_above="@id/send_message"
                 android:id="@+id/view_comments">
             </android.support.v7.widget.RecyclerView>
-
+<!--
             <TextView
                 android:id="@+id/no_comments_text"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center"
                 android:visibility="gone"
                 android:textSize="16sp"
                 android:fontFamily="sans-serif"
                 android:text="No comments to display." />
+                -->
         </RelativeLayout>
 
 </android.support.design.widget.CoordinatorLayout>
