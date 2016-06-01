@@ -1,18 +1,10 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.PointF;
 import android.graphics.drawable.Animatable;
-import android.graphics.drawable.BitmapDrawable;
-import android.hardware.camera2.params.Face;
-import android.location.Location;
-import android.media.ImageReader;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -22,23 +14,14 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,56 +29,35 @@ import java.util.List;
 import java.util.Map;
 
 import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.common.logging.FLog;
 import com.facebook.drawee.backends.pipeline.Fresco;
-import com.facebook.drawee.backends.pipeline.PipelineDraweeController;
 import com.facebook.drawee.controller.BaseControllerListener;
 import com.facebook.drawee.controller.ControllerListener;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
-import com.facebook.imagepipeline.common.ResizeOptions;
 import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.image.QualityInfo;
-import com.facebook.imagepipeline.request.ImageRequest;
-import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.facebook.login.LoginManager;
-import com.facebook.login.widget.ProfilePictureView;
-import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
-import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
-import com.test.tabs.tabs.com.tabs.database.comments.Comment;
-import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
-import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
+import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendRecyclerViewAdapter;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
-import com.test.tabs.tabs.com.tabs.database.posts.Post;
-import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
-import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
 public class news_feed extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    //Firebase reference
-    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
-    //Progress overlay
-    View progressOverlay;
     String userId;
     Handler handler;
     FireBaseApplication application;
     List<String> currentFriendItems = new ArrayList<String>();
+    List<String> currentFollowerItems = new ArrayList<String>();
     DatabaseQuery databaseQuery;
     String name;
     private static DrawerLayout drawer;
@@ -109,13 +71,10 @@ public class news_feed extends AppCompatActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        System.out.println("CREATING THE NEWS FEED ACTIVITY BEFORE GOING INTO FRAGMENT");
         setContentView(R.layout.activity_main);
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        checkSavedState(savedInstanceState);
         application =  (FireBaseApplication) getApplication();
         databaseQuery = new DatabaseQuery(this);
-        progressOverlay = findViewById(R.id.progress_overlay);
         handler = new Handler();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -123,7 +82,6 @@ public class news_feed extends AppCompatActivity
             name = application.getName();
         }
         if(application.getUserId() != null && application.getUserId() != "") {
-            System.out.println("News_feed: seeing if the user id already exists in the application: " + application.getUserId());
             userId = application.getUserId();
         }
         setupActivity(savedInstanceState);
@@ -140,6 +98,12 @@ public class news_feed extends AppCompatActivity
                 for(Friend friend: application.getFriendsRecyclerViewAdapter().getFriends()) {
                     currentFriendItems.add(friend.getIsFriend());
                 }
+                if(currentFollowerItems.size() > 0) {
+                    currentFollowerItems.clear();
+                }
+                for(Follower follower: application.getFollowerRecyclerViewAdapter().getFollowers()) {
+                    currentFollowerItems.add(follower.getIsFollowing());
+                }
             }
 
             /** Called when a drawer has settled in a completely closed state. */
@@ -147,25 +111,25 @@ public class news_feed extends AppCompatActivity
                 super.onDrawerClosed(view);
                 System.out.println("Drawer closed");
                 List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+//                List<Follower> followers = application.getFollowerRecyclerViewAdapter().getFollowers();
                 updateFriendToFirebase(friends, currentFriendItems);
+//                updateFollowerToFirebase(followers, currentFollowerItems);
             }
         };
-        System.out.println("news_feed: toolbar: " + toolbar);
-        System.out.println("news_feed: Drawer: " + drawer);
-        System.out.println("news_feed: toggle: " + toggle);
+
         drawer.setDrawerListener(toggle);
 
-        View layout = (View) findViewById(R.id.app_bar_main);
+        View layout = findViewById(R.id.app_bar_main);
 
         tabLayout = (TabLayout) layout.findViewById(R.id.tab_layout);
-        System.out.println("news_feed: Tab Layout: " + tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("Public"));
         tabLayout.addTab(tabLayout.newTab().setText("Friends"));
         tabLayout.addTab(tabLayout.newTab().setText("My Tabs"));
+        tabLayout.addTab(tabLayout.newTab().setText("Following"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-        viewPager.setOffscreenPageLimit(3);
+        viewPager.setOffscreenPageLimit(4);
         final PagerAdapter adapter = new PagerAdapter
                 (getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
@@ -200,8 +164,9 @@ public class news_feed extends AppCompatActivity
             }
         });
 
-        drawerSetup(userId, name);
-        getFriends(userId);
+        drawerHeaderSetup(userId, name);
+        TabsUtil.populateCompanionList(CompanionEnum.Friend, news_feed.this);
+        TabsUtil.populateCompanionList(CompanionEnum.Follower, news_feed.this);
 
         //populateNewsFeedList();
     }
@@ -220,51 +185,12 @@ public class news_feed extends AppCompatActivity
         AppEventsLogger.activateApp(this);
     }
 
-    private void drawerSetup(String id, String name) {
-        DraweeController controller = getImage(id);
+    private void drawerHeaderSetup(String id, String name) {
+        DraweeController controller = TabsUtil.getImage(id);
         SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.avatarImageView);
         draweeView.setController(controller);
         TextView headerName = (TextView) findViewById(R.id.user_name);
         headerName.setText(name);
-    }
-
-    public static DraweeController getImage(String userId){
-        ControllerListener controllerListener = new BaseControllerListener<ImageInfo>(){
-            @Override
-            public void onFinalImageSet(
-                    String id,
-                    @Nullable ImageInfo imageInfo,
-                    @Nullable Animatable anim) {
-                if(imageInfo == null)
-                    return;
-                QualityInfo qualityInfo = imageInfo.getQualityInfo();
-                FLog.d("Final image received ! " + "Size %d x %d", "Quality level %d, good enough : %s, full quality: %s",
-                        imageInfo.getWidth(),
-                        imageInfo.getHeight(),
-                        qualityInfo.getQuality(),
-                        qualityInfo.isOfGoodEnoughQuality(),
-                        qualityInfo.isOfFullQuality());
-                }
-
-            @Override
-            public void onIntermediateImageSet(String id, @Nullable ImageInfo imageInfo){
-                FLog.d(getClass(), "Intermediate image received");
-            }
-
-            @Override
-        public void onFailure(String id, Throwable throwable){
-                FLog.e(getClass(), throwable, "Error loading %s ", id);
-            }
-        };
-        Uri uri = Uri.parse("http://graph.facebook.com/" + userId + "/picture?type=large");
-        System.out.println("Uri: " + uri);
-        DraweeController controller = Fresco.newDraweeControllerBuilder()
-                .setControllerListener(controllerListener)
-                .setUri(uri)
-                .build();
-        System.out.println("Controller: " + controller);
-        return controller;
-        //draweeView.setImageURI(uri);
     }
 
     @Override
@@ -316,17 +242,6 @@ public class news_feed extends AppCompatActivity
         return true;
     }
 
-    private void populateFriendsList(String userId) {
-        RecyclerView rv = (RecyclerView) findViewById(R.id.friends_list);
-        RecyclerView.ItemAnimator animator = rv.getItemAnimator();
-        if (animator instanceof SimpleItemAnimator) {
-            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
-        }
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        rv.setLayoutManager(llm);
-        rv.setAdapter(application.getFriendsRecyclerViewAdapter());
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -336,23 +251,14 @@ public class news_feed extends AppCompatActivity
 
     public void updateFriendToFirebase(List<Friend> friends, List<String> currentFriendItems) {
         //Need to check if the we should even update the freinds list
-
         boolean areUpdated = checkUpdatedFriends(friends, currentFriendItems);
         if(areUpdated) {
-            if(tabLayout.getSelectedTabPosition() == 1) {
-                AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.4f, 200);
-            }
             Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Friends");
             Map<String, Object> updatedFriends = new HashMap<String, Object>();
             for(Friend friend: friends) {
                 updatedFriends.put(friend.getUser() + "/" + friend.getId() + "/isFriend", friend.getIsFriend());
             }
             application.setFromAnotherActivity(true);
-            //Need to clear posts and friends because we have updated the friends and posts at this point
-            System.out.println("Login: Adding to Clearing posts: " +  application.getPrivateAdapter().getPosts().size());
-            application.getPrivateAdapter().getPosts().clear();
-//            application.getPrivateAdapter().notifyDataSetChanged();
-            System.out.println("Login: Adding to After clearing posts: " + application.getPrivateAdapter().getPosts().size());
             reference.updateChildren(updatedFriends, new Firebase.CompletionListener() {
                 @Override
                 public void onComplete(FirebaseError firebaseError, Firebase firebase) {
@@ -363,14 +269,11 @@ public class news_feed extends AppCompatActivity
                             application.setFromAnotherActivity(false);
                         }
                     }
-                    application.getPrivateAdapter().notifyDataSetChanged();
-                    if(progressOverlay.getVisibility() == View.VISIBLE) {
-                        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                    }
                 }
             });
         }
     }
+
 
     public boolean checkUpdatedFriends(List<Friend> friends, List<String> currentFriendItems) {
         boolean result = false;
@@ -389,7 +292,6 @@ public class news_feed extends AppCompatActivity
                 System.out.println("news_feed: There was a difference because: " + friends.get(i).getName() + "'s isFriend is: "
                         + friends.get(i).getIsFriend() + " but Friend 2's isFriend is: " +
                         currentFriendItems.get(i));
-//                friends.get(i).setIsFriend(currentFriendItems.get(i));
                 System.out.println("news_feed: The friend get is friend " + friends.get(i).getName() + " is now: " + friends.get(i).getIsFriend());
                 result = true;
             }
@@ -401,26 +303,14 @@ public class news_feed extends AppCompatActivity
         return result;
     }
 
-    private void checkSavedState(Bundle savedInstanceState) {
-        if(savedInstanceState != null) {
-
-        }
-        else {
-
-        }
-    }
-
     private void setupActivity(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
-            System.out.println("News_feed: Setting up activity: " + userId);
             // Restore value of members from saved state
             if(savedInstanceState.containsKey("userId")) {
                 userId = savedInstanceState.getString("userId");
-                System.out.println("News_feed: Setting userId: " + userId);
             }
             if(savedInstanceState.containsKey("name")) {
                 name = savedInstanceState.getString("name");
-                System.out.println("News_feed: Setting name: " + name);
             }
         }
     }
@@ -429,86 +319,8 @@ public class news_feed extends AppCompatActivity
     public void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putString("userId", userId);
         savedInstanceState.putString("name", name);
-        System.out.println("News_feed: Saving user id: " + userId);
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
-    }
-
-    public void getFriends(final String userId) {
-        progressOverlay = findViewById(R.id.progress_overlay);
-        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-        Firebase friendsRef = firebaseRef.child("Friends/" + userId);
-        friendsRef.keepSynced(true);
-        friendsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot friendSnapShot : dataSnapshot.getChildren()) {
-                    Friend friend = friendSnapShot.getValue(Friend.class);
-                    String userId = friend.getUserId();
-                    List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
-                    if (application.getFriendsRecyclerViewAdapter().containsId(friends, userId) == null) {
-                        System.out.println("login2: Adding Friend " + friend.getName() + " to array");
-                        application.getFriendsRecyclerViewAdapter().getFriends().add(friend);
-                    }
-                }
-                if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                }
-                populateFriendsList(userId);
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-
-        //Don't need listener anymore because listener will be instantiated on login used for
-//        friendsRef.addChildEventListener(new ChildEventListener() {
-//            @Override
-//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                Friend newFriend = dataSnapshot.getValue(Friend.class);
-//                List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
-//                if (application.getFriendsRecyclerViewAdapter().containsId(friends, newFriend.getUserId()) == null) {
-//                    application.getFriendsRecyclerViewAdapter().getFriends().add(newFriend);
-//                    application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
-//                }
-//            }
-//
-//            @Override
-//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-//                Friend changedFriend = dataSnapshot.getValue(Friend.class);
-//                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
-//                for (int i = 0; i < length; i++) {
-//                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(changedFriend.getId())) {
-//                        application.getFriendsRecyclerViewAdapter().getFriends().set(i, changedFriend);
-//                    }
-//                }
-//                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
-//            }
-//
-//            @Override
-//            public void onChildRemoved(DataSnapshot dataSnapshot) {
-//                Friend removedFriend = dataSnapshot.getValue(Friend.class);
-//                int length = application.getFriendsRecyclerViewAdapter().getItemCount();
-//                for (int i = 0; i < length; i++) {
-//                    if (application.getFriendsRecyclerViewAdapter().getFriends().get(i).getId().equals(removedFriend.getId())) {
-//                        application.getFriendsRecyclerViewAdapter().getFriends().remove(i);
-//                    }
-//                }
-//                application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
-//            }
-//
-//            @Override
-//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-//                //Not sure if used
-//            }
-//
-//            @Override
-//            public void onCancelled(FirebaseError firebaseError) {
-//
-//            }
-//        });
     }
 
 

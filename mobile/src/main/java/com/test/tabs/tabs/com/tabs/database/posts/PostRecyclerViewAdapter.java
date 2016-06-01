@@ -1,22 +1,14 @@
 package com.test.tabs.tabs.com.tabs.database.posts;
 
 import android.content.Intent;
-import android.database.DataSetObserver;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.TextView;
@@ -27,13 +19,10 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.AndroidUtils;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
-import com.test.tabs.tabs.com.tabs.activity.FireBaseApplication;
-import com.test.tabs.tabs.com.tabs.activity.LocationService;
+import com.test.tabs.tabs.com.tabs.activity.PrivacyEnum;
+import com.test.tabs.tabs.com.tabs.activity.TabEnum;
+import com.test.tabs.tabs.com.tabs.activity.TabsUtil;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
-import com.test.tabs.tabs.com.tabs.database.comments.Comment;
-import com.test.tabs.tabs.com.tabs.database.friends.Friend;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
-import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
 /**
  * Created by Chiharu on 10/26/2015.
@@ -41,7 +30,7 @@ import com.test.tabs.tabs.com.tabs.database.posts.Post;
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostViewHolder> {
     List<Post> posts;
     Context context;
-    String tab;
+    TabEnum tabType;
     boolean isPublic;
     String userId;
 
@@ -61,9 +50,9 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         this.isPublic = isPublic;
     }
 
-    public String getTab() { return tab; }
+    public TabEnum getTabType() { return tabType; }
 
-    public void setTab(String tab) { this.tab = tab; }
+    public void setTabType(TabEnum tabType) { this.tabType = tabType; }
 
     public String getUserId() { return userId; }
 
@@ -76,12 +65,14 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         TextView statusMsg;
         TextView numComments;
         TextView privacyStatus;
+        TextView postTitle;
         SimpleDraweeView posterPhoto;
 
         PostViewHolder(View itemView) {
             super(itemView);
             System.out.println("PostRecyclerViewAdapter: Constructor");
             cardViewPost = (CardView) itemView.findViewById(R.id.cv_news_feed);
+            postTitle = (TextView) itemView.findViewById(R.id.txt_post_title);
             name = (TextView) itemView.findViewById(R.id.txt_name);
             timestamp = (TextView) itemView.findViewById(R.id.txt_timestamp);
             statusMsg = (TextView) itemView.findViewById(R.id.txt_statusMsg);
@@ -107,22 +98,22 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     public void onBindViewHolder(PostViewHolder postViewHolder, int i) {
         final String name = posts.get(i).getName();
         final String userId = getUserId();
+        postViewHolder.postTitle.setText(posts.get(i).getTitle());
         postViewHolder.name.setText(name);
         postViewHolder.timestamp.setText(AndroidUtils.convertDate(posts.get(i).getTimeStamp()));
         postViewHolder.statusMsg.setText(posts.get(i).getStatus());
-        DraweeController controller = news_feed.getImage(posts.get(i).getPosterUserId());
+        DraweeController controller = TabsUtil.getImage(posts.get(i).getPosterUserId());
         RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
         roundingParams.setRoundAsCircle(true);
         postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
         postViewHolder.posterPhoto.setController(controller);
         postViewHolder.numComments.setText(posts.get(i).getNumComments() + " Comments");
         postViewHolder.numComments.setTextSize(14);
-        System.out.println("Context: " + context);
-        if (posts.get(i).getPrivacy().equals("Private") && !isPublic) {
-            //If it is a private post, set the text to be "Private"
-            postViewHolder.privacyStatus.setText("Private");
-        } else if (posts.get(i).getPrivacy().equals("Public") && !isPublic) {
-            postViewHolder.privacyStatus.setText("Public");
+        if (posts.get(i).getPrivacy() == PrivacyEnum.Friends && !isPublic) {
+            //If it is a friends post, set the text to be "Friends"
+            postViewHolder.privacyStatus.setText(PrivacyEnum.Friends.toString());
+        } else if (posts.get(i).getPrivacy() == PrivacyEnum.Public && !isPublic) {
+            postViewHolder.privacyStatus.setText(PrivacyEnum.Public.toString());
             //Set text to be public
         } else {
             //We know that it is in the public tab so we don't show it.
@@ -140,7 +131,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                 bundle.putString("posterName", post.getName());
                 bundle.putString("postTimeStamp", post.getTimeStamp());;
                 bundle.putString("postStatus", post.getStatus());
-                bundle.putString("tab", tab);
+                bundle.putString("tab", tabType.toString());
+                bundle.putString("postTitle", post.getTitle());
                 bundle.putString("userId", userId);
                 intent.putExtras(bundle);
                 v.getContext().startActivity(intent);
@@ -148,11 +140,11 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         });
     }
 
-    public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic, String tab) {
+    public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic, TabEnum tab) {
         this.posts = posts;
         this.context = context;
         this.isPublic = isPublic;
-        this.tab = tab;
+        this.tabType = tab;
     }
 
 
@@ -165,31 +157,6 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         posts.add(item);
         notifyItemInserted(posts.size() - 1);
         notifyItemRangeChanged(posts.size() - 1, posts.size());
-    }
-
-    public void remove(Post item, Context context) {
-//        System.out.println("PostRecyclerViewAdapter: Removing Post: " + item.getId());
-//        PostsDataSource postsDataSource = new PostsDataSource(context);
-//        postsDataSource.open();
-//        if(item.getPrivacy().equals("1")) {
-//            posts = postsDataSource.getAllPrivatePosts();
-//        }
-//        else {
-//            LocationService.getLocationManager(context);
-//            Location location = LocationService.getLastLocation();
-//            double latitude = location.getLatitude();
-//            double longitude = location.getLongitude();
-//            posts = postsDataSource.getAllPublicPosts(latitude, longitude, 24140.2);
-//        }
-//        for(int i = 0; i < posts.size(); i++) {
-//            System.out.println("PostRecyclerViewAdapter: Post Id: " + posts.get(i).getId());
-//            if(posts.get(i).getId().equals(item.getId())) {
-//                System.out.println("PostRecyclerViewAdapter: Removing post from list");
-//                posts.remove(i);
-//                notifyItemRemoved(i);
-//                notifyItemRangeChanged(i, getItemCount() - i);
-//            }
-//        }
     }
 
     public static Post containsId(List<Post> list, String id) {

@@ -2,12 +2,15 @@ package com.test.tabs.tabs.com.tabs.database.comments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,11 +21,16 @@ import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.AndroidUtils;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
 import com.test.tabs.tabs.com.tabs.activity.CommentsHeader;
+import com.test.tabs.tabs.com.tabs.activity.FireBaseApplication;
+import com.test.tabs.tabs.com.tabs.activity.TabsUtil;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
+import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
+import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -38,11 +46,19 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
 
     private CommentsHeader commentsHeader;
     private List<Comment> comments;
-    private static View view;
+    private FireBaseApplication fireBaseApplication;
+    private DatabaseQuery databaseQuery;
 
     public CommentsRecyclerViewAdapter(CommentsHeader header, List<Comment> comments) {
         this.commentsHeader = header;
         this.comments = comments;
+    }
+
+    public CommentsRecyclerViewAdapter(FireBaseApplication application, Activity activity, CommentsHeader header, List<Comment> comments) {
+        this.commentsHeader = header;
+        this.comments = comments;
+        this.fireBaseApplication = application;
+        this.databaseQuery = new DatabaseQuery(activity);
     }
 
     public List<Comment> getCommentsList(){
@@ -97,10 +113,15 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
      public void onBindViewHolder(RecyclerView.ViewHolder commentViewHolder, int i) {
         if(commentViewHolder instanceof CommentsHeaderView){
             CommentsHeaderView commentsHeaderView = (CommentsHeaderView) commentViewHolder;
+            commentsHeaderView.postTitle.setText(commentsHeader.getPostTitle());
             commentsHeaderView.name.setText(commentsHeader.getPosterName());
             commentsHeaderView.status.setText(commentsHeader.getViewStatus());
             commentsHeaderView.timeStamp.setText(AndroidUtils.convertDate(commentsHeader.getPosterDate()));
-            DraweeController controller = news_feed.getImage(commentsHeader.getPosterUserId());
+            //FireBaseApplication.getFriendsRecyclerViewAdapter().containsId(FireBaseApplication.getFriendsRecyclerViewAdapter().getFriends(), commentsHeader.getPosterUserId()) == null
+            if(!commentsHeader.getPosterUserId().equals(FireBaseApplication.getUserId())) {
+                setupFollowButton(commentsHeaderView.followButton, commentsHeader);
+            }
+            DraweeController controller = TabsUtil.getImage(commentsHeader.getPosterUserId());
             RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
             roundingParams.setRoundAsCircle(true);
             commentsHeaderView.photo.getHierarchy().setRoundingParams(roundingParams);
@@ -111,12 +132,55 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
             CommentsViewHolder comment = (CommentsViewHolder) commentViewHolder;
             comment.name.setText(currentItem.getCommenter());
             comment.message.setText(currentItem.getComment());
-            DraweeController controller = news_feed.getImage(currentItem.getCommenterUserId());
+            DraweeController controller = TabsUtil.getImage(currentItem.getCommenterUserId());
             RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
             roundingParams.setRoundAsCircle(true);
             comment.photo.getHierarchy().setRoundingParams(roundingParams);
             comment.photo.setController(controller);
             comment.timeStamp.setText(AndroidUtils.convertDate(currentItem.getTimeStamp()));
+        }
+    }
+
+    private void setupFollowButton(final Button button, final CommentsHeader commentsHeader) {
+        button.setVisibility(View.VISIBLE);
+        List<Follower> followers = fireBaseApplication.getFollowerRecyclerViewAdapter().getFollowers();
+        final Follower existingFollower = fireBaseApplication.getFollowerRecyclerViewAdapter().containsId(followers, commentsHeader.getPosterUserId());
+        setButtonColor(button, commentsHeader.getIsFollowing());
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                //change the color of hte freaking button
+                if(commentsHeader.getIsFollowing()) {
+                    commentsHeader.setIsFollowing(false);
+                    setButtonColor(button, commentsHeader.getIsFollowing());
+                    existingFollower.setIsFollowing("false");
+                    if (existingFollower != null) {
+                        databaseQuery.updateFollowerToFirebase(existingFollower);
+                    }
+                } else {
+                    commentsHeader.setIsFollowing(true);
+                    setButtonColor(button, commentsHeader.getIsFollowing());
+                    if (existingFollower == null) {
+                        Follower follower = new Follower("", commentsHeader.getPosterUserId(), commentsHeader.getPosterName(), fireBaseApplication.getUserId(), "true");
+                        databaseQuery.saveFollowerToFirebase(follower);
+                        fireBaseApplication.getFollowerRecyclerViewAdapter().getFollowers().add(follower);
+                    } else {
+                        existingFollower.setIsFollowing("true");
+                        databaseQuery.updateFollowerToFirebase(existingFollower);
+                    }
+
+                }
+                fireBaseApplication.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void setButtonColor(Button button, Boolean isFollowing) {
+        if(!isFollowing) {
+            button.setBackgroundColor(Color.parseColor("#d94130"));
+            button.setText("+ Follow");
+        } else {
+            button.setBackgroundColor(Color.parseColor("#4CAF50"));
+            button.setText("Following");
         }
     }
 
@@ -169,14 +233,20 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         TextView name;
         TextView status;
         TextView timeStamp;
+        TextView postTitle;
         SimpleDraweeView photo;
+        Button followButton;
 
         CommentsHeaderView(View itemView){
             super(itemView);
             name = (TextView)itemView.findViewById(R.id.poster_name);
             timeStamp = (TextView)itemView.findViewById(R.id.post_date);
+            postTitle = (TextView) itemView.findViewById(R.id.comment_post_title);
             status = (TextView)itemView.findViewById(R.id.view_status);
             photo = (SimpleDraweeView) itemView.findViewById(R.id.poster_picture);
+            followButton = (Button) itemView.findViewById(R.id.follow_button);
+            //Set visibility to be gone initially especially since you're already freinds with the person or if the person is yourself
+            followButton.setVisibility(View.GONE);
         }
     }
 }

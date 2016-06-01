@@ -6,7 +6,10 @@
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_height="175dp"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        android:minHeight="160dp"
         android:background="#e6e6e6">
 
         <com.facebook.drawee.view.SimpleDraweeView
@@ -21,9 +24,22 @@
             />
 
         <TextView
-            android:paddingRight="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/poster_picture"
+            android:id="@+id/comment_post_title"
+            android:textSize="16sp"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
+            android:maxLines="2"
+            android:paddingRight="46dp"
+            android:fontFamily="sans-serif-medium"
+            />
+
+        <TextView
+            android:paddingRight="8dp"
+            android:layout_marginLeft="16dp"
+            android:layout_below="@id/comment_post_title"
             android:layout_toRightOf="@id/poster_picture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,13 +58,29 @@
             android:id="@+id/post_date"/>
 
         <TextView
+            android:layout_marginTop="8dp"
             android:layout_marginLeft="16dp"
-            android:layout_toRightOf="@id/poster_picture"
-            android:layout_below="@id/poster_name"
+            android:layout_marginRight="16dp"
             android:textSize="16sp"
             android:fontFamily="sans-serif"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@id/poster_picture"
             android:id="@+id/view_status" />
+
+        <com.cengalabs.flatui.views.FlatButton
+            android:id="@+id/follow_button"
+            android:layout_width="75dp"
+            android:layout_height="30dp"
+            android:text="+ Follow"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="16dp"
+            android:fontFamily="sans-serif"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            android:padding="0dp"
+            android:onClick="followUser"
+            android:textColor="@color/colorAccent"
+            android:layout_below="@id/view_status" />
 
     </RelativeLayout>

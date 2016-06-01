@@ -17,18 +17,16 @@ import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
+import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
-import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 
 import java.util.List;
 
-
 /**
- * Created by schan on 12/30/15.
+ * Created by schan on 5/15/16.
  */
-public class FriendsTab extends Fragment {
-
+public class FollowersTab extends Fragment {
     private View fragmentView;
     private FireBaseApplication application;
     private DatabaseQuery databaseQuery;
@@ -47,7 +45,7 @@ public class FriendsTab extends Fragment {
     }
 
     /**
-     * Set things such as facebook profile picture, facebook friends photos, etc.
+     * Set things such as facebook profile picture, followers photos, etc.
      * @param inflater
      * @param container
      * @param savedInstanceState
@@ -55,22 +53,21 @@ public class FriendsTab extends Fragment {
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.private_tab, container, false);
+        fragmentView = inflater.inflate(R.layout.followers_tab, container, false);
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         databaseQuery = new DatabaseQuery(getActivity());
-        System.out.println("Friends Tab: VISIBLE");
+        System.out.println("getFollowersTab: VISIBLE");
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         if(application.getUserId() != null && application.getUserId() != "") {
             userId = application.getUserId();
         }
         setupActivity(savedInstanceState);
-        //For every friend, we need to get every post related to them so we have to use a for loop for this
-        databaseQuery.getFriendsPosts(progressOverlay, fragmentView, getContext());
+        databaseQuery.getFollowerPosts(progressOverlay, fragmentView, getContext());
         return fragmentView;
     }
 
     /**
-     * Called when the Friends Tab is shown.
+     * Called when the Followers Tab is shown.
      * @param isVisibleToUser
      */
     @Override
@@ -79,14 +76,14 @@ public class FriendsTab extends Fragment {
         if (isVisibleToUser) {
             if (getView() != null) {
                 if(application.getFromAnotherActivity() == true) {
-                    System.out.println("Friends Tab setUserVisible: VISIBLE");
+                    System.out.println("Followers Tab setUserVisible: VISIBLE");
                     AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-                    fragmentView.findViewById(R.id.rv_private_feed).setVisibility(View.GONE);
+                    fragmentView.findViewById(R.id.rv_followers_feed).setVisibility(View.GONE);
                 } else {
                     if (progressOverlay.getVisibility() == View.VISIBLE) {
-                        System.out.println("Friends Tab setUserVisible: GONE");
+                        System.out.println("Followers Tab setUserVisible: GONE");
                         AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                        fragmentView.findViewById(R.id.rv_private_feed).setVisibility(View.VISIBLE);
+                        fragmentView.findViewById(R.id.rv_followers_feed).setVisibility(View.VISIBLE);
                     }
                 }
             }

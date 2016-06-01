@@ -7,15 +7,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
 import com.test.tabs.tabs.com.tabs.database.SQLite.DatabaseHelper;
 
-import org.w3c.dom.Comment;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by schan on 10/28/15.
@@ -114,7 +109,6 @@ public class FriendsDataSource {
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             Friend friend = cursorToFriend(cursor);
-            System.out.println("Friend is friend: " + friend.getIsFriend());
             friends.add(friend);
             cursor.moveToNext();
         }
@@ -135,10 +129,8 @@ public class FriendsDataSource {
         Cursor cursor = database.query(DatabaseHelper.TABLE_FRIENDS,
                 allColumns, DatabaseHelper.COLUMN_USER + " = ?", new String[]{userId}, null, null, null);
         cursor.moveToFirst();
-        System.out.println("Cursor: " + cursor);
         while (!cursor.isAfterLast()) {
             Friend friend = cursorToFriend(cursor);
-            System.out.println("Friend is friend: " + friend.getIsFriend());
             friends.add(friend);
             cursor.moveToNext();
         }
@@ -153,7 +145,6 @@ public class FriendsDataSource {
         Cursor cursor = database.rawQuery(count, null);
         cursor.moveToFirst();
         int rowCount = cursor.getInt(0);
-        System.out.println("Row Count: " + rowCount);
         if(rowCount > 0){
             return true;
         }

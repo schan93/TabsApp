@@ -6,9 +6,8 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.PointF;
-import android.provider.ContactsContract;
-import android.util.Log;
 
+import com.test.tabs.tabs.com.tabs.activity.PrivacyEnum;
 import com.test.tabs.tabs.com.tabs.database.SQLite.DatabaseHelper;
 import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 
@@ -48,7 +47,7 @@ public class PostsDataSource {
         return dateFormat.format(date);
     }
 
-    public Post createPost(String postId, String posterUserId, String status, String posterName, String privacy, double latitude, double longitude) {
+    public Post createPost(String postId, String posterUserId, String status, String posterName, PrivacyEnum privacy, double latitude, double longitude) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
@@ -58,7 +57,7 @@ public class PostsDataSource {
         values.put(DatabaseHelper.COLUMN_STATUS, status);
         String dateTime = getDateTime();
         values.put(DatabaseHelper.COLUMN_TIME_STAMP, dateTime);
-        values.put(DatabaseHelper.COLUMN_PRIVACY, privacy);
+        values.put(DatabaseHelper.COLUMN_PRIVACY, privacy.toString());
         values.put(DatabaseHelper.COLUMN_LATITUDE, latitude);
         values.put(DatabaseHelper.COLUMN_LONGITUDE, longitude);
         //Insert into the database
@@ -68,11 +67,11 @@ public class PostsDataSource {
 //                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
 //                new String[]{postId, posterName, posterUserId, status, privacy.toString(), Double.toString(latitude), Double.toString(longitude)});
 
-        Post post = new Post(postId, posterName, status, posterUserId, dateTime, privacy, Double.toString(latitude), Double.toString(longitude), 0);
+        Post post = new Post(postId, "title", posterName, status, posterUserId, dateTime, privacy, Double.toString(latitude), Double.toString(longitude), 0);
         return post;
     }
 
-    public Post createPostFromFireBase(String postId, String posterUserId, String status, String timeStamp, String posterName, String privacy, double latitude, double longitude) {
+    public Post createPostFromFireBase(String postId, String posterUserId, String status, String timeStamp, String posterName, PrivacyEnum privacy, double latitude, double longitude) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         //Insert 0 as column id because it will autoincrement for us (?)
@@ -81,7 +80,7 @@ public class PostsDataSource {
         values.put(DatabaseHelper.COLUMN_POSTER_USER_ID, posterUserId);
         values.put(DatabaseHelper.COLUMN_STATUS, status);
         values.put(DatabaseHelper.COLUMN_TIME_STAMP, timeStamp);
-        values.put(DatabaseHelper.COLUMN_PRIVACY, privacy);
+        values.put(DatabaseHelper.COLUMN_PRIVACY, privacy.toString());
         values.put(DatabaseHelper.COLUMN_LATITUDE, latitude);
         values.put(DatabaseHelper.COLUMN_LONGITUDE, longitude);
         //Insert into the database
@@ -94,7 +93,7 @@ public class PostsDataSource {
 //                values, SQLiteDatabase.CONFLICT_IGNORE);
         database.insert(DatabaseHelper.TABLE_POSTS, null, values);
 
-        Post post = new Post(postId, posterName, status, posterUserId, timeStamp, privacy, Double.toString(latitude), Double.toString(longitude), 0);
+        Post post = new Post(postId, "title", posterName, status, posterUserId, timeStamp, privacy, Double.toString(latitude), Double.toString(longitude), 0);
         return post;
     }
 
@@ -125,8 +124,8 @@ public class PostsDataSource {
         System.out.println("Privacy: " + cursor.getString(5));
         System.out.println("Latitude: " + cursor.getString(6));
 
-        Post post = new Post(cursor.getString(0), cursor.getString(1), cursor.getString(3),
-                cursor.getString(2), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7), 0);
+        Post post = new Post(cursor.getString(0), "title", cursor.getString(1), cursor.getString(3),
+                cursor.getString(2), cursor.getString(4), PrivacyEnum.valueOf(cursor.getString(5)), cursor.getString(6), cursor.getString(7), 0);
         return post;
     }
 
@@ -200,11 +199,11 @@ public class PostsDataSource {
      * Gets all posts with private toggle
      * @return List of Posts
      */
-   public List<Post> getAllPrivatePosts() {
+   public List<Post> getAllFriendsPosts() {
         List<Post> posts = new ArrayList<Post>();
 
         Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
-                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? ", new String[]{"Private"}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? ", new String[]{PrivacyEnum.Friends.toString()}, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -278,7 +277,7 @@ public class PostsDataSource {
     public boolean updatePost(Post post){
         database = dbHelper.getWritableDatabase();
         ContentValues newValues = new ContentValues();
-        newValues.put(DatabaseHelper.COLUMN_PRIVACY, post.getPrivacy());
+        newValues.put(DatabaseHelper.COLUMN_PRIVACY, post.getPrivacy().toString());
 
         String[] args = new String[]{post.getId()};
         int value = database.update("posts", newValues, "id= ?", args);

@@ -14,7 +14,7 @@
     <!--
     <item
         android:id="@+id/toggle_test"
-        android:title="Private"
+        android:title="Friends"
         app:showAsAction="always"
         android:orderInCategory="1"
         android:background="@drawable/toggle_widget_background"

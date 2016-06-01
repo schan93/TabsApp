@@ -4,6 +4,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.firebase.client.Firebase;
+import com.test.tabs.tabs.com.tabs.activity.PrivacyEnum;
+import com.test.tabs.tabs.com.tabs.activity.TabEnum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,12 +14,13 @@ import java.util.List;
  * Created by Chiharu on 10/26/2015.
  */
 public class Post{
+    private String title;
     private String id;
     private String name;
     private String status;
     private String posterUserId;
     private String timeStamp;
-    private String privacy;
+    private PrivacyEnum privacy;
     private String longitude;
     private String latitude;
     private Integer numComments;
@@ -28,9 +31,10 @@ public class Post{
     public Post(){
     }
 
-    public Post(String id, String name, String status, String posterUserId, String timeStamp, String privacy, String latitude, String longitude, Integer numComments) {
+    public Post(String id, String title, String name, String status, String posterUserId, String timeStamp, PrivacyEnum privacy, String latitude, String longitude, Integer numComments) {
         super();
         this.id = id;
+        this.title = title;
         this.name = name;
         this.status = status;
         this.posterUserId = posterUserId;
@@ -41,9 +45,9 @@ public class Post{
         this.numComments = numComments;
     }
 
-    public String getPrivacy() { return privacy; }
+    public PrivacyEnum getPrivacy() { return privacy; }
 
-    public void setPrivacy(String privacy) { this.privacy = privacy; }
+    public void setPrivacy(PrivacyEnum privacy) { this.privacy = privacy; }
 
     public String getId() {
         return id;
@@ -102,4 +106,8 @@ public class Post{
     public Integer getNumComments() { return numComments; }
 
     public void setNumComments(Integer numComments) { this.numComments = numComments; }
+
+    public void setTitle(String title) { this.title = title; }
+
+    public String getTitle() { return title; };
 }

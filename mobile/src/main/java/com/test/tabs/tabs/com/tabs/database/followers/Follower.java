@@ -1,26 +1,26 @@
-package com.test.tabs.tabs.com.tabs.database.friends;
+package com.test.tabs.tabs.com.tabs.database.followers;
 
 /**
- * Created by schan on 10/28/15.
+ * Created by schan on 5/14/16.
  */
-public class Friend {
+public class Follower {
 
-    Friend(){
+    Follower(){
     }
 
-    public Friend(String id, String userId, String name, String user, String isFriend){
+    public Follower(String id, String userId, String name, String user, String isFollowing){
         this.id = id;
         this.userId = userId;
         this.name = name;
         this.user = user;
-        this.isFriend = isFriend;
+        this.isFollowing = isFollowing;
     }
-;
+    ;
     private String id;
     private String userId;
     private String name;
     private String user;
-    private String isFriend;
+    private String isFollowing;
 
     public String getName(){
         return name;
@@ -30,13 +30,13 @@ public class Friend {
         return userId;
     }
 
-    public String getUser() { return user; }
-
-    public String getIsFriend() { return isFriend; }
-
     public String getId() {
         return id;
     }
+
+    public String getUser() { return user; }
+
+    public String getIsFollowing() { return isFollowing; }
 
     public void setId(String id){
         this.id = id;
@@ -48,7 +48,7 @@ public class Friend {
 
     public void setUserId(String userId) {this.userId = userId; }
 
-    public void setIsFriend(String isFriend) { this.isFriend = isFriend; }
+    public void setIsFollowing(String isFriend) { this.isFollowing = isFriend; }
 
     public void setUser(String user) { this.user = user; }
 }

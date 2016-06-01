@@ -32,6 +32,7 @@
         android:layout_below="@+id/app_bar"
         android:background="?attr/colorPrimary"
         android:elevation="6dp"
+        app:tabIndicatorColor="#00BCD4"
         android:minHeight="?attr/actionBarSize"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 

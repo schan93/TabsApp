@@ -20,7 +20,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter{
 
         switch (position) {
             case 0:
-                Public tab1 = new Public();
+                PublicTab tab1 = new PublicTab();
                 return tab1;
             case 1:
                 FriendsTab tab2 = new FriendsTab();
@@ -28,6 +28,9 @@ public class PagerAdapter extends FragmentStatePagerAdapter{
             case 2:
                 MyTabs tab3 = new MyTabs();
                 return tab3;
+            case 3:
+                FollowersTab tab4 = new FollowersTab();
+                return tab4;
             default:
                 return null;
         }

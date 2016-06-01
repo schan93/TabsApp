@@ -1,13 +1,11 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
-import android.app.Notification;
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.NotificationCompat;
@@ -17,26 +15,17 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.facebook.AccessToken;
-import com.facebook.Profile;
-import com.facebook.drawee.interfaces.DraweeController;
-import com.facebook.drawee.view.SimpleDraweeView;
 import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -45,56 +34,47 @@ import com.firebase.client.MutableData;
 import com.firebase.client.Query;
 import com.firebase.client.Transaction;
 import com.firebase.client.ValueEventListener;
-import com.parse.ParseObject;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
-import com.test.tabs.tabs.com.tabs.database.friends.Friend;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendsDataSource;
+import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Created by schan on 11/24/15.
  */
 public class Comments extends AppCompatActivity {
 
-    Post post;
-    private CommentsDataSource commentsDatasource;
-    //Local Database for storing posts
-    private PostsDataSource postsDataSource;
-    private FireBaseApplication application;
-    private List<Comment> commentItems;
-    private CommentsRecyclerViewAdapter commentsRecyclerViewAdapter;
-    private RecyclerView commentsView;
-    private TextView noCommentsView;
+    private static FireBaseApplication application;
+    private static RecyclerView commentsView;
+    private static String posterUserId;
+    private static String posterName;
+    private static String postTimeStamp;
+    private static String postStatus;
+    private static Boolean isFollowingPoster;
+    private static LinearLayoutManager llm;
     private Toolbar toolbar;
-    private LinearLayoutManager llm;
     private NotificationManager notificationManager;
     private boolean isNotificationActive;
     private String postId;
     private String tab;
     private String userId;
-    private String posterUserId;
-    private String posterName;
-    private String postTimeStamp;
-    private String postStatus;
     //Progress overlay
     View progressOverlay;
     DatabaseQuery databaseQuery;
     String name;
+    EditText comment;
+    Button sendButton;
+    private static String postTitle;
 
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
 
@@ -102,24 +82,89 @@ public class Comments extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.comments);
+
+        //Initialize edit text & send button
+        comment = (EditText) findViewById(R.id.write_comment);
+        sendButton = (Button) findViewById(R.id.send_comment);
+
+        //Initialize Activity UI and variables from clicking on PostRecyclerViewAdapter
         setupActionBar();
         setupActivity(savedInstanceState);
 
-        final EditText comment = (EditText) findViewById(R.id.write_comment);
-//        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-//        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        //Setup Comments page's buttons / functionality
+        setupComment(comment);
+        setupSendButton(comment, sendButton);
+        populateCommentView(postId);
+    }
 
+    private void createComment() {
+        //Set the text of the comment to be empty
+        String text = comment.getText().toString();
+
+        Comment createdComment = new Comment("", postId, name, text, userId, getDateTime());
+        updatePost();
+
+        databaseQuery.saveCommentToFirebase(createdComment);
+        updatePostCommentNumber(createdComment, tab);
+
+        //Push down the keyboard and make the cursor invisible, clear out the text
+        resetKeyboardSettings();
+        comment.setText("");
+        Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void setupSendButton(final EditText comment, Button sendButton) {
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (TextUtils.isEmpty(comment.getText())) {
+                    Toast.makeText(Comments.this, "Please enter in a comment first.", Toast.LENGTH_SHORT).show();
+                } else {
+                    createComment();
+                    //Show notifications
+//                    if (noCommentsView.getVisibility() == View.VISIBLE) {
+//                        noCommentsView.setVisibility(View.GONE);
+//                    }
+                    //Notify friends that user has posted a comment on their post. Don't get notification if you posted on your own post.
+//                    if(!createdComment.getCommenterUserId().equals(userId)) {
+//                        showNotification(v, commenter);
+//                    }
+
+                    //Indicate success
+
+
+                }
+
+            }
+        });
+    }
+
+    private void resetKeyboardSettings() {
+        //Push down the keyboard and make the cursor invisible, clear out the text
+        InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        comment.setCursorVisible(false);
+//        comment.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+//
+//            @Override
+//            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//                if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) || (actionId == EditorInfo.IME_ACTION_DONE)) {
+//                    createComment();
+//                }
+//                return false;
+//            }
+//        });
+    }
+
+    public void setupComment(final EditText comment) {
         //Once we send the post, we want to
         comment.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
             @Override
             public boolean onEditorAction(TextView v, int actionId,
                                           KeyEvent event) {
-                comment.setCursorVisible(false);
                 if (event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-                    InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     comment.setImeOptions(EditorInfo.IME_ACTION_DONE);
-                    in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                    resetKeyboardSettings();
                 }
                 return false;
             }
@@ -143,44 +188,13 @@ public class Comments extends AppCompatActivity {
             }
         };
         comment.setOnTouchListener(onTouchListener);
-
-
-        //Button for sending post
-        final Button button = (Button) findViewById(R.id.send_comment);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (TextUtils.isEmpty(comment.getText())) {
-                    Toast.makeText(Comments.this, "Please enter in a comment first.", Toast.LENGTH_SHORT).show();
-                } else {
-                    String text = comment.getText().toString();
-                    Comment createdComment = new Comment("", postId, name, text, userId, getDateTime());
-                    Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
-                    comment.setText("");
-                    InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    in.hideSoftInputFromWindow(comment.getApplicationWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                    comment.setCursorVisible(false);
-                    updatePost();
-                    databaseQuery.saveCommentToFirebase(createdComment);
-                    saveCommentInCloud(createdComment, tab);
-//                    if (noCommentsView.getVisibility() == View.VISIBLE) {
-//                        noCommentsView.setVisibility(View.GONE);
-//                    }
-                    //Notify friends that user has posted a comment on their post. Don't get notification if you posted on your own post.
-//                    if(!createdComment.getCommenterUserId().equals(userId)) {
-//                        showNotification(v, commenter);
-//                    }
-
-                }
-
-            }
-        });
-        //Now we have to show a loading bar so that we are loading the comments. While we are loading the comments, we update the comments header
-        populateCommentView(postId);
     }
 
     public void populateCommentView(String postId) {
-        commentItems = new ArrayList<Comment>();
-        getComments(postId);
+        //Set up loading page first
+        System.out.println("getCommentsView: VISIBLE");
+        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
+        databaseQuery.getComments(postId, Comments.this, commentsView, progressOverlay);
     }
 
     private void setupActionBar() {
@@ -248,30 +262,27 @@ public class Comments extends AppCompatActivity {
         }, 1000);
     }
 
-    private void checkAdapterIsEmpty () {
-        if(application.getCommentsRecyclerViewAdapter().getItemCount() == 1){
-//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-            System.out.println("Adjust nothing");
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) noCommentsView.getLayoutParams();
-            params.addRule(RelativeLayout.BELOW, R.id.view_post);
-//            noCommentsView.setVisibility(View.VISIBLE);
-        }
-        else {
-            noCommentsView.setVisibility(View.GONE);
-//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-//            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        }
+    public static void setupCommentsAdapter(String postId, Activity activity) {
+        List<Comment> commentItems = application.getCommentsRecyclerViewAdapter().getCommentsList();
+        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(application, activity, getCommentsHeader(postId), commentItems));
+        application.getCommentsRecyclerViewAdapter().registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+            }
+        });
+        commentsView.setLayoutManager(llm);
+        commentsView.setAdapter(application.getCommentsRecyclerViewAdapter());
     }
 
-    public CommentsHeader getCommentsHeader(String id)
-    {
-        System.out.println("Going to inflate header");
+    public static CommentsHeader getCommentsHeader(String id) {
         CommentsHeader header = new CommentsHeader();
         header.setPosterUserId(posterUserId);
         header.setPosterName(posterName);
         header.setPosterDate(postTimeStamp);
         header.setViewStatus(postStatus);
+        header.setIsFollowing(isFollowingPoster);
+        header.setPostTitle(postTitle);
         return header;
     }
 
@@ -284,7 +295,7 @@ public class Comments extends AppCompatActivity {
         return result;
     }
 
-    private void saveCommentInCloud(Comment comment, String tab){
+    private void updatePostCommentNumber(Comment comment, String tab){
         updatePostComments(comment.getPostId(), tab);
     }
 
@@ -294,24 +305,18 @@ public class Comments extends AppCompatActivity {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
                 if (mutableData.getValue() == null) {
-                    System.out.println("Comments: Setting value to 1");
                     mutableData.setValue(1);
                 } else {
-                    System.out.println("Comments: Setting value from " + mutableData.getValue());
                     mutableData.setValue((Long) mutableData.getValue() + 1);
-                    System.out.println("Comments: Updated value from " + mutableData.getValue());
                 }
-                System.out.println("Comments: Success!");
                 return Transaction.success(mutableData); //we can also abort by calling Transaction.abort()
             }
 
             @Override
             public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
-                //This method will be called once with the results of the transaction.
                 if (firebaseError != null) {
                     System.out.println("Comments: Error: " + firebaseError);
                 }
-//                updatePostAdapter(tab);
             }
         });
     }
@@ -334,6 +339,7 @@ public class Comments extends AppCompatActivity {
         savedInstanceState.putString("posterName", posterName);
         savedInstanceState.putString("postTimeStamp", postTimeStamp);
         savedInstanceState.putString("postStatus", postStatus);
+        savedInstanceState.putBoolean("isFollowingPoster", isFollowingPoster);
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -353,6 +359,9 @@ public class Comments extends AppCompatActivity {
             if(savedInstanceState.containsKey("name")) {
                 name = savedInstanceState.getString("name");
             }
+            if(savedInstanceState.containsKey("postTitle")) {
+                postTitle = savedInstanceState.getString("postTitle");
+            }
             if(savedInstanceState.containsKey("posterUserId")) {
                 posterUserId = savedInstanceState.getString("posterUserId");
             }
@@ -365,14 +374,25 @@ public class Comments extends AppCompatActivity {
             if(savedInstanceState.containsKey("postStatus")) {
                 postStatus = savedInstanceState.getString("postStatus");
             }
+            if(savedInstanceState.containsKey("isFollowingPoster")) {
+                isFollowingPoster = savedInstanceState.getBoolean("isFollowingPoster");
+            }
         } else {
+            //You get all these from the post view adapter
             postId = getIntentString("postId");
             tab = getIntentString("tab");
             userId = getIntentString("userId");
+            postTitle = getIntentString("postTitle");
             posterUserId = getIntentString("posterUserId");
             posterName = getIntentString("posterName");
             postTimeStamp = getIntentString("postTimeStamp");
             postStatus = getIntentString("postStatus");
+            Follower follower = application.getFollowerRecyclerViewAdapter().containsId(application.getFollowerRecyclerViewAdapter().getFollowers(), posterUserId);
+            if (follower != null && follower.getIsFollowing().equals("true")) {
+                isFollowingPoster = true;
+            } else {
+                isFollowingPoster = false;
+            }
             // Probably initialize members with default values for a new instance
         }
 
@@ -395,89 +415,6 @@ public class Comments extends AppCompatActivity {
 //        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
         llm = new LinearLayoutManager(this);
         commentsView.setLayoutManager(llm);
-    }
-
-    //Put the loading screen thing
-    public void getComments(final String postId) {
-        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), commentItems));
-        Firebase commentsRef = firebaseRef.child("Comments");
-        Query query = commentsRef.orderByChild("postId").equalTo(postId);
-        query.keepSynced(true);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot commentSnapShot : dataSnapshot.getChildren()) {
-                    Comment newComment = commentSnapShot.getValue(Comment.class);
-                    if (application.getCommentsRecyclerViewAdapter().containsId(commentItems, newComment.getId()) == null && newComment.getPostId().equals(postId) ) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().add(newComment);
-                    }
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-                commentItems = application.getCommentsRecyclerViewAdapter().getCommentsList();
-                application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(getCommentsHeader(postId), commentItems));
-                application.getCommentsRecyclerViewAdapter().registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-                    @Override
-                    public void onChanged() {
-                        super.onChanged();
-//                        checkAdapterIsEmpty();
-                    }
-                });
-                commentsView.setLayoutManager(llm);
-                commentsView.setAdapter(application.getCommentsRecyclerViewAdapter());
-//                checkAdapterIsEmpty();
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-
-        commentsRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Comment newComment = dataSnapshot.getValue(Comment.class);
-                List<Comment> comments = application.getCommentsRecyclerViewAdapter().getCommentsList();
-                if (application.getCommentsRecyclerViewAdapter().containsId(comments, newComment.getId()) == null && newComment.getPostId().equals(postId)) {
-                    application.getCommentsRecyclerViewAdapter().getCommentsList().add(newComment);
-                    application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Comment changedComment = dataSnapshot.getValue(Comment.class);
-                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
-                for (int i = 0; i < length; i++) {
-                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(changedComment.getId())) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().set(i, changedComment);
-                    }
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Comment removedComment = dataSnapshot.getValue(Comment.class);
-                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
-                for (int i = 0; i < length; i++) {
-                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(removedComment.getId())) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().remove(i);
-                    }
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                //Not sure if used
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
     }
 
 }

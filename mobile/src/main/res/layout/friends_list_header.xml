@@ -16,10 +16,13 @@
         android:id="@+id/avatarImageView"
         android:layout_width="85dp"
         android:layout_height="85dp"
+        android:layout_centerInParent="true"
         fresco:actualImageScaleType="focusCrop"
         fresco:placeholderImageScaleType="centerCrop"
         fresco:placeholderImage="@mipmap/blank_prof_pic"
         fresco:roundAsCircle="true"
+        fresco:roundingBorderColor="@color/white"
+        fresco:roundedCornerRadius="100dp"
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
         />

@@ -63,12 +63,11 @@ public class AndroidUtils {
             DAYS.toMillis(7),
             DAYS.toMillis(1),
             HOURS.toMillis(1),
-            MINUTES.toMillis(1),
-            SECONDS.toMillis(1)
+            MINUTES.toMillis(1)
     );
 
     public static final List<String> timesString = Arrays.asList(
-            "yr", "mo", "wk", "day", "hr", "min", "sec"
+            "y", "mo", "w", "d", "h", "m"
     );
 
     /**
@@ -94,9 +93,7 @@ public class AndroidUtils {
             long temp = duration / current;
             if (temp > 0) {
                 sb.append(temp)
-                        .append(" ")
-                        .append(timesString.get(i))
-                        .append(temp > 1 ? "s" : "");
+                        .append(timesString.get(i));
                 break;
             }
         }

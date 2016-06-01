@@ -10,6 +10,8 @@ public class CommentsHeader {
     private String posterDate;
     private String viewStatus;
     private String posterUserId;
+    private Boolean isFollowing;
+    private String postTitle;
 
     public CommentsHeader(){}
 
@@ -39,6 +41,12 @@ public class CommentsHeader {
     public void setViewStatus(String viewStatus) {
         this.viewStatus = viewStatus;
     }
+
+    public Boolean getIsFollowing() { return isFollowing; }
+    public void setIsFollowing(Boolean isFollowing) { this.isFollowing = isFollowing; }
+
+    public String getPostTitle() { return postTitle; }
+    public void setPostTitle(String postTitle) { this.postTitle = postTitle; }
 
 
 }

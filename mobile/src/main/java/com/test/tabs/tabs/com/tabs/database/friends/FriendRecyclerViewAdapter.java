@@ -1,35 +1,20 @@
 package com.test.tabs.tabs.com.tabs.database.friends;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
-import com.facebook.drawee.interfaces.SimpleDraweeControllerBuilder;
 import com.facebook.drawee.view.SimpleDraweeView;
-import com.facebook.login.widget.ProfilePictureView;
 import com.test.tabs.tabs.R;
-import com.test.tabs.tabs.com.tabs.activity.Comments;
-import com.test.tabs.tabs.com.tabs.activity.CommentsHeader;
-import com.test.tabs.tabs.com.tabs.activity.FriendsHeader;
+import com.test.tabs.tabs.com.tabs.activity.TabsUtil;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
-import com.test.tabs.tabs.com.tabs.database.comments.Comment;
-import com.test.tabs.tabs.com.tabs.database.posts.Post;
-import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -65,7 +50,6 @@ public class FriendRecyclerViewAdapter extends RecyclerView.Adapter<FriendRecycl
 
         FriendViewHolder(View itemView) {
             super(itemView);
-            System.out.println("FriendViewHolder: Constructor");
             cardViewFriend = (CardView) itemView.findViewById(R.id.friend_card_view);
             name = (TextView) itemView.findViewById(R.id.friend_name);
             friendProfilePhoto = (SimpleDraweeView) itemView.findViewById(R.id.friend_profile_picture);
@@ -92,7 +76,7 @@ public class FriendRecyclerViewAdapter extends RecyclerView.Adapter<FriendRecycl
             String userId = friendItems.get(i).getUserId();
             String isFriend = friendItems.get(i).getIsFriend();
             friendViewHolder.name.setText(name);
-            DraweeController controller = news_feed.getImage(userId);
+            DraweeController controller = TabsUtil.getImage(userId);
             RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
             roundingParams.setRoundAsCircle(true);
             friendViewHolder.friendProfilePhoto.getHierarchy().setRoundingParams(roundingParams);
@@ -108,6 +92,7 @@ public class FriendRecyclerViewAdapter extends RecyclerView.Adapter<FriendRecycl
                 @Override
                 public void onClick(View v) {
                     boolean updateSuccessful;
+                    System.out.println("Clicking!!!");
                     if (((CheckBox) v).isChecked()) {
                         friendItems.get(itemPosition).setIsFriend("true");
                     } else {
