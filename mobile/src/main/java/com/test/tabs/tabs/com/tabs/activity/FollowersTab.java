@@ -56,7 +56,6 @@ public class FollowersTab extends Fragment {
         fragmentView = inflater.inflate(R.layout.followers_tab, container, false);
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         databaseQuery = new DatabaseQuery(getActivity());
-        System.out.println("getFollowersTab: VISIBLE");
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         if(application.getUserId() != null && application.getUserId() != "") {
             userId = application.getUserId();

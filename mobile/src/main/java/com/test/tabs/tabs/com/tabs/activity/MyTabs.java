@@ -51,7 +51,6 @@ public class MyTabs extends Fragment {
         fragmentView = inflater.inflate(R.layout.my_tabs_tab, container, false);
         databaseQuery = new DatabaseQuery(getActivity());
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
-        System.out.println("MyTabTab: VISIBLE");
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         if(application.getUserId() != null && application.getUserId() != "") {
             userId = application.getUserId();

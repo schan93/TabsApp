@@ -109,15 +109,19 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         postViewHolder.posterPhoto.setController(controller);
         postViewHolder.numComments.setText(posts.get(i).getNumComments() + " Comments");
         postViewHolder.numComments.setTextSize(14);
-        if (posts.get(i).getPrivacy() == PrivacyEnum.Friends && !isPublic) {
-            //If it is a friends post, set the text to be "Friends"
-            postViewHolder.privacyStatus.setText(PrivacyEnum.Friends.toString());
-        } else if (posts.get(i).getPrivacy() == PrivacyEnum.Public && !isPublic) {
-            postViewHolder.privacyStatus.setText(PrivacyEnum.Public.toString());
-            //Set text to be public
+        if(getTabType() == TabEnum.Public || getTabType() == TabEnum.Friends) {
+            postViewHolder.privacyStatus.setVisibility(View.GONE);
         } else {
-            //We know that it is in the public tab so we don't show it.
-            postViewHolder.privacyStatus.setText("");
+            if (posts.get(i).getPrivacy() == PrivacyEnum.Friends && !isPublic) {
+                //If it is a friends post, set the text to be "Friends"
+                postViewHolder.privacyStatus.setText(PrivacyEnum.Friends.toString());
+            } else if (posts.get(i).getPrivacy() == PrivacyEnum.Public && !isPublic) {
+                postViewHolder.privacyStatus.setText(PrivacyEnum.Public.toString());
+                //Set text to be public
+            } else {
+                //We know that it is in the public tab so we don't show it.
+                postViewHolder.privacyStatus.setText("");
+            }
         }
         final Post post = posts.get(i);
 

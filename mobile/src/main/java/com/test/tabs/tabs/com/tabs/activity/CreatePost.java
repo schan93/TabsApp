@@ -114,7 +114,6 @@ public class CreatePost extends AppCompatActivity {
                 }
                 Location location = LocationService.getLastLocation();
                 Post createdPost = new Post("", postTitle.getText().toString(), name, post.getText().toString(), userId, getDateTime(), privacy, Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), 0);
-                System.out.println("CreatePost: Created post id: " + uniquePostId + " Name: " + name + " userId: " + userId);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
                 databaseQuery.savePostToFirebase(createdPost);
                 Intent intent = new Intent(CreatePost.this, news_feed.class);

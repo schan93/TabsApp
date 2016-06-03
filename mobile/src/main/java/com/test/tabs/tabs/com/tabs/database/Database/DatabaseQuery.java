@@ -273,22 +273,8 @@ public class DatabaseQuery implements Serializable {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
-                    Post post = postSnapShot.getValue(Post.class);
-                    //Get all the private posts
-                    List<Post> privatePosts = application.getPrivateAdapter().getPosts();
-                    //If the posts is equal to private, then we add it into the private posts static adapter
-                    if (application.getPrivateAdapter().containsId(privatePosts, post.getId()) == null) {
-                        List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
-                        Friend friend = application.getFriendsRecyclerViewAdapter().containsId(friends, post.getPosterUserId());
-                        if (friend != null && friend.getIsFriend().equals("true")) {
-                            application.getPrivateAdapter().getPosts().add(0, post);
-                        }
-                    }
-                }
                 TabsUtil.populateNewsFeedList(fragmentView, application.getPrivateAdapter(), TabEnum.Friends, context);
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    System.out.println("getFriendsPosts: GONE");
                     AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
                     fragmentView.findViewById(R.id.rv_private_feed).setVisibility(View.VISIBLE);
                 }
@@ -360,38 +346,10 @@ public class DatabaseQuery implements Serializable {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (final DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
-                    new AsyncTask<URL, Integer, Long>() {
-                        @Override
-                        protected Long doInBackground(URL... params) {
-                            Post post = postSnapShot.getValue(Post.class);
-                            //Get all the private posts
-                            List<Post> publicPosts = application.getPublicAdapter().getPosts();
-                            //If the posts is equal to private, then we add it into the private posts static adapter
-                            if (application.getPublicAdapter().containsId(publicPosts, post.getId()) == null) {
-                                List<Follower> followers = application.getFollowerRecyclerViewAdapter().getFollowers();
-                                Follower follower = application.getFollowerRecyclerViewAdapter().containsId(followers, post.getPosterUserId());
-                                if (follower != null && follower.getIsFollowing().equals("true")) {
-                                    application.getFollowerPostAdapter().getPosts().add(0, post);
-                                }
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        protected void onProgressUpdate(Integer... progress) {
-                        }
-
-                        @Override
-                        protected void onPostExecute(Long result) {
-                            TabsUtil.populateNewsFeedList(fragmentView, application.getFollowerPostAdapter(), TabEnum.Following, context);
-                            if (progressOverlay.getVisibility() == View.VISIBLE) {
-                                System.out.println("getFollowerPosts: GONE");
-                                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                                fragmentView.findViewById(R.id.rv_followers_feed).setVisibility(View.VISIBLE);
-                            }
-                        }
-                    };
+                TabsUtil.populateNewsFeedList(fragmentView, application.getFollowerPostAdapter(), TabEnum.Following, context);
+                if (progressOverlay.getVisibility() == View.VISIBLE) {
+                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                    fragmentView.findViewById(R.id.rv_followers_feed).setVisibility(View.VISIBLE);
                 }
             }
 
@@ -456,41 +414,15 @@ public class DatabaseQuery implements Serializable {
     public void getPublicPosts(final View progressOverlay, final View fragmentView, final Context context) {
         //Need to do order by / equal to.
         Firebase postsRef = firebaseRef.child("Posts");
-        Query query = postsRef.orderByChild("privacy").equalTo(PrivacyEnum.Public.toString());
-        query.keepSynced(true);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        postsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (final DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
-                    AsyncTask task = new AsyncTask<URL, Integer, Long>() {
-                        @Override
-                        protected Long doInBackground(URL... params) {
-                            Post post = postSnapShot.getValue(Post.class);
-                            List<Post> publicPosts = application.getPublicAdapter().getPosts();
-                            if (post.getPrivacy() == PrivacyEnum.Public && application.getPublicAdapter().containsId(publicPosts, post.getId()) == null) {
-                                application.getPublicAdapter().getPosts().add(0, post);
-                            }
-                            return null;
-                        }
-                        @Override
-                        protected void onProgressUpdate(Integer... progress) {
-                        }
-
-                        @Override
-                        protected void onPostExecute(Long result) {
-                            System.out.println("Finished executing public");
-                            TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), TabEnum.Public, context);
-                            if (progressOverlay.getVisibility() == View.VISIBLE) {
-                                System.out.println("getPublicPosts: GONE");
-                                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                                fragmentView.findViewById(R.id.rv_public_feed).setVisibility(View.VISIBLE);
-                            }
-                        }
-                    };
-//                    task.execute();
+                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), TabEnum.Public, context);
+                if (progressOverlay.getVisibility() == View.VISIBLE) {
+                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                    fragmentView.findViewById(R.id.rv_public_feed).setVisibility(View.VISIBLE);
                 }
             }
-
             @Override
             public void onCancelled(FirebaseError firebaseError) {
                 TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), TabEnum.Public, context);
@@ -550,14 +482,14 @@ public class DatabaseQuery implements Serializable {
         followersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot friendSnapShot : dataSnapshot.getChildren()) {
-                    Follower follower = friendSnapShot.getValue(Follower.class);
-                    String userId = follower.getUserId();
-                    List<Follower> followers = application.getFollowerRecyclerViewAdapter().getFollowers();
-                    if (application.getFollowerRecyclerViewAdapter().containsId(followers, userId) == null) {
-                        application.getFollowerRecyclerViewAdapter().getFollowers().add(follower);
-                    }
-                }
+//                for (DataSnapshot friendSnapShot : dataSnapshot.getChildren()) {
+//                    Follower follower = friendSnapShot.getValue(Follower.class);
+//                    String userId = follower.getUserId();
+//                    List<Follower> followers = application.getFollowerRecyclerViewAdapter().getFollowers();
+//                    if (application.getFollowerRecyclerViewAdapter().containsId(followers, userId) == null) {
+//                        application.getFollowerRecyclerViewAdapter().getFollowers().add(follower);
+//                    }
+//                }
                 if (application.getFromAnotherActivity() == false) {
                     setupNextActivity(loggedIn, activity);
                 }
@@ -625,15 +557,15 @@ public class DatabaseQuery implements Serializable {
         friendsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot friendSnapShot : dataSnapshot.getChildren()) {
-                    Friend friend = friendSnapShot.getValue(Friend.class);
-                    String userId = friend.getUserId();
-                    List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
-                    if (application.getFriendsRecyclerViewAdapter().containsId(friends, userId) == null) {
-                        System.out.println("login2: Adding Friend " + friend.getName() + " to array");
-                        application.getFriendsRecyclerViewAdapter().getFriends().add(friend);
-                    }
-                }
+//                for (DataSnapshot friendSnapShot : dataSnapshot.getChildren()) {
+//                    Friend friend = friendSnapShot.getValue(Friend.class);
+//                    String userId = friend.getUserId();
+//                    List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
+//                    if (application.getFriendsRecyclerViewAdapter().containsId(friends, userId) == null) {
+//                        System.out.println("login2: Adding Friend " + friend.getName() + " to array");
+//                        application.getFriendsRecyclerViewAdapter().getFriends().add(friend);
+//                    }
+//                }
                 getFriendsFromFacebook(userId, loggedIn, activity);
             }
 
@@ -795,16 +727,8 @@ public class DatabaseQuery implements Serializable {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot commentSnapShot : dataSnapshot.getChildren()) {
-                    Comment newComment = commentSnapShot.getValue(Comment.class);
-                    if (application.getCommentsRecyclerViewAdapter().containsId(commentItems, newComment.getId()) == null && newComment.getPostId().equals(postId) ) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().add(newComment);
-                    }
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
                 Comments.setupCommentsAdapter(postId, activity);
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    System.out.println("getComments DB: GONE");
                     AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
                     fragmentView.findViewById(R.id.view_comments).setVisibility(View.VISIBLE);
                 }
@@ -872,16 +796,8 @@ public class DatabaseQuery implements Serializable {
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot postSnapShot : dataSnapshot.getChildren()) {
-                    Post post = postSnapShot.getValue(Post.class);
-                    List<Post> myTabsPosts = application.getMyTabsAdapter().getPosts();
-                    if (application.getMyTabsAdapter().containsId(myTabsPosts, post.getId()) == null && post.getPosterUserId().equals(userId)) {
-                        application.getMyTabsAdapter().getPosts().add(0, post);
-                    }
-                }
                 TabsUtil.populateNewsFeedList(fragmentView, application.getMyTabsAdapter(), TabEnum.MyTab, context);
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    System.out.println("getMyTabsPosts : GONE");
                     AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
                     fragmentView.findViewById(R.id.rv_my_tabs_feed).setVisibility(View.VISIBLE);
                 }

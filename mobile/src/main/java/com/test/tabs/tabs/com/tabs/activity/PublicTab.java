@@ -5,6 +5,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,8 +65,6 @@ public class PublicTab extends Fragment {
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         databaseQuery = new DatabaseQuery(getActivity());
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-        System.out.println("getPublicTab: VISIBLE");
-
         databaseQuery.getPublicPosts(progressOverlay, fragmentView, getContext());
         return fragmentView;
     }
