@@ -1,40 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="200dp"
-    android:fitsSystemWindows="true"
-    xmlns:app="http://schemas.android.com/tools"
-    xmlns:fresco="http://schemas.android.com/apk/res-auto"
-    android:background="@color/colorPrimary"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark"
-    android:orientation="vertical"
-    app:showIn="@layout/activity_main">
-
-    <com.facebook.drawee.view.SimpleDraweeView
-        android:id="@+id/avatarImageView"
-        android:layout_width="85dp"
-        android:layout_height="85dp"
-        android:layout_centerInParent="true"
-        fresco:actualImageScaleType="focusCrop"
-        fresco:placeholderImageScaleType="centerCrop"
-        fresco:placeholderImage="@mipmap/blank_prof_pic"
-        fresco:roundAsCircle="true"
-        fresco:roundingBorderColor="@color/white"
-        fresco:roundedCornerRadius="100dp"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
     <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/avatarImageView"
-        android:textSize="16sp"
-        android:paddingTop="16dp"
-        android:id="@+id/user_name"
-        android:fontFamily="sans-serif-medium"
-        />
+        android:background="@drawable/edittext_bg"
+        android:id="@+id/friends_section_title"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
-</RelativeLayout>
+</LinearLayout>

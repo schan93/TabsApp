@@ -15,26 +15,21 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true">
 
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+                <include
+                    layout="@layout/drawer_view_header"
+                    android:id="@+id/navigation_header"/>
 
-            <include
-                layout="@layout/friends_list_header"
-                android:id="@+id/navigation_header"/>
+                <android.support.v7.widget.RecyclerView
+                    android:layout_below="@id/navigation_header"
+                    android:id="@+id/friends_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/friends_list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"></android.support.v7.widget.RecyclerView>
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/followers_list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"></android.support.v7.widget.RecyclerView>
-
-        </LinearLayout>
+                <android.support.v7.widget.RecyclerView
+                    android:layout_below="@id/friends_list"
+                    android:id="@+id/followers_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
 
     </android.support.design.widget.NavigationView>
 

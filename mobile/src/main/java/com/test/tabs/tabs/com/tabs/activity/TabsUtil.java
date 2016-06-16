@@ -18,7 +18,17 @@ import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.image.QualityInfo;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.database.comments.Comment;
+import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
+import com.test.tabs.tabs.com.tabs.database.companion.CompanionNamesAdapter;
+import com.test.tabs.tabs.com.tabs.database.followers.Follower;
+import com.test.tabs.tabs.com.tabs.database.followers.FollowerRecyclerViewAdapter;
+import com.test.tabs.tabs.com.tabs.database.friends.Friend;
+import com.test.tabs.tabs.com.tabs.database.friends.FriendRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
+import com.tonicartos.superslim.LayoutManager;
+
+import java.util.List;
 
 /**
  * Created by schan on 5/26/16.
@@ -71,11 +81,9 @@ public class TabsUtil {
         LinearLayoutManager llm = new LinearLayoutManager(activity.getApplicationContext());
         rv.setLayoutManager(llm);
         application = (FireBaseApplication) activity.getApplication();
-        if(companionType == CompanionEnum.Friend) {
-            rv.setAdapter(application.getFriendsRecyclerViewAdapter());
-        } else {
-            rv.setAdapter(application.getFollowerRecyclerViewAdapter());
-        }
+        List<Follower> followers = application.getFollowerRecyclerViewAdapter().getFollowers();
+        application.setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(application, activity, new FollowersListHeader("Followers"), followers));
+        rv.setAdapter(application.getFollowerRecyclerViewAdapter());
     }
 
     public static DraweeController getImage(String userId){

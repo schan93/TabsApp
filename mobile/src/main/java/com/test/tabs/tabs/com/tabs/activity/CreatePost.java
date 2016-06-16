@@ -108,10 +108,6 @@ public class CreatePost extends AppCompatActivity {
                     Toast.makeText(CreatePost.this, "Please enter a title.", Toast.LENGTH_SHORT).show();
                     return true;
                 }
-                if(postTitle.getText().length() == 0) {
-                    Toast.makeText(CreatePost.this, "Please enter a status.", Toast.LENGTH_SHORT).show();
-                    return true;
-                }
                 Location location = LocationService.getLastLocation();
                 Post createdPost = new Post("", postTitle.getText().toString(), name, post.getText().toString(), userId, getDateTime(), privacy, Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), 0);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
@@ -129,8 +125,8 @@ public class CreatePost extends AppCompatActivity {
     private void setupPrivacyToggle() {
         RadioGroup privacyToggle = (RadioGroup) findViewById(R.id.privacy_toggle);
         final RadioButton publicToggle = (RadioButton) findViewById(R.id.public_toggle);
-        final RadioButton privateToggle = (RadioButton) findViewById(R.id.private_toggle);
-        privateToggle.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        final RadioButton followersToggle = (RadioButton) findViewById(R.id.followers_toggle);
+        followersToggle.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
 
         //Set listener for clicking on toggle
         privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -139,12 +135,10 @@ public class CreatePost extends AppCompatActivity {
                 if (checkedId == R.id.public_toggle) {
                     privacy = PrivacyEnum.Public;
                     publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-                    System.out.println("Toggled public");
+                    followersToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                 } else {
-                    privateToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+                    followersToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
                     publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-                    System.out.println("Toggled private");
                     privacy = PrivacyEnum.Friends;
                 }
             }
@@ -160,7 +154,6 @@ public class CreatePost extends AppCompatActivity {
 
     private void setupActivity(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
-            // Restore value of members from saved state
             if(savedInstanceState.containsKey("userId")) {
                 userId = savedInstanceState.getString("userId");
             }
@@ -174,7 +167,6 @@ public class CreatePost extends AppCompatActivity {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putString("userId", userId);
         savedInstanceState.putString("name", name);
-        // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
     }
 

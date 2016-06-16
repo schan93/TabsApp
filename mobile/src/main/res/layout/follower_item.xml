@@ -14,6 +14,7 @@
         android:id="@+id/follower_card_view">
 
     <RelativeLayout
+        android:background="@drawable/edittext_bg"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:paddingTop="8dp"

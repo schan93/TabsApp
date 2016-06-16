@@ -1,32 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:fresco="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@drawable/background"
     android:layout_height="match_parent">
+
+    <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay" android:id="@+id/app_bar_login"/>
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/tabs_logo"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/ic_question_answer_white_48dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="200dp"/>
+
+    <!--<TextView-->
+        <!--android:fontFamily="sans-serif"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/app_name"-->
+        <!--android:padding="8dp"-->
+        <!--android:id="@+id/app_name"-->
+        <!--android:textSize="34sp"-->
+        <!--android:textColor="@color/white"-->
+        <!--android:layout_below="@id/tabs_logo"-->
+        <!--android:layout_centerHorizontal="true"-->
+        <!--android:layout_centerVertical="true"/>-->
 
     <com.facebook.login.widget.LoginButton
         android:id="@+id/login_button"
-        android:layout_width="fill_parent"
+        android:layout_margin="16dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_gravity="center_horizontal" />
-
-    <com.facebook.drawee.view.SimpleDraweeView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        fresco:placeholderImage="@mipmap/ic_launcher"
-        android:id="@+id/login_picture"/>
-
-    <include layout="@layout/include_progress_overlay"/>
+        android:minHeight="48dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true" />
 
     <TextView
+        android:fontFamily="sans-serif"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/info"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:textSize="18sp"
-        />
+        android:textSize="20sp"
+        android:id="@+id/tabs_subtitle"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_above="@id/login_button"
+        android:layout_marginBottom="20dp"
+        android:text="Find out what's going on in your area. "/>
 
 </RelativeLayout>

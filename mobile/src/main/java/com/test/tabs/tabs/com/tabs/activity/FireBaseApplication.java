@@ -41,7 +41,6 @@ public class FireBaseApplication extends Application {
     private static boolean fromAnotherActivity = false;
     private static String name = "";
     private static String userId = "";
-    private static FriendRecyclerViewAdapter friendsAdapter;
     private static PostRecyclerViewAdapter publicAdapter;
     private static PostRecyclerViewAdapter privateAdapter;
     private static PostRecyclerViewAdapter myTabsAdapter;
@@ -65,15 +64,6 @@ public class FireBaseApplication extends Application {
 
 
         myFirebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
-        //Batch push notifications
-        //Batch.setConfig(new Config("DEV56BC2B1738EFE251617C406E76D"));
-//        Batch.Push.setGCMSenderId("213033849274");
-//        Batch.setConfig(new Config("AIzaSyCP0MX6xM67bdd3-2cqCVjHqVFvF4HgcIw"));
-
-        //GCM push notifications
-//        new GcmRegistrationAsyncTask(this).execute();
-        //Starting gcm services
-//        new GcmIntentService();
         initializeAdapters();
         //Configure Fresco so that image loads quickly
         configFresco();
@@ -125,15 +115,6 @@ public class FireBaseApplication extends Application {
     public void setMyTabsAdapter(PostRecyclerViewAdapter myTabsAdapter) {
         this.myTabsAdapter = myTabsAdapter;
     }
-
-    public static FriendRecyclerViewAdapter getFriendsRecyclerViewAdapter() {
-        return friendsAdapter;
-    }
-
-    public void setFriendsAdapter(FriendRecyclerViewAdapter friendsAdapter) {
-        this.friendsAdapter = friendsAdapter;
-    }
-
     public static CommentsRecyclerViewAdapter getCommentsRecyclerViewAdapter(){
         return commentsRecyclerViewAdapter;
     }
@@ -171,12 +152,11 @@ public class FireBaseApplication extends Application {
         List<Post> myTabsPosts = new ArrayList<Post>();
         List<Post> followerPosts = new ArrayList<>();
         setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), new ArrayList<Comment>()));
-        setFriendsAdapter(new FriendRecyclerViewAdapter(friends));
         setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, TabEnum.Public));
         setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false, TabEnum.Friends));
         setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false, TabEnum.MyTab));
         setFollowerPostAdapter(new PostRecyclerViewAdapter(followerPosts, this, false, TabEnum.Following));
-        setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(followers));
+        setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(new FollowersListHeader("Followers"), followers));
     }
 
     /**
@@ -202,69 +182,4 @@ public class FireBaseApplication extends Application {
         Fresco.initialize(this, frescoConfig);
     }
 
-}
-
-class GcmRegistrationAsyncTask extends AsyncTask<Void, Void, String> {
-    private static Registration regService = null;
-    private GoogleCloudMessaging gcm;
-    private Context context;
-
-    // TODO: change to your own sender ID to Google Developers Console project number, as per instructions above
-    private static final String SENDER_ID = "213033849274";
-
-    public GcmRegistrationAsyncTask(Context context) {
-        this.context = context;
-    }
-
-    @Override
-    protected String doInBackground(Void... params) {
-        if (regService == null) {
-//            Registration.Builder builder = new Registration.Builder(AndroidHttp.newCompatibleTransport(),
-//                    new AndroidJsonFactory(), null).setRootUrl("https://tabs-1124.appspot.com/_ah/api/");
-//            // end of optional local run code
-//
-//            regService = builder.build();
-
-            Registration.Builder builder = new Registration.Builder(AndroidHttp.newCompatibleTransport(),
-                    new AndroidJsonFactory(), null)
-                    // Need setRootUrl and setGoogleClientRequestInitializer only for local testing,
-                    // otherwise they can be skipped
-                    .setRootUrl("http://10.0.2.2:8080/_ah/api/")
-                    .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
-                        @Override
-                        public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest)
-                                throws IOException {
-                            abstractGoogleClientRequest.setDisableGZipContent(true);
-                        }
-                    });
-
-            regService = builder.build();
-        }
-
-        String msg = "";
-        try {
-            if (gcm == null) {
-                gcm = GoogleCloudMessaging.getInstance(context);
-            }
-            String regId = gcm.register(SENDER_ID);
-            msg = "Device registered, registration ID=" + regId;
-
-            // You should send the registration ID to your server over HTTP,
-            // so it can use GCM/HTTP or CCS to send messages to your app.
-            // The request to your server should be authenticated if your app
-            // is using accounts.
-//            regService.register(regId).execute();
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            msg = "Error: " + ex.getMessage();
-        }
-        return msg;
-    }
-
-    @Override
-    protected void onPostExecute(String msg) {
-        Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
-        Logger.getLogger("REGISTRATION").log(Level.INFO, msg);
-    }
 }

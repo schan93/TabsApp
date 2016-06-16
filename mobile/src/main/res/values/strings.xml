@@ -6,4 +6,8 @@
 
     <string name="action_logout">Logout</string>
     <string name="facebook_app_id">1649818601942342</string>
+
+    <string name="followers">Followers</string>
+    <string name="publicString">Public</string>
+
 </resources>

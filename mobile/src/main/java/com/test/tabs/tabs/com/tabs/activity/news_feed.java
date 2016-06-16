@@ -20,6 +20,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.facebook.appevents.AppEventsLogger;
@@ -48,7 +50,6 @@ import com.firebase.client.ValueEventListener;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.followers.Follower;
-import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 
 public class news_feed extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -56,7 +57,6 @@ public class news_feed extends AppCompatActivity
     String userId;
     Handler handler;
     FireBaseApplication application;
-    List<String> currentFriendItems = new ArrayList<String>();
     List<String> currentFollowerItems = new ArrayList<String>();
     DatabaseQuery databaseQuery;
     String name;
@@ -92,12 +92,6 @@ public class news_feed extends AppCompatActivity
 
             public void onDrawerOpened(View view) {
                 super.onDrawerOpened(view);
-                if(currentFriendItems.size() > 0) {
-                    currentFriendItems.clear();
-                }
-                for(Friend friend: application.getFriendsRecyclerViewAdapter().getFriends()) {
-                    currentFriendItems.add(friend.getIsFriend());
-                }
                 if(currentFollowerItems.size() > 0) {
                     currentFollowerItems.clear();
                 }
@@ -110,9 +104,7 @@ public class news_feed extends AppCompatActivity
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
                 System.out.println("Drawer closed");
-                List<Friend> friends = application.getFriendsRecyclerViewAdapter().getFriends();
 //                List<Follower> followers = application.getFollowerRecyclerViewAdapter().getFollowers();
-                updateFriendToFirebase(friends, currentFriendItems);
 //                updateFollowerToFirebase(followers, currentFollowerItems);
             }
         };
@@ -123,13 +115,12 @@ public class news_feed extends AppCompatActivity
 
         tabLayout = (TabLayout) layout.findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("Public"));
-        tabLayout.addTab(tabLayout.newTab().setText("Friends"));
-        tabLayout.addTab(tabLayout.newTab().setText("My Tabs"));
         tabLayout.addTab(tabLayout.newTab().setText("Following"));
+        tabLayout.addTab(tabLayout.newTab().setText("Profile"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-        viewPager.setOffscreenPageLimit(4);
+        viewPager.setOffscreenPageLimit(3);
         final PagerAdapter adapter = new PagerAdapter
                 (getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
@@ -249,59 +240,34 @@ public class news_feed extends AppCompatActivity
         AppEventsLogger.deactivateApp(this);
     }
 
-    public void updateFriendToFirebase(List<Friend> friends, List<String> currentFriendItems) {
-        //Need to check if the we should even update the freinds list
-        boolean areUpdated = checkUpdatedFriends(friends, currentFriendItems);
-        if(areUpdated) {
-            Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Friends");
-            Map<String, Object> updatedFriends = new HashMap<String, Object>();
-            for(Friend friend: friends) {
-                updatedFriends.put(friend.getUser() + "/" + friend.getId() + "/isFriend", friend.getIsFriend());
-            }
-            application.setFromAnotherActivity(true);
-            reference.updateChildren(updatedFriends, new Firebase.CompletionListener() {
-                @Override
-                public void onComplete(FirebaseError firebaseError, Firebase firebase) {
-                    if (firebaseError != null) {
-                        System.out.println("There was an error saving data. ");
-                    } else {
-                        if(application.getFromAnotherActivity() == true) {
-                            application.setFromAnotherActivity(false);
-                        }
-                    }
-                }
-            });
-        }
-    }
 
-
-    public boolean checkUpdatedFriends(List<Friend> friends, List<String> currentFriendItems) {
-        boolean result = false;
-        if(friends.size() != currentFriendItems.size()){
-            System.out.println("Error: There was an unexpected error.");
-            System.out.println("news_feed: Returning false");
-            return false;
-        }
-        for(int i = 0; i < friends.size(); i++) {
-            System.out.println("news_feed: Friend 1: " + friends.get(i).getName() + "'s isFriend is: "
-                    + friends.get(i).getIsFriend() + ". Friend 2's isFriend is: " +
-                    currentFriendItems.get(i));
-            if(friends.get(i).getIsFriend() == currentFriendItems.get(i)) {
-                continue;
-            } else {
-                System.out.println("news_feed: There was a difference because: " + friends.get(i).getName() + "'s isFriend is: "
-                        + friends.get(i).getIsFriend() + " but Friend 2's isFriend is: " +
-                        currentFriendItems.get(i));
-                System.out.println("news_feed: The friend get is friend " + friends.get(i).getName() + " is now: " + friends.get(i).getIsFriend());
-                result = true;
-            }
-        }
-        if(result == true) {
-            application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
-        }
-        System.out.println("news_feed: Final Returning Result: " + result);
-        return result;
-    }
+//    public boolean checkUpdatedFriends(List<Friend> friends, List<String> currentFriendItems) {
+//        boolean result = false;
+//        if(friends.size() != currentFriendItems.size()){
+//            System.out.println("Error: There was an unexpected error.");
+//            System.out.println("news_feed: Returning false");
+//            return false;
+//        }
+//        for(int i = 0; i < friends.size(); i++) {
+//            System.out.println("news_feed: Friend 1: " + friends.get(i).getName() + "'s isFriend is: "
+//                    + friends.get(i).getIsFriend() + ". Friend 2's isFriend is: " +
+//                    currentFriendItems.get(i));
+//            if(friends.get(i).getIsFriend() == currentFriendItems.get(i)) {
+//                continue;
+//            } else {
+//                System.out.println("news_feed: There was a difference because: " + friends.get(i).getName() + "'s isFriend is: "
+//                        + friends.get(i).getIsFriend() + " but Friend 2's isFriend is: " +
+//                        currentFriendItems.get(i));
+//                System.out.println("news_feed: The friend get is friend " + friends.get(i).getName() + " is now: " + friends.get(i).getIsFriend());
+//                result = true;
+//            }
+//        }
+//        if(result == true) {
+//            application.getFriendsRecyclerViewAdapter().notifyDataSetChanged();
+//        }
+//        System.out.println("news_feed: Final Returning Result: " + result);
+//        return result;
+//    }
 
     private void setupActivity(Bundle savedInstanceState) {
         if (savedInstanceState != null) {

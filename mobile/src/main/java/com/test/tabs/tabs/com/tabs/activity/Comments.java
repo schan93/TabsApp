@@ -192,7 +192,6 @@ public class Comments extends AppCompatActivity {
 
     public void populateCommentView(String postId) {
         //Set up loading page first
-        System.out.println("getCommentsView: VISIBLE");
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         databaseQuery.getComments(postId, Comments.this, commentsView, progressOverlay);
     }
@@ -393,7 +392,6 @@ public class Comments extends AppCompatActivity {
             } else {
                 isFollowingPoster = false;
             }
-            // Probably initialize members with default values for a new instance
         }
 
         databaseQuery = new DatabaseQuery(this);
@@ -411,7 +409,7 @@ public class Comments extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         notificationManager = (NotificationManager)
                 getSystemService(NOTIFICATION_SERVICE);
-        commentsView = (RecyclerView) findViewById(R.id.view_comments);
+        commentsView = (RecyclerView) findViewById(R.id.rv_view_comments);
 //        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
         llm = new LinearLayoutManager(this);
         commentsView.setLayoutManager(llm);

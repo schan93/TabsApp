@@ -70,7 +70,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     }
 
     public static Comment containsId(List<Comment> list, String id) {
-        System.out.println("CommentsAdapter: id: " + id);
         for (Comment object : list) {
             if (object.getId().equals(id)) {
                 return object;
@@ -89,9 +88,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         if(i == TYPE_HEADER)
         {
-            System.out.println("Inflating header");
-            System.out.println("View Group Context: " + viewGroup);
-            System.out.println("Context: " + viewGroup.getContext());
             View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.comments_header, viewGroup, false);
             CommentsHeaderView vh = new CommentsHeaderView(v);
             return vh;
