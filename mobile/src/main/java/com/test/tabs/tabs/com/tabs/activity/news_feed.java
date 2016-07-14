@@ -60,9 +60,7 @@ public class news_feed extends AppCompatActivity
     List<String> currentFollowerItems = new ArrayList<String>();
     DatabaseQuery databaseQuery;
     String name;
-    private static DrawerLayout drawer;
     private static TabLayout tabLayout;
-    private static ActionBarDrawerToggle toggle;
     public news_feed(){
 
     }
@@ -71,47 +69,21 @@ public class news_feed extends AppCompatActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        setContentView(R.layout.app_bar_news_feed);
         application =  (FireBaseApplication) getApplication();
         databaseQuery = new DatabaseQuery(this);
         handler = new Handler();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if(application.getName() != null && application.getName() != "") {
+        if(application.getName() != null && !application.getName().equals("")) {
             name = application.getName();
         }
-        if(application.getUserId() != null && application.getUserId() != "") {
+        if(application.getUserId() != null && !application.getUserId().equals("")) {
             userId = application.getUserId();
         }
         setupActivity(savedInstanceState);
 
-        //Listen for navigation events
-        toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
-
-            public void onDrawerOpened(View view) {
-                super.onDrawerOpened(view);
-                if(currentFollowerItems.size() > 0) {
-                    currentFollowerItems.clear();
-                }
-                for(Follower follower: application.getFollowerRecyclerViewAdapter().getFollowers()) {
-                    currentFollowerItems.add(follower.getIsFollowing());
-                }
-            }
-
-            /** Called when a drawer has settled in a completely closed state. */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                System.out.println("Drawer closed");
-//                List<Follower> followers = application.getFollowerRecyclerViewAdapter().getFollowers();
-//                updateFollowerToFirebase(followers, currentFollowerItems);
-            }
-        };
-
-        drawer.setDrawerListener(toggle);
-
-        View layout = findViewById(R.id.app_bar_main);
+        View layout = findViewById(R.id.activity_main);
 
         tabLayout = (TabLayout) layout.findViewById(R.id.tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("Public"));
@@ -142,6 +114,8 @@ public class news_feed extends AppCompatActivity
             }
         });
 
+        checkFromIntent(viewPager);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -154,18 +128,12 @@ public class news_feed extends AppCompatActivity
                 }
             }
         });
-
-        drawerHeaderSetup(userId, name);
-        TabsUtil.populateCompanionList(CompanionEnum.Friend, news_feed.this);
-        TabsUtil.populateCompanionList(CompanionEnum.Follower, news_feed.this);
-
         //populateNewsFeedList();
     }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        toggle.syncState();
 
     }
 
@@ -176,26 +144,13 @@ public class news_feed extends AppCompatActivity
         AppEventsLogger.activateApp(this);
     }
 
-    private void drawerHeaderSetup(String id, String name) {
-        DraweeController controller = TabsUtil.getImage(id);
-        SimpleDraweeView draweeView = (SimpleDraweeView) findViewById(R.id.avatarImageView);
-        draweeView.setController(controller);
-        TextView headerName = (TextView) findViewById(R.id.user_name);
-        headerName.setText(name);
-    }
-
     @Override
     public void onBackPressed() {
-
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-            Intent startMain = new Intent(Intent.ACTION_MAIN);
-            startMain.addCategory(Intent.CATEGORY_HOME);
-            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(startMain);
-        }
+        super.onBackPressed();
+        Intent startMain = new Intent(Intent.ACTION_MAIN);
+        startMain.addCategory(Intent.CATEGORY_HOME);
+        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(startMain);
     }
 
     @Override
@@ -228,8 +183,8 @@ public class news_feed extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+//        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -287,6 +242,12 @@ public class news_feed extends AppCompatActivity
         savedInstanceState.putString("name", name);
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
+    }
+
+    private void checkFromIntent(ViewPager viewPager) {
+        if(getIntent().getExtras() != null) {
+            viewPager.setCurrentItem(3);
+        }
     }
 
 

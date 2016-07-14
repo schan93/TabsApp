@@ -2,13 +2,21 @@ package com.test.tabs.tabs.com.tabs.activity;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Typeface;
 import android.graphics.drawable.Animatable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
+import android.text.Html;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.facebook.common.logging.FLog;
 import com.facebook.drawee.backends.pipeline.Fresco;
@@ -20,13 +28,9 @@ import com.facebook.imagepipeline.image.QualityInfo;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
-import com.test.tabs.tabs.com.tabs.database.companion.CompanionNamesAdapter;
 import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.followers.FollowerRecyclerViewAdapter;
-import com.test.tabs.tabs.com.tabs.database.friends.Friend;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
-import com.tonicartos.superslim.LayoutManager;
 
 import java.util.List;
 
@@ -50,15 +54,6 @@ public class TabsUtil {
         return null;
     }
 
-    private static View getCompanionType(CompanionEnum companionType, Activity activity) {
-        if(companionType  == CompanionEnum.Friend) {
-            return activity.findViewById(R.id.friends_list);
-        } else if(companionType == CompanionEnum.Follower) {
-            return activity.findViewById(R.id.followers_list);
-        }
-        return null;
-    }
-
     public static void populateNewsFeedList(View fragmentView, PostRecyclerViewAdapter adapter, TabEnum tabType, Context context) {
         RecyclerView rv = (RecyclerView) getTabType(fragmentView, tabType);
         RecyclerView.ItemAnimator animator = rv.getItemAnimator();
@@ -72,18 +67,16 @@ public class TabsUtil {
         rv.setAdapter(adapter);
     }
 
-    public static void populateCompanionList(CompanionEnum companionType, Activity activity) {
-        RecyclerView rv = (RecyclerView) getCompanionType(companionType, activity);
-        RecyclerView.ItemAnimator animator = rv.getItemAnimator();
+    public static void populateFollowList(Context context, RecyclerView recyclerView, FollowerRecyclerViewAdapter adapter) {
+        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
         }
-        LinearLayoutManager llm = new LinearLayoutManager(activity.getApplicationContext());
-        rv.setLayoutManager(llm);
-        application = (FireBaseApplication) activity.getApplication();
-        List<Follower> followers = application.getFollowerRecyclerViewAdapter().getFollowers();
-        application.setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(application, activity, new FollowersListHeader("Followers"), followers));
-        rv.setAdapter(application.getFollowerRecyclerViewAdapter());
+        //Assuming we refresh the followers list, we have to make sure that new followers are loaded
+        adapter.notifyDataSetChanged();
+        LinearLayoutManager llm = new LinearLayoutManager(context);
+        recyclerView.setLayoutManager(llm);
+        recyclerView.setAdapter(adapter);
     }
 
     public static DraweeController getImage(String userId){
@@ -123,6 +116,49 @@ public class TabsUtil {
         System.out.println("Controller: " + controller);
         return controller;
         //draweeView.setImageURI(uri);
+    }
+
+    public static void setupProfileView(final View view, final String callingActivityName, String ... intentVariables) {
+        final Bundle bundle = new Bundle();
+        if(intentVariables.length > 0) {
+            bundle.putString("posterUserId", intentVariables[0]);
+            bundle.putString("posterName", intentVariables[1]);
+            bundle.putString("postStatus", intentVariables[2]);
+            bundle.putString("postTimeStamp", intentVariables[3]);
+            bundle.putString("postTitle", intentVariables[4]);
+        }
+        bundle.putString("parentClass", callingActivityName);
+
+        Button followersButton = (Button) view.findViewById(R.id.followers_button);
+        Button followingButton = (Button) view.findViewById(R.id.following_button);
+        TextView totalNumPosts = (TextView) view.findViewById(R.id.total_num_posts);
+        TextView totalNumComments = (TextView) view.findViewById(R.id.total_num_comments);
+
+        SpannableString spanString = new SpannableString(String.valueOf(application.getMyTabsAdapter().getItemCount()));
+        spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
+
+        totalNumPosts.setText(Html.fromHtml("<b>" + application.getMyTabsAdapter().getItemCount() + "</b>" + "\nPosts"));
+        totalNumComments.setText(Html.fromHtml("<b>" + application.getCommentsRecyclerViewAdapter().getItemCount() + "</b>" + "\nComments"));
+        followersButton.setText(Html.fromHtml("<b>" + application.getFollowerRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowers"));
+        followingButton.setText(Html.fromHtml("<b>" + application.getFollowingRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowing"));
+
+        followersButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(view.getContext(), FollowersList.class);
+                intent.putExtras(bundle);
+                view.getContext().startActivity(intent);
+            }
+        });
+
+        followingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(view.getContext(), FollowingList.class);
+                intent.putExtras(bundle);
+                view.getContext().startActivity(intent);
+            }
+        });
     }
 
 }

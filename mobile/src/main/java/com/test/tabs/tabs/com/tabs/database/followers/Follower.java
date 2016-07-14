@@ -8,19 +8,20 @@ public class Follower {
     Follower(){
     }
 
-    public Follower(String id, String userId, String name, String user, String isFollowing){
+    public Follower(String id, String userId, String name, String user, Boolean isAlsoFollowing){
         this.id = id;
         this.userId = userId;
         this.name = name;
         this.user = user;
-        this.isFollowing = isFollowing;
+        this.isAlsoFollowing = isAlsoFollowing;
     }
     ;
     private String id;
     private String userId;
     private String name;
     private String user;
-    private String isFollowing;
+    private Boolean isAlsoFollowing;
+
 
     public String getName(){
         return name;
@@ -36,7 +37,7 @@ public class Follower {
 
     public String getUser() { return user; }
 
-    public String getIsFollowing() { return isFollowing; }
+    public Boolean getIsAlsoFollowing() { return isAlsoFollowing; }
 
     public void setId(String id){
         this.id = id;
@@ -48,7 +49,7 @@ public class Follower {
 
     public void setUserId(String userId) {this.userId = userId; }
 
-    public void setIsFollowing(String isFriend) { this.isFollowing = isFriend; }
+    public void setIsAlsoFollowing(Boolean isAlsoFollowing) { this.isAlsoFollowing = isAlsoFollowing; }
 
     public void setUser(String user) { this.user = user; }
 }

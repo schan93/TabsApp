@@ -40,6 +40,8 @@ public class login extends Activity implements Serializable{
         super.onCreate(savedInstanceState);
         setupActivity();
         checkIsLoggedIn();
+        //Setup database
+
     }
 
     @Override
@@ -86,9 +88,10 @@ public class login extends Activity implements Serializable{
         application.setName(name);
         application.setUserId(userId);
         application.getPublicAdapter().setUserId(userId);
-        application.getPrivateAdapter().setUserId(userId);
+        application.getFollowingPostAdapter().setUserId(userId);
         application.getMyTabsAdapter().setUserId(userId);
-        databaseQuery.getUserFromFacebook(userId, loggedIn, login.this);
+        databaseQuery = new DatabaseQuery(this);
+        databaseQuery.getUserFromFacebook(currentUserId, loggedIn, login.this);
     }
 
     /**
@@ -115,7 +118,6 @@ public class login extends Activity implements Serializable{
         //Initialize Facebook SDK & Callback Manager
         FacebookSdk.sdkInitialize(getApplicationContext());
         callbackManager = CallbackManager.Factory.create();
-        databaseQuery = new DatabaseQuery(this);
         application =  (FireBaseApplication) getApplication();
         //Set up location services
         LocationService.getLocationManager(this);

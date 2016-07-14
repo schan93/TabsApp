@@ -9,7 +9,6 @@ import android.graphics.PointF;
 
 import com.test.tabs.tabs.com.tabs.activity.PrivacyEnum;
 import com.test.tabs.tabs.com.tabs.database.SQLite.DatabaseHelper;
-import com.test.tabs.tabs.com.tabs.database.friends.Friend;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -203,7 +202,7 @@ public class PostsDataSource {
         List<Post> posts = new ArrayList<Post>();
 
         Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
-                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? ", new String[]{PrivacyEnum.Friends.toString()}, null, null, null);
+                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? ", new String[]{PrivacyEnum.Following.toString()}, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -228,26 +227,6 @@ public class PostsDataSource {
             cursor.moveToNext();
         }
         cursor.close();
-        return posts;
-    }
-
-    public List<Post> getPostsByFriends(List<Friend> friendsUserIds) {
-        List<Post> posts = new ArrayList<Post>();
-        Cursor cursor = null;
-        for(int i = 0; i < friendsUserIds.size(); i++){
-            cursor = database.query(DatabaseHelper.TABLE_POSTS,
-                    allColumns, DatabaseHelper.COLUMN_USER_ID + " = ?", new String[]{friendsUserIds.get(i).getUserId()},
-                    null, null, null);
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                Post post = cursorToPost(cursor);
-                posts.add(post);
-                cursor.moveToNext();
-            }
-        }
-        if(cursor != null)
-            cursor.close();
-        System.out.println("Number of posts from friends: " + posts.size());
         return posts;
     }
 

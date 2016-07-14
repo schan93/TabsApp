@@ -68,7 +68,7 @@ public class CreatePost extends AppCompatActivity {
 
         setupPrivacyToggle();
         //First posts are always private
-        privacy = PrivacyEnum.Friends;
+        privacy = PrivacyEnum.Public;
     }
 
     private void setupActionBar(){
@@ -139,7 +139,7 @@ public class CreatePost extends AppCompatActivity {
                 } else {
                     followersToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
                     publicToggle.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
-                    privacy = PrivacyEnum.Friends;
+                    privacy = PrivacyEnum.Following;
                 }
             }
         });

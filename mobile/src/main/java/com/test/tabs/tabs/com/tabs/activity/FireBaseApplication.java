@@ -21,10 +21,9 @@ import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.followers.FollowerRecyclerViewAdapter;
-import com.test.tabs.tabs.com.tabs.database.friends.Friend;
-import com.test.tabs.tabs.com.tabs.database.friends.FriendRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
+import com.test.tabs.tabs.com.tabs.database.users.User;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -42,10 +41,15 @@ public class FireBaseApplication extends Application {
     private static String name = "";
     private static String userId = "";
     private static PostRecyclerViewAdapter publicAdapter;
-    private static PostRecyclerViewAdapter privateAdapter;
+    private static PostRecyclerViewAdapter followingPostAdapter;
     private static PostRecyclerViewAdapter myTabsAdapter;
+    private static PostRecyclerViewAdapter userAdapter;
     private static CommentsRecyclerViewAdapter commentsRecyclerViewAdapter;
     private static FollowerRecyclerViewAdapter followerRecyclerViewAdapter;
+    private static FollowerRecyclerViewAdapter followingRecyclerViewAdapter;
+    private static List<String> userInfoAdapter;
+    private static User viewingUser;
+
     private static PostRecyclerViewAdapter followerPostAdapter;
     private static Post currentPost;
     public static boolean testIsDone = true;
@@ -95,17 +99,8 @@ public class FireBaseApplication extends Application {
         this.publicAdapter = publicAdapter;
     }
 
-    public static PostRecyclerViewAdapter getPrivateAdapter() {
-        return privateAdapter;
-    }
-
     public static PostRecyclerViewAdapter getFollowerPostAdapter() {
         return followerPostAdapter;
-    }
-
-
-    public void setPrivateAdapter(PostRecyclerViewAdapter privateAdapter) {
-        this.privateAdapter = privateAdapter;
     }
 
     public static PostRecyclerViewAdapter getMyTabsAdapter() {
@@ -127,6 +122,10 @@ public class FireBaseApplication extends Application {
         return followerRecyclerViewAdapter;
     }
 
+    public static FollowerRecyclerViewAdapter getFollowingRecyclerViewAdapter(){
+        return followingRecyclerViewAdapter;
+    }
+
     public void setCommentsRecyclerViewAdapter(CommentsRecyclerViewAdapter commentsRecyclerViewAdapter) {
         this.commentsRecyclerViewAdapter = commentsRecyclerViewAdapter;
     }
@@ -139,24 +138,52 @@ public class FireBaseApplication extends Application {
         return fromAnotherActivity;
     }
 
-    public void setFollowerPostAdapter(PostRecyclerViewAdapter followerPostAdapter) {
-        this.followerPostAdapter = followerPostAdapter;
+    public void setFollowingRecyclerViewAdapter(FollowerRecyclerViewAdapter followingRecyclerViewAdapter) {
+        this.followingRecyclerViewAdapter = followingRecyclerViewAdapter;
     }
 
+    public void setFollowingPostAdapter(PostRecyclerViewAdapter followingPostAdapter) {
+        this.followingPostAdapter = followingPostAdapter;
+    }
+
+    public void setUserInfoAdapter(List<String> userInfoAdapter) {
+        this.userInfoAdapter = userInfoAdapter;
+    }
+
+    public List<String> getUserInfoAdapter() {
+        return this.userInfoAdapter;
+    }
+
+    public PostRecyclerViewAdapter getFollowingPostAdapter() {
+        return this.followingPostAdapter;
+    }
+
+    public PostRecyclerViewAdapter getUserAdapter() { return this.userAdapter; }
+
+    public void setUserAdapter(PostRecyclerViewAdapter userAdapter) { this.userAdapter = userAdapter; }
+
+    public User getViewingUser() { return this.viewingUser; }
+
+    public void setViewingUser(User viewingUser) { this.viewingUser = viewingUser; }
 
     private void initializeAdapters() {
-        List<Follower> followers = new ArrayList<Follower>();
-        List<Friend> friends = new ArrayList<Friend>();
-        List<Post> privatePosts = new ArrayList<Post>();
+        List<User> followers = new ArrayList<User>();
+        List<User> following = new ArrayList<User>();
         List<Post> publicPosts = new ArrayList<Post>();
         List<Post> myTabsPosts = new ArrayList<Post>();
-        List<Post> followerPosts = new ArrayList<>();
+        List<Post> followingPosts = new ArrayList<>();
+        List<Post> userPosts = new ArrayList<>();
+        List<String> userInfoAdapter = new ArrayList<>();
+        User user = new User();
         setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), new ArrayList<Comment>()));
         setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, TabEnum.Public));
-        setPrivateAdapter(new PostRecyclerViewAdapter(privatePosts, this, false, TabEnum.Friends));
         setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false, TabEnum.MyTab));
-        setFollowerPostAdapter(new PostRecyclerViewAdapter(followerPosts, this, false, TabEnum.Following));
-        setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(new FollowersListHeader("Followers"), followers));
+        setFollowingPostAdapter(new PostRecyclerViewAdapter(followingPosts, this, false, TabEnum.Following));
+        setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(followers));
+        setFollowingRecyclerViewAdapter(new FollowerRecyclerViewAdapter(following));
+        setUserAdapter(new PostRecyclerViewAdapter(userPosts, this, false, null));
+        setUserInfoAdapter(userInfoAdapter);
+        setViewingUser(user);
     }
 
     /**

@@ -1,11 +1,13 @@
 package com.test.tabs.tabs.com.tabs.database.followers;
 
 import android.app.Activity;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
@@ -16,29 +18,25 @@ import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.FireBaseApplication;
 import com.test.tabs.tabs.com.tabs.activity.TabsUtil;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
-import com.test.tabs.tabs.com.tabs.database.friends.Friend;
+import com.test.tabs.tabs.com.tabs.database.users.User;
 
 import java.util.List;
 
 /**
  * Created by schan on 5/14/16.
  */
-public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRecyclerViewAdapter.FollowerViewHolder>{
 
-    private static final int TYPE_HEADER = 0;
-    private static final int TYPE_ITEM = 1;
-    private FollowersListHeader followersListHeader;
-
-    private List<Follower> followers;
+    private List<User> followers;
     private FireBaseApplication fireBaseApplication;
     private DatabaseQuery databaseQuery;
 
-    public void setFollowers(List<Follower> followers) {
+    public void setFollowers(List<User> followers) {
         this.followers = followers;
     }
 
-    public static Follower containsId(List<Follower> list, String id) {
-        for (Follower object : list) {
+    public static User containsUserId(List<User> list, String id) {
+        for (User object : list) {
             if (object.getUserId().equals(id)) {
                 return object;
             }
@@ -46,89 +44,91 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         return null;
     }
 
-    public FollowerRecyclerViewAdapter(FollowersListHeader header, List<Follower> followers) {
-        this.followersListHeader = header;
+    public FollowerRecyclerViewAdapter(List<User> followers) {
         this.followers = followers;
     }
 
-    public FollowerRecyclerViewAdapter(FireBaseApplication application, Activity activity, FollowersListHeader header, List<Follower> followers) {
-        this.followersListHeader = header;
+    public FollowerRecyclerViewAdapter(FireBaseApplication application, Activity activity, List<User> followers) {
         this.followers = followers;
         this.fireBaseApplication = application;
         this.databaseQuery = new DatabaseQuery(activity);
     }
 
-    public List<Follower> getFollowers(){
+    public List<User> getFollowers(){
         return this.followers;
     }
 
-    public FollowersListHeader getFollowersHeader(){
-        return this.followersListHeader;
-    }
-
-    //+1 for header
     @Override
     public int getItemCount() {
-        return followers.size() + 1;
+        return followers.size();
+    }
+
+    public static class FollowerViewHolder extends RecyclerView.ViewHolder {
+        CardView cardViewfollower;
+        TextView name;
+        Button isFollowingButton;
+        SimpleDraweeView followerProfilePhoto;
+
+        FollowerViewHolder(View itemView) {
+            super(itemView);
+            cardViewfollower = (CardView) itemView.findViewById(R.id.follower_card_view);
+            name = (TextView) itemView.findViewById(R.id.follower_name);
+            followerProfilePhoto = (SimpleDraweeView) itemView.findViewById(R.id.follower_profile_picture);
+            isFollowingButton = (Button) itemView.findViewById(R.id.follower_button);
+        }
     }
 
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        if(i == TYPE_HEADER)
-        {
-            View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.followers_list_header, viewGroup, false);
-            FollowersHeaderView vh = new FollowersHeaderView(v);
-            return vh;
+    public void onBindViewHolder(FollowerViewHolder followerViewHolder, int i) {
+        final User currentItem = getItem(i);
+        followerViewHolder.name.setText(currentItem.getName());
+        DraweeController controller = TabsUtil.getImage(currentItem.getUserId());
+        RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
+        roundingParams.setRoundAsCircle(true);
+        followerViewHolder.followerProfilePhoto.getHierarchy().setRoundingParams(roundingParams);
+        followerViewHolder.followerProfilePhoto.setController(controller);
+        List<User> followers = fireBaseApplication.getFollowingRecyclerViewAdapter().getFollowers();
+        if(fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(followers, currentItem.getUserId()) != null) {
+            followerViewHolder.isFollowingButton.setText("Following");
+            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.following_button_bg);
+            followerViewHolder.isFollowingButton.setTextColor(ContextCompat.getColor(followerViewHolder.itemView.getContext(), R.color.white));
+        } else {
+            followerViewHolder.isFollowingButton.setText("+ Follow");
+            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.follow_button_bg);
+            followerViewHolder.isFollowingButton.setTextColor(ContextCompat.getColor(followerViewHolder.itemView.getContext(), R.color.colorPrimary));
+
         }
-        else if(i == TYPE_ITEM) {
-            View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.follower_item, viewGroup, false);
-            FollowerViewHolder pvh = new FollowerViewHolder(v);
-            return pvh;
-        }
-        throw new RuntimeException("there is no type that matches the type " + i + " + make sure your using types correctly");
+//        if(fireBaseApplication.getFollo().containsId(fireBaseApplication.getFollowerRecyclerViewAdapter().getFollowers(), currentItem.getId()) != null){
+//            followerViewHolder.isFollowingCheckBox.setChecked(true);
+//        } else {
+//            followerViewHolder.isFollowingCheckBox.setChecked(false);
+//        }
+
+//        followerViewHolder.isFollowingCheckBox.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (((CheckBox) v).isChecked()) {
+//                    //Do something if you check it
+//                } else {
+//                    //Do something if you uncheck it
+//                }
+//            }
+//        });
     }
 
-    private Follower getItem(int position)
+    @Override
+    public FollowerViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.follower_item, viewGroup, false);
+        FollowerViewHolder pvh = new FollowerViewHolder(v);
+        return pvh;
+    }
+
+    private User getItem(int position)
     {
         return followers.get(position);
     }
 
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder followerViewHolder, int i) {
-        if(followerViewHolder instanceof FollowersHeaderView){
-            FollowersHeaderView followersHeaderView = (FollowersHeaderView) followerViewHolder;
-            followersHeaderView.sectionTitle.setText(followersListHeader.getSectionTitle());
-        }
-        else if(followerViewHolder instanceof FollowerViewHolder){
-            final Follower currentItem = getItem(i - 1);
-            final FollowerViewHolder follower = (FollowerViewHolder) followerViewHolder;
-            follower.name.setText(currentItem.getName());
-            DraweeController controller = TabsUtil.getImage(currentItem.getUserId());
-            RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
-            roundingParams.setRoundAsCircle(true);
-            follower.followerProfilePhoto.getHierarchy().setRoundingParams(roundingParams);
-            follower.followerProfilePhoto.setController(controller);
-            if(currentItem.getIsFollowing().equals("true")) {
-                follower.isFollowingCheckBox.setChecked(true);
-            } else {
-                follower.isFollowingCheckBox.setChecked(false);
-            }
-
-            final int itemPosition = i;
-            follower.isFollowingCheckBox.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (((CheckBox) v).isChecked()) {
-                        currentItem.setIsFollowing("true");
-                    } else {
-                        currentItem.setIsFollowing("false");
-                    }
-                }
-            });
-        }
-    }
-
-    public void add(Follower follower){
+    public void add(User follower){
         for(int i = 0; i < followers.size(); i++) {
             if(follower.getId().equals(followers.get(i).getId())) {
                 return;
@@ -146,45 +146,8 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
     }
 
     @Override
-    public int getItemViewType(int position) {
-        if(isPositionHeader(position))
-            return TYPE_HEADER;
-        return TYPE_ITEM;
-    }
-
-    private boolean isPositionHeader(int position)
-    {
-        return position == 0;
-    }
-
-    @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-    }
-
-    public static class FollowerViewHolder extends RecyclerView.ViewHolder {
-        CardView cardViewfollower;
-        TextView name;
-        CheckBox isFollowingCheckBox;
-        SimpleDraweeView followerProfilePhoto;
-
-        FollowerViewHolder(View itemView) {
-            super(itemView);
-            System.out.println("followerViewHolder: Constructor");
-            cardViewfollower = (CardView) itemView.findViewById(R.id.follower_card_view);
-            name = (TextView) itemView.findViewById(R.id.follower_name);
-            followerProfilePhoto = (SimpleDraweeView) itemView.findViewById(R.id.follower_profile_picture);
-            isFollowingCheckBox = (CheckBox) itemView.findViewById(R.id.follower_checkbox);
-        }
-    }
-
-    public static class FollowersHeaderView extends RecyclerView.ViewHolder {
-        TextView sectionTitle;
-
-        FollowersHeaderView(View itemView){
-            super(itemView);
-            sectionTitle = (TextView)itemView.findViewById(R.id.followers_section_title);
-        }
     }
 
 }

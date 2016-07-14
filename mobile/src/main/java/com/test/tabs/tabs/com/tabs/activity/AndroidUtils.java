@@ -2,13 +2,23 @@ package com.test.tabs.tabs.com.tabs.activity;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
 import android.view.View;
+
+import com.test.tabs.tabs.R;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -100,4 +110,16 @@ public class AndroidUtils {
         return sb.toString().isEmpty() ? "now" : sb.toString();
     }
 
+    public static String generateId() {
+        return UUID.randomUUID().toString();
+    }
+
+    public static String getIntentString(Intent intent, String value){
+        Bundle extras = intent.getExtras();
+        String result = "";
+        if (extras != null) {
+            result = extras.getString(value);
+        }
+        return result;
+    }
 }

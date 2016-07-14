@@ -68,19 +68,4 @@
             android:layout_below="@id/poster_picture"
             android:id="@+id/view_status" />
 
-        <com.cengalabs.flatui.views.FlatButton
-            android:id="@+id/follow_button"
-            android:layout_width="75dp"
-            android:layout_height="30dp"
-            android:text="+ Follow"
-            android:layout_marginTop="8dp"
-            android:layout_marginLeft="16dp"
-            android:fontFamily="sans-serif"
-            android:textSize="16sp"
-            android:textAllCaps="false"
-            android:padding="0dp"
-            android:onClick="followUser"
-            android:textColor="@color/colorAccent"
-            android:layout_below="@id/view_status" />
-
     </RelativeLayout>

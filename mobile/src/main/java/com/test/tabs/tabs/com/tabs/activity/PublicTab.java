@@ -30,6 +30,8 @@ public class PublicTab extends Fragment {
     public static double lng = 0.0;
     private DatabaseQuery databaseQuery;
     private View progressOverlay;
+    private String userId;
+    private String name;
 
     //GoogleApiClient
     private GoogleApiClient mGoogleApiClient;
@@ -65,6 +67,7 @@ public class PublicTab extends Fragment {
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         databaseQuery = new DatabaseQuery(getActivity());
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
+        setupActivity(savedInstanceState);
         databaseQuery.getPublicPosts(progressOverlay, fragmentView, getContext());
         return fragmentView;
     }
@@ -180,6 +183,35 @@ public class PublicTab extends Fragment {
 //    public void onProviderDisabled(String provider) {
 //
 //    }
+
+    private void setNameAndId() {
+        if(application.getUserId() != null && !application.getUserId().equals("")) {
+            userId = application.getUserId();
+        }
+        if(application.getName() != null && !application.getName().equals("")) {
+            name = application.getName();
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString("userId", userId);
+        savedInstanceState.putString("name", name);
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    private void setupActivity(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            // Restore value of members from saved state
+            if(savedInstanceState.containsKey("userId")) {
+                userId = savedInstanceState.getString("userId");
+            }
+            if(savedInstanceState.containsKey("name")) {
+                name = savedInstanceState.getString("name");
+            }
+        }
+    }
 
 
 }

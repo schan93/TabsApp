@@ -64,7 +64,7 @@
             android:theme="@style/AppTheme.NoActionBar" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".com.tabs.activity.Comments"
+                android:value=".com.tabs.activity.news_feed"
                 android:configChanges="orientation|keyboardHidden" />
 
         </activity>
@@ -91,7 +91,21 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".com.tabs.activity.news_feed" />
         </activity>
-
+        <activity
+            android:name=".com.tabs.activity.UserProfile"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".com.tabs.activity.Comments" />
+        </activity>
+        <activity
+            android:name=".com.tabs.activity.FollowersList"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
+            android:name=".com.tabs.activity.FollowingList"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
         <!--
         <meta-data
             android:name="com.parse.APPLICATION_ID"

@@ -42,6 +42,7 @@ import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter
 import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
+import com.test.tabs.tabs.com.tabs.database.users.User;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -62,6 +63,7 @@ public class Comments extends AppCompatActivity {
     private static String postStatus;
     private static Boolean isFollowingPoster;
     private static LinearLayoutManager llm;
+    private static CommentsHeader header;
     private Toolbar toolbar;
     private NotificationManager notificationManager;
     private boolean isNotificationActive;
@@ -95,6 +97,7 @@ public class Comments extends AppCompatActivity {
         setupComment(comment);
         setupSendButton(comment, sendButton);
         populateCommentView(postId);
+        header = setupCommentsHeader();
     }
 
     private void createComment() {
@@ -263,7 +266,7 @@ public class Comments extends AppCompatActivity {
 
     public static void setupCommentsAdapter(String postId, Activity activity) {
         List<Comment> commentItems = application.getCommentsRecyclerViewAdapter().getCommentsList();
-        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(application, activity, getCommentsHeader(postId), commentItems));
+        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(application, activity, header, commentItems));
         application.getCommentsRecyclerViewAdapter().registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onChanged() {
@@ -274,7 +277,7 @@ public class Comments extends AppCompatActivity {
         commentsView.setAdapter(application.getCommentsRecyclerViewAdapter());
     }
 
-    public static CommentsHeader getCommentsHeader(String id) {
+    public static CommentsHeader setupCommentsHeader() {
         CommentsHeader header = new CommentsHeader();
         header.setPosterUserId(posterUserId);
         header.setPosterName(posterName);
@@ -283,15 +286,6 @@ public class Comments extends AppCompatActivity {
         header.setIsFollowing(isFollowingPoster);
         header.setPostTitle(postTitle);
         return header;
-    }
-
-    public String getIntentString(String value){
-        Bundle extras = getIntent().getExtras();
-        String result = "";
-        if (extras != null) {
-            result = extras.getString(value);
-        }
-        return result;
     }
 
     private void updatePostCommentNumber(Comment comment, String tab){
@@ -378,16 +372,16 @@ public class Comments extends AppCompatActivity {
             }
         } else {
             //You get all these from the post view adapter
-            postId = getIntentString("postId");
-            tab = getIntentString("tab");
-            userId = getIntentString("userId");
-            postTitle = getIntentString("postTitle");
-            posterUserId = getIntentString("posterUserId");
-            posterName = getIntentString("posterName");
-            postTimeStamp = getIntentString("postTimeStamp");
-            postStatus = getIntentString("postStatus");
-            Follower follower = application.getFollowerRecyclerViewAdapter().containsId(application.getFollowerRecyclerViewAdapter().getFollowers(), posterUserId);
-            if (follower != null && follower.getIsFollowing().equals("true")) {
+            postId = AndroidUtils.getIntentString(getIntent(), "postId");
+            tab = AndroidUtils.getIntentString(getIntent(), "tab");
+            userId = AndroidUtils.getIntentString(getIntent(), "userId");
+            postTitle = AndroidUtils.getIntentString(getIntent(), "postTitle");
+            posterUserId = AndroidUtils.getIntentString(getIntent(), "posterUserId");
+            posterName = AndroidUtils.getIntentString(getIntent(), "posterName");
+            postTimeStamp = AndroidUtils.getIntentString(getIntent(), "postTimeStamp");
+            postStatus = AndroidUtils.getIntentString(getIntent(), "postStatus");
+            User user = application.getFollowerRecyclerViewAdapter().containsUserId(application.getFollowerRecyclerViewAdapter().getFollowers(), posterUserId);
+            if (user != null) {
                 isFollowingPoster = true;
             } else {
                 isFollowingPoster = false;
