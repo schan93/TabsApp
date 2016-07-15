@@ -48,13 +48,8 @@ public class FireBaseApplication extends Application {
     private static FollowerRecyclerViewAdapter followerRecyclerViewAdapter;
     private static FollowerRecyclerViewAdapter followingRecyclerViewAdapter;
     private static List<String> userInfoAdapter;
-    private static User viewingUser;
 
-    private static PostRecyclerViewAdapter followerPostAdapter;
-    private static Post currentPost;
-    public static boolean testIsDone = true;
-
-    private Firebase myFirebaseRef;
+    private static PostRecyclerViewAdapter postsThatUserHasCommentedOnAdapter;
 
     @Override
     public void onCreate() {
@@ -66,8 +61,6 @@ public class FireBaseApplication extends Application {
         // We can enable disk persistence with just one line of code.
         Firebase.getDefaultConfig().setPersistenceEnabled(true);
 
-
-        myFirebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
         initializeAdapters();
         //Configure Fresco so that image loads quickly
         configFresco();
@@ -97,10 +90,6 @@ public class FireBaseApplication extends Application {
 
     public void setPublicAdapter(PostRecyclerViewAdapter publicAdapter) {
         this.publicAdapter = publicAdapter;
-    }
-
-    public static PostRecyclerViewAdapter getFollowerPostAdapter() {
-        return followerPostAdapter;
     }
 
     public static PostRecyclerViewAdapter getMyTabsAdapter() {
@@ -162,9 +151,9 @@ public class FireBaseApplication extends Application {
 
     public void setUserAdapter(PostRecyclerViewAdapter userAdapter) { this.userAdapter = userAdapter; }
 
-    public User getViewingUser() { return this.viewingUser; }
+    public PostRecyclerViewAdapter getPostsThatUserHasCommentedOnAdapter() { return postsThatUserHasCommentedOnAdapter; }
 
-    public void setViewingUser(User viewingUser) { this.viewingUser = viewingUser; }
+    public void setPostsThatUserHasCommentedOnAdapter(PostRecyclerViewAdapter postsThatUserHasCommentedOnAdapter) { this.postsThatUserHasCommentedOnAdapter = postsThatUserHasCommentedOnAdapter; }
 
     private void initializeAdapters() {
         List<User> followers = new ArrayList<User>();
@@ -173,17 +162,18 @@ public class FireBaseApplication extends Application {
         List<Post> myTabsPosts = new ArrayList<Post>();
         List<Post> followingPosts = new ArrayList<>();
         List<Post> userPosts = new ArrayList<>();
+        List<Post> commentPosts = new ArrayList<>();
         List<String> userInfoAdapter = new ArrayList<>();
-        User user = new User();
         setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), new ArrayList<Comment>()));
-        setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, false, TabEnum.Public));
-        setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, false, TabEnum.MyTab));
-        setFollowingPostAdapter(new PostRecyclerViewAdapter(followingPosts, this, false, TabEnum.Following));
+        setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, TabEnum.Public));
+        setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, TabEnum.MyTab));
+        setFollowingPostAdapter(new PostRecyclerViewAdapter(followingPosts, this, TabEnum.Following));
         setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(followers));
         setFollowingRecyclerViewAdapter(new FollowerRecyclerViewAdapter(following));
-        setUserAdapter(new PostRecyclerViewAdapter(userPosts, this, false, null));
+        setUserAdapter(new PostRecyclerViewAdapter(userPosts, this, null));
+        setPostsThatUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(commentPosts, this, null));
         setUserInfoAdapter(userInfoAdapter);
-        setViewingUser(user);
+
     }
 
     /**

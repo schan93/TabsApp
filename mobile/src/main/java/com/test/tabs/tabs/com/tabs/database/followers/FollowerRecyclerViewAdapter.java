@@ -37,7 +37,7 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
 
     public static User containsUserId(List<User> list, String id) {
         for (User object : list) {
-            if (object.getUserId().equals(id)) {
+            if (object != null && object.getUserId() != null && object.getUserId().equals(id)) {
                 return object;
             }
         }

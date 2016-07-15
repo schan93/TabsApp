@@ -31,7 +31,6 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     List<Post> posts;
     Context context;
     TabEnum tabType;
-    boolean isPublic;
     String userId;
 
     public List<Post> getPosts() {
@@ -40,14 +39,6 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
     public void setPosts(List<Post> posts) {
         this.posts = posts;
-    }
-
-    public boolean getIsPublic() {
-        return isPublic;
-    }
-
-    public void setIsPublic(boolean isPublic) {
-        this.isPublic = isPublic;
     }
 
     public TabEnum getTabType() { return tabType; }
@@ -109,7 +100,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         postViewHolder.posterPhoto.setController(controller);
         postViewHolder.numComments.setText(posts.get(i).getNumComments() + " Comments");
         postViewHolder.numComments.setTextSize(14);
-        if(getTabType() == TabEnum.Public || getTabType() == TabEnum.Friends) {
+        if(getTabType() == TabEnum.Public || getTabType() == TabEnum.User) {
             postViewHolder.privacyStatus.setVisibility(View.GONE);
         }
 //        } else {
@@ -142,10 +133,9 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         });
     }
 
-    public PostRecyclerViewAdapter(List<Post> posts, Context context, boolean isPublic, TabEnum tab) {
+    public PostRecyclerViewAdapter(List<Post> posts, Context context, TabEnum tab) {
         this.posts = posts;
         this.context = context;
-        this.isPublic = isPublic;
         this.tabType = tab;
     }
 
@@ -159,6 +149,14 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         posts.add(item);
         notifyItemInserted(posts.size() - 1);
         notifyItemRangeChanged(posts.size() - 1, posts.size());
+    }
+
+    public void remove(Post item){
+        for(int i = 0; i < posts.size(); i++) {
+            if(posts.get(i).getPosterUserId().equals(item.getPosterUserId())) {
+                posts.remove(i);
+            }
+        }
     }
 
     public static Post containsId(List<Post> list, String id) {

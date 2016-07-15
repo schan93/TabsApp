@@ -163,44 +163,6 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         }
     }
 
-    private void setupFollowButton(final Button button, final CommentsHeader commentsHeader) {
-        button.setVisibility(View.VISIBLE);
-        setButtonColor(button, commentsHeader.getIsFollowing());
-        int length = fireBaseApplication.getFollowerRecyclerViewAdapter().getFollowers().size();
-        for(int i = 0; i < length; i++) {
-
-        }
-        final User user = new User(AndroidUtils.generateId(), commentsHeader.getPosterUserId(), commentsHeader.getPosterName());
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //change the color of hte freaking button
-                if(commentsHeader.getIsFollowing()) {
-                    commentsHeader.setIsFollowing(false);
-                    setButtonColor(button, commentsHeader.getIsFollowing());
-                    databaseQuery.removeFollowing(user);
-//                    existingFollower.setIsFollowing(false);
-//                    if (existingFollower != null) {
-//                        databaseQuery.updateFollowerToFirebase(existingFollower);
-//                    }
-                } else {
-                    commentsHeader.setIsFollowing(true);
-                    setButtonColor(button, commentsHeader.getIsFollowing());
-                    databaseQuery.addFollowing(user);
-//                    if (existingFollower == null) {
-//                        Follower follower = new Follower("", commentsHeader.getPosterUserId(), commentsHeader.getPosterName(), fireBaseApplication.getUserId(), true);
-//                        databaseQuery.saveFollowerToFirebase(follower);
-//                        fireBaseApplication.getFollowerRecyclerViewAdapter().getFollowers().add(follower);
-//                    } else {
-//                        existingFollower.setIsFollowing(true);
-//                        databaseQuery.updateFollowerToFirebase(existingFollower);
-//                    }
-
-                }
-                fireBaseApplication.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
-            }
-        });
-    }
-
     private void setButtonColor(Button button, Boolean isFollowing) {
         if(!isFollowing) {
             button.setBackgroundColor(Color.parseColor("#d94130"));

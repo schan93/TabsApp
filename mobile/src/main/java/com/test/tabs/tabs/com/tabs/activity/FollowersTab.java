@@ -53,14 +53,15 @@ public class FollowersTab extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.followers_tab, container, false);
+        application = ((FireBaseApplication) getActivity().getApplication());
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         databaseQuery = new DatabaseQuery(getActivity());
-        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
+//        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         if(application.getUserId() != null && application.getUserId() != "") {
             userId = application.getUserId();
         }
         setupActivity(savedInstanceState);
-        databaseQuery.getFollowerPosts(userId, progressOverlay, fragmentView, getContext());
+        TabsUtil.populateNewsFeedList(fragmentView, application.getFollowingPostAdapter(), TabEnum.Following, getContext());
         return fragmentView;
     }
 

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * Created by schan on 6/28/16.
  */
-public class UserProfile extends AppCompatActivity {
+public class UserProfile extends AppCompatActivity implements PostsTab.onProfileSelectedListener{
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
     private FireBaseApplication application;
     private DatabaseQuery databaseQuery;
@@ -79,33 +80,43 @@ public class UserProfile extends AppCompatActivity {
     }
 
     private void setupFollowButton(final Button button, final List<User> following) {
-        if(application.getFollowingRecyclerViewAdapter().containsUserId(following, posterUserId) == null) {
-            button.setBackgroundColor(Color.parseColor("#d94130"));
-            button.setText(this.getString(R.string.notFollowing));
-            button.setTextColor(Color.parseColor("#FFFFFF"));
+        if(application.getFollowingRecyclerViewAdapter().containsUserId(following, posterUserId) != null) {
+            setButtonIsFollowing(button);
         } else {
-            button.setBackgroundColor(Color.parseColor("#4CAF50"));
-            button.setText(this.getString(R.string.isFollowing));
-            button.setTextColor(Color.parseColor("#FFFFFF"));
+            setButtonIsNotFollowing(button);
         }
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(application.getFollowingRecyclerViewAdapter().containsUserId(following, posterUserId) == null) {
-                    application.getFollowingRecyclerViewAdapter().getFollowers().add(application.getViewingUser());
-                    databaseQuery.addFollowing(application.getViewingUser());
-                    button.setBackgroundResource(R.drawable.following_button_bg);
-                    button.setTextColor(Color.parseColor("#ffffff"));
-                    button.setText("Following");
+                User user = application.getFollowingRecyclerViewAdapter().containsUserId(following, posterUserId);
+                if(user == null) {
+                    User newUser = new User();
+                    newUser.setUserId(posterUserId);
+                    newUser.setName(posterName);
+                    newUser.setId(AndroidUtils.generateId());
+                    application.getFollowingRecyclerViewAdapter().getFollowers().add(newUser);
+                    databaseQuery.addFollowing(posterUserId);
+                    setButtonIsFollowing(button);
                 } else {
-                    application.getFollowingRecyclerViewAdapter().getFollowers().remove(application.getViewingUser());
-                    databaseQuery.removeFollowing(application.getViewingUser());
-                    button.setBackgroundResource(R.drawable.follow_button_bg);
-                    button.setTextColor(Color.parseColor("#ffffff"));
-                    button.setText("+ Follow");
+                    application.getFollowingRecyclerViewAdapter().getFollowers().remove(user);
+                    databaseQuery.removeFollowing(posterUserId);
+                    setButtonIsNotFollowing(button);
                 }
             }
         });
+    }
+
+    private void setButtonIsFollowing(Button button) {
+        button.setBackgroundResource(R.drawable.following_button_bg);
+        button.setTextColor(ContextCompat.getColor(this, R.color.white));
+        button.setText("Following");
+    }
+
+    private void setButtonIsNotFollowing(Button button) {
+        databaseQuery.removeFollowing(posterUserId);
+        button.setBackgroundResource(R.drawable.follow_button_bg);
+        button.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        button.setText("+ Follow");
     }
 
     private void setupActionBar() {
@@ -225,4 +236,16 @@ public class UserProfile extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onProfileSelected(int position) {
+        // The user selected the headline of an article from the HeadlinesFragment
+        // Do something here to display that article
+
+        PostsTab profileTab = (PostsTab)
+                getSupportFragmentManager().findFragmentById(R.id.profile_layout);
+        if (profileTab != null) {
+            String [] intentStrings = {posterUserId, posterName, postStatus, postTimeStamp, postTitle};
+            TabsUtil.setupProfileView(profileTab.getView(), "UserProfile", intentStrings);
+        }
+    }
 }

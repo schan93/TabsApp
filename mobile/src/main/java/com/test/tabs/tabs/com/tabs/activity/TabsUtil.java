@@ -42,8 +42,8 @@ public class TabsUtil {
     static FireBaseApplication application;
 
     private static View getTabType(View fragmentView, TabEnum tabType) {
-        if(tabType == TabEnum.Friends) {
-            return fragmentView.findViewById(R.id.rv_private_feed);
+        if(tabType == TabEnum.User) {
+            return fragmentView.findViewById(R.id.rv_posts_feed);
         } else if(tabType == TabEnum.Following) {
             return fragmentView.findViewById(R.id.rv_followers_feed);
         } else if(tabType == TabEnum.Public) {
