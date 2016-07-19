@@ -139,15 +139,15 @@ public class FireBaseApplication extends Application {
         this.userInfoAdapter = userInfoAdapter;
     }
 
-    public List<String> getUserInfoAdapter() {
-        return this.userInfoAdapter;
+    public static List<String> getUserInfoAdapter() {
+        return userInfoAdapter;
     }
 
-    public PostRecyclerViewAdapter getFollowingPostAdapter() {
-        return this.followingPostAdapter;
+    public static PostRecyclerViewAdapter getFollowingPostAdapter() {
+        return followingPostAdapter;
     }
 
-    public PostRecyclerViewAdapter getUserAdapter() { return this.userAdapter; }
+    public static PostRecyclerViewAdapter getUserAdapter() { return userAdapter; }
 
     public void setUserAdapter(PostRecyclerViewAdapter userAdapter) { this.userAdapter = userAdapter; }
 
