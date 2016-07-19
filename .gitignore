@@ -8,7 +8,7 @@ com_crashlytics_export_strings.xml
 local.properties
 
 # Gradle generated files
-.gradle/
+.gradle/*
 
 # Signing files
 .signing/
@@ -27,6 +27,19 @@ local.properties
 .idea/scopes/scope_settings.xml
 .idea/vcs.xml
 *.iml
+.idea/*
+
+#build
+build/
+
+#junitTests
+junitTests/
+
+#samples
+samples/
+
+#tests
+tests/
 
 # OS-specific files
 .DS_Store
