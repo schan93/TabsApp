@@ -176,20 +176,16 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
             @Override
             public void onClick(View v) {
                 User user = fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(posterUserId);
-                if(user == null) {
+                if(user != null && (changedFollowing.get(posterUserId) == null || (changedFollowing.get(posterUserId) != null && changedFollowing.get(posterUserId)))) {
+                    changedFollowing.put(posterUserId, false);
+                    databaseQuery.removeFollowing(posterUserId);
+                } else {
                     User newUser = new User();
                     newUser.setUserId(posterUserId);
                     newUser.setName(posterName);
                     newUser.setId(AndroidUtils.generateId());
                     changedFollowing.put(posterUserId, true);
-//                    fireBaseApplication.getFollowingRecyclerViewAdapter().getFollowers().add(newUser);
                     databaseQuery.addFollowing(posterUserId);
-//                    setButtonIsFollowing(button, context);
-                } else {
-                    changedFollowing.put(posterUserId, false);
-//                    fireBaseApplication.getFollowingRecyclerViewAdapter().getFollowers().remove(user);
-                    databaseQuery.removeFollowing(posterUserId);
-//                    setButtonIsNotFollowing(button, context);
                 }
             }
         });
