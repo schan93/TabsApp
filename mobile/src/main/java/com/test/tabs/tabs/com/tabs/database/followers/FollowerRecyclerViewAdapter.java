@@ -1,6 +1,7 @@
 package com.test.tabs.tabs.com.tabs.database.followers;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -15,12 +16,15 @@ import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.test.tabs.tabs.R;
+import com.test.tabs.tabs.com.tabs.activity.AndroidUtils;
 import com.test.tabs.tabs.com.tabs.activity.FireBaseApplication;
 import com.test.tabs.tabs.com.tabs.activity.TabsUtil;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.users.User;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by schan on 5/14/16.
@@ -30,13 +34,19 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
     private List<User> followers;
     private FireBaseApplication fireBaseApplication;
     private DatabaseQuery databaseQuery;
+    Context context;
+    private Map<String, Boolean> changedFollowing;
+
+    public Map<String, Boolean> getChangedFollowing() {
+        return this.changedFollowing;
+    }
 
     public void setFollowers(List<User> followers) {
         this.followers = followers;
     }
 
-    public static User containsUserId(List<User> list, String id) {
-        for (User object : list) {
+    public User containsUserId(String id) {
+        for (User object : followers) {
             if (object != null && object.getUserId() != null && object.getUserId().equals(id)) {
                 return object;
             }
@@ -48,10 +58,15 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         this.followers = followers;
     }
 
-    public FollowerRecyclerViewAdapter(FireBaseApplication application, Activity activity, List<User> followers) {
+    public FollowerRecyclerViewAdapter(List<User> followers, Context context) {
         this.followers = followers;
-        this.fireBaseApplication = application;
-        this.databaseQuery = new DatabaseQuery(activity);
+        this.context = context;
+    }
+
+    public void setupFollowersRecyclerView(DatabaseQuery databaseQuery, Context context) {
+        this.databaseQuery = databaseQuery;
+        this.context = context;
+        this.changedFollowing = new HashMap<String, Boolean>();
     }
 
     public List<User> getFollowers(){
@@ -88,16 +103,17 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         followerViewHolder.followerProfilePhoto.getHierarchy().setRoundingParams(roundingParams);
         followerViewHolder.followerProfilePhoto.setController(controller);
         List<User> followers = fireBaseApplication.getFollowingRecyclerViewAdapter().getFollowers();
-        if(fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(followers, currentItem.getUserId()) != null) {
-            followerViewHolder.isFollowingButton.setText("Following");
-            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.following_button_bg);
-            followerViewHolder.isFollowingButton.setTextColor(ContextCompat.getColor(followerViewHolder.itemView.getContext(), R.color.white));
-        } else {
-            followerViewHolder.isFollowingButton.setText("+ Follow");
-            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.follow_button_bg);
-            followerViewHolder.isFollowingButton.setTextColor(ContextCompat.getColor(followerViewHolder.itemView.getContext(), R.color.colorPrimary));
-
-        }
+        setupFollowButton(followerViewHolder.isFollowingButton, currentItem.getUserId(), currentItem.getName());
+//        if(fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(followers, currentItem.getUserId()) != null) {
+//            followerViewHolder.isFollowingButton.setText("Following");
+//            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.following_button_bg);
+//            followerViewHolder.isFollowingButton.setTextColor(ContextCompat.getColor(followerViewHolder.itemView.getContext(), R.color.white));
+//        } else {
+//            followerViewHolder.isFollowingButton.setText("+ Follow");
+//            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.follow_button_bg);
+//            followerViewHolder.isFollowingButton.setTextColor(ContextCompat.getColor(followerViewHolder.itemView.getContext(), R.color.colorPrimary));
+//
+//        }
 //        if(fireBaseApplication.getFollo().containsId(fireBaseApplication.getFollowerRecyclerViewAdapter().getFollowers(), currentItem.getId()) != null){
 //            followerViewHolder.isFollowingCheckBox.setChecked(true);
 //        } else {
@@ -149,5 +165,48 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
     }
+
+    private void setupFollowButton(final Button button, final String posterUserId, final String posterName) {
+        if(fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(posterUserId) != null && (changedFollowing.get(posterUserId) == null || (changedFollowing.get(posterUserId) != null && changedFollowing.get(posterUserId)))) {
+            setButtonIsFollowing(button, context);
+        } else {
+            setButtonIsNotFollowing(button, context);
+        }
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                User user = fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(posterUserId);
+                if(user == null) {
+                    User newUser = new User();
+                    newUser.setUserId(posterUserId);
+                    newUser.setName(posterName);
+                    newUser.setId(AndroidUtils.generateId());
+                    changedFollowing.put(posterUserId, true);
+//                    fireBaseApplication.getFollowingRecyclerViewAdapter().getFollowers().add(newUser);
+                    databaseQuery.addFollowing(posterUserId);
+//                    setButtonIsFollowing(button, context);
+                } else {
+                    changedFollowing.put(posterUserId, false);
+//                    fireBaseApplication.getFollowingRecyclerViewAdapter().getFollowers().remove(user);
+                    databaseQuery.removeFollowing(posterUserId);
+//                    setButtonIsNotFollowing(button, context);
+                }
+            }
+        });
+    }
+
+    private void setButtonIsFollowing(Button button, Context context) {
+        button.setBackgroundResource(R.drawable.following_button_bg);
+        button.setTextColor(ContextCompat.getColor(context, R.color.white));
+        button.setText("Following");
+    }
+
+    private void setButtonIsNotFollowing(Button button, Context context) {
+        button.setBackgroundResource(R.drawable.follow_button_bg);
+        button.setTextColor(ContextCompat.getColor(context, R.color.colorPrimary));
+        button.setText("+ Follow");
+    }
+
+
 
 }

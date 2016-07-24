@@ -11,7 +11,12 @@ import android.view.View;
 
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
+import com.test.tabs.tabs.com.tabs.database.followers.Follower;
+import com.test.tabs.tabs.com.tabs.database.followers.FollowerRecyclerViewAdapter;
+import com.test.tabs.tabs.com.tabs.database.users.User;
 
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -45,7 +50,13 @@ public class FollowingList extends AppCompatActivity {
         //All we need to do is render the page now
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.follow_list);
 
-        TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getFollowingRecyclerViewAdapter());
+        if(!posterUserId.equals(application.getUserId())) {
+            TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getUserFollowingAdapter());
+            application.getUserFollowersAdapter().setupFollowersRecyclerView(databaseQuery, getApplicationContext());
+        } else {
+            TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getFollowingRecyclerViewAdapter());
+            application.getFollowingRecyclerViewAdapter().setupFollowersRecyclerView(databaseQuery, getApplicationContext());
+        }
 
 //        if (progressOverlay.getVisibility() == View.VISIBLE) {
 //            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
@@ -123,6 +134,8 @@ public class FollowingList extends AppCompatActivity {
         switch(parentClass) {
             case "Profile":
                 intent = new Intent(FollowingList.this, news_feed.class);
+                Map<String, Boolean> changedFollowing = application.getFollowingRecyclerViewAdapter().getChangedFollowing();
+                updateFollowing(changedFollowing, application.getFollowingRecyclerViewAdapter());
                 break;
             case "UserProfile":
                 bundle.putString("posterUserId", posterUserId);
@@ -130,6 +143,8 @@ public class FollowingList extends AppCompatActivity {
                 bundle.putString("postStatus", postStatus);
                 bundle.putString("postTimeStamp", postTimeStamp);
                 bundle.putString("postTitle", postTitle);
+                Map<String, Boolean> changedUserFollowing = application.getUserFollowingAdapter().getChangedFollowing();
+                updateFollowing(changedUserFollowing, application.getFollowingRecyclerViewAdapter());
                 intent = new Intent(FollowingList.this, UserProfile.class);
                 break;
             default:
@@ -137,5 +152,18 @@ public class FollowingList extends AppCompatActivity {
         }
         intent.putExtras(bundle);
         startActivity(intent);
+    }
+
+    private void updateFollowing(Map<String, Boolean> changedFollowing, FollowerRecyclerViewAdapter adapter) {
+        Iterator it = changedFollowing.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            if((Boolean)pair.getValue() == false) {
+                User user = adapter.containsUserId((String)pair.getKey());
+                adapter.getFollowers().remove(user);
+            }
+            it.remove(); // avoids a ConcurrentModificationException
+        }
+        changedFollowing.clear();
     }
 }

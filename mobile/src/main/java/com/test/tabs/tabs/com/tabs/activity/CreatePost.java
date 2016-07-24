@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
+import com.firebase.geofire.GeoFire;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
@@ -37,6 +38,7 @@ public class CreatePost extends AppCompatActivity {
     private FireBaseApplication application;
     private DatabaseQuery databaseQuery;
     private String name;
+    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
 
     //Edit for post
     private EditText post;
@@ -53,6 +55,7 @@ public class CreatePost extends AppCompatActivity {
         setContentView(R.layout.create_post);
         application = ((FireBaseApplication) getApplication());
         databaseQuery = new DatabaseQuery(this);
+
 
         //Set up action bar
         setupActionBar();
@@ -108,10 +111,14 @@ public class CreatePost extends AppCompatActivity {
                     Toast.makeText(CreatePost.this, "Please enter a title.", Toast.LENGTH_SHORT).show();
                     return true;
                 }
+                if(post.getText().length() == 0){
+                    Toast.makeText(CreatePost.this, "Please enter a status.", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
                 Location location = LocationService.getLastLocation();
-                Post createdPost = new Post("", postTitle.getText().toString(), name, post.getText().toString(), userId, getDateTime(), privacy, Double.toString(location.getLatitude()), Double.toString(location.getLongitude()), 0);
+                Post createdPost = new Post("", postTitle.getText().toString(), name, post.getText().toString(), userId, getDateTime(), privacy, 0);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
-                databaseQuery.savePostToFirebase(createdPost);
+                databaseQuery.savePostToFirebase(createdPost, location);
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
                 if(intent != null) {
                     startActivity(intent);

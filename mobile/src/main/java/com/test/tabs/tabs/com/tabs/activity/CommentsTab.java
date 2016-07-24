@@ -1,5 +1,7 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -21,9 +23,25 @@ public class CommentsTab extends Fragment{
     private View progressOverlay;
     private String userId;
     private String name;
+    private Boolean profileViewSet = false;
 
     //GoogleApiClient
     private GoogleApiClient mGoogleApiClient;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        UserProfile userProfile;
+
+        if(context instanceof UserProfile) {
+            userProfile = (UserProfile) context;
+            Intent intent = userProfile.getIntent();
+            profileViewSet = true;
+            setupActivity(intent.getExtras());
+        }
+
+    }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -52,13 +70,27 @@ public class CommentsTab extends Fragment{
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.public_tab, container, false);
+        fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
-        databaseQuery = new DatabaseQuery(getActivity());
-        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
+//        databaseQuery = new DatabaseQuery(getActivity());
+        application = ((FireBaseApplication) getActivity().getApplication());
+//        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         setupActivity(savedInstanceState);
-        databaseQuery.getPublicPosts(progressOverlay, fragmentView, fragmentView.getContext());
-//        databaseQuery.getCommentsPosts(progressOverlay, fragmentView, fragmentView.getContext());
+
+        databaseQuery = new DatabaseQuery(getActivity());
+        if(!userId.equals(application.getUserId())) {
+            TabsUtil.populateNewsFeedList(fragmentView, application.getPostsUserHasCommentedOnAdapter(), getContext());
+            //TODO: Don't really know when this will be done but i guess I really need to fix this because I need
+            //To only show the fragment view AFTER the posts are done loading but ill just keep this here for now
+//            if(progressOverlay.getVisibility() == View.VISIBLE) {
+//                progressOverlay.setVisibility(View.GONE);
+//                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+//            }
+        } else {
+            TabsUtil.populateNewsFeedList(fragmentView, application.getPostsThatCurrentUserHasCommentedOnAdapter(), getContext());
+        }
+        fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
+        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
         return fragmentView;
     }
 
@@ -79,8 +111,8 @@ public class CommentsTab extends Fragment{
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putString("userId", userId);
-        savedInstanceState.putString("name", name);
+        savedInstanceState.putString("posterUserId", userId);
+        savedInstanceState.putString("posterName", name);
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -88,12 +120,19 @@ public class CommentsTab extends Fragment{
     private void setupActivity(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             // Restore value of members from saved state
-            if(savedInstanceState.containsKey("userId")) {
-                userId = savedInstanceState.getString("userId");
+            if(savedInstanceState.containsKey("posterUserId")) {
+                userId = savedInstanceState.getString("posterUserId");
+            } else {
+                userId = application.getUserId();
             }
-            if(savedInstanceState.containsKey("name")) {
-                name = savedInstanceState.getString("name");
+            if(savedInstanceState.containsKey("posterName")) {
+                name = savedInstanceState.getString("posterName");
+            } else {
+                name = application.getName();
             }
+        } else if(savedInstanceState == null && profileViewSet == false){
+            userId = application.getUserId();
+            name = application.getName();
         }
     }
 }

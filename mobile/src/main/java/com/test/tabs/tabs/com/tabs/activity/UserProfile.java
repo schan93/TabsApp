@@ -31,6 +31,7 @@ import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.users.User;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by schan on 6/28/16.
@@ -72,15 +73,14 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         if(!posterUserId.equals(application.getUserId())) {
             followButton.setVisibility(View.VISIBLE);
         }
-        View view = findViewById(R.id.user_profile_coordinator_layout);
+        //This part is for sure used but not sure about the bottom
         String [] intentStrings = {posterUserId, posterName, postStatus, postTimeStamp, postTitle};
-        TabsUtil.setupProfileView(view, "UserProfile", intentStrings);
-//        databaseQuery.getUserPosts(posterUserId, view, progressOverlay, this);
+        TabsUtil.setupProfileView(findViewById(R.id.user_profile_coordinator_layout), "UserProfile", application, intentStrings);
         setupFollowButton(followButton, following);
     }
 
     private void setupFollowButton(final Button button, final List<User> following) {
-        if(application.getFollowingRecyclerViewAdapter().containsUserId(following, posterUserId) != null) {
+        if(application.getFollowingRecyclerViewAdapter().containsUserId(posterUserId) != null) {
             setButtonIsFollowing(button);
         } else {
             setButtonIsNotFollowing(button);
@@ -88,7 +88,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                User user = application.getFollowingRecyclerViewAdapter().containsUserId(following, posterUserId);
+                User user = application.getFollowingRecyclerViewAdapter().containsUserId(posterUserId);
                 if(user == null) {
                     User newUser = new User();
                     newUser.setUserId(posterUserId);
@@ -113,7 +113,6 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
     }
 
     private void setButtonIsNotFollowing(Button button) {
-        databaseQuery.removeFollowing(posterUserId);
         button.setBackgroundResource(R.drawable.follow_button_bg);
         button.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
         button.setText("+ Follow");
@@ -236,16 +235,17 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
     }
 
 
+    //TODO: check if i even need this...
     @Override
     public void onProfileSelected(int position) {
         // The user selected the headline of an article from the HeadlinesFragment
         // Do something here to display that article
 
-        PostsTab profileTab = (PostsTab)
-                getSupportFragmentManager().findFragmentById(R.id.profile_layout);
-        if (profileTab != null) {
+        PostsTab postsTab = (PostsTab)
+                getSupportFragmentManager().findFragmentById(R.id.posts_tab);
+        if (postsTab != null) {
             String [] intentStrings = {posterUserId, posterName, postStatus, postTimeStamp, postTitle};
-            TabsUtil.setupProfileView(profileTab.getView(), "UserProfile", intentStrings);
+            TabsUtil.setupProfileView(postsTab.getView(), "UserProfile", application, intentStrings);
         }
     }
 }

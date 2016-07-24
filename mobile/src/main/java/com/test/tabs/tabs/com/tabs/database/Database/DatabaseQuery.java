@@ -3,15 +3,9 @@ package com.test.tabs.tabs.com.tabs.database.Database;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.os.AsyncTask;
-import android.os.Bundle;
+import android.location.Location;
 import android.os.Handler;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ProgressBar;
 
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
@@ -22,36 +16,31 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.AndroidUtils;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
 import com.test.tabs.tabs.com.tabs.activity.CommentsHeader;
-import com.test.tabs.tabs.com.tabs.activity.CompanionEnum;
 import com.test.tabs.tabs.com.tabs.activity.FireBaseApplication;
 import com.test.tabs.tabs.com.tabs.activity.PrivacyEnum;
-import com.test.tabs.tabs.com.tabs.activity.TabEnum;
 import com.test.tabs.tabs.com.tabs.activity.TabsUtil;
-import com.test.tabs.tabs.com.tabs.activity.login;
 import com.test.tabs.tabs.com.tabs.activity.news_feed;
 import com.test.tabs.tabs.com.tabs.database.comments.Comment;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
-import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.users.User;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by schan on 3/9/16.
@@ -64,6 +53,7 @@ public class DatabaseQuery implements Serializable {
     private String userId;
     private String name;
     private final Firebase currentUserPath;
+    private GeoFire geoFire;
 
     public DatabaseQuery(Activity activity) {
         this.activity = activity;
@@ -71,15 +61,58 @@ public class DatabaseQuery implements Serializable {
         userId = application.getUserId();
         name = application.getName();
         currentUserPath = firebaseRef.child("users/" + userId);
+        geoFire = new GeoFire(firebaseRef);
     }
 
 
     public void saveCommentToFirebase(Comment comment) {
-        Firebase commentsRef = firebaseRef.child("comments").push();
+        //Firstly we need to save a comment to firebase
+        final Firebase commentsRef = firebaseRef.child("comments").push();
         String commentId = commentsRef.getKey();
         comment.setId(commentId);
         Date date = new Date();
-        commentsRef.setValue(comment, 0 - date.getTime());
+        commentsRef.setValue(comment, date.getTime());
+
+        //Next, we need to set that comment in your own comment's path to be true
+        //For now I don't think we'll be using this BUT we can keep this here just in case. I think actually
+        //I think we'd want to store the posts that we comment on in the comments section. This is because we can
+        //Click on the post and view that comment.
+        currentUserPath.child("/comments/" + commentsRef.getKey()).setValue(true);
+
+        //Also need to set this post in your displayed feed to be true
+//        firebaseRef.child("users/" + userId + "/feed/" + postsRef.getKey()).setValue(true);
+
+        //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
+        long time = new Date().getTime();
+        firebaseRef.child("recent-users").child(userId).setPriority(time, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if (firebaseError != null) {
+                    System.out.println("Data could not be saved. " + firebaseError.getMessage());
+                } else {
+                    System.out.println("Data saved successfully.");
+                }
+            }
+        });
+
+        //Display the comment in a list that shows the most recent comments (what we would want by design)
+        firebaseRef.child("recent-comments").child(commentsRef.getKey()).setPriority(time, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if (firebaseError != null) {
+                    System.out.println("Data could not be saved. " + firebaseError.getMessage());
+                } else {
+                    System.out.println("Data saved successfully.");
+                }
+            }
+        });
+
+        //Lastly add the comment as a child to the Post! I need the KEY of the post, not its id
+        //The query gets the key, then based on htis query we add taht to the user location and also
+        //The post_comments list
+        firebaseRef.child("post_comments/" + comment.getPostId() + "/" + comment.getId()).setValue(true);
+        //Also want to set the commented_posts for that user to be true
+        currentUserPath.child("commented_posts/" + comment.getPostId()).setValue(true);
     }
 
     public void saveUserToFirebase(final String id, final String userId, final String name) {
@@ -202,55 +235,92 @@ public class DatabaseQuery implements Serializable {
      * @param post
      */
 
-    public void savePostToFirebase(final Post post) {
+    public void savePostToFirebase(final Post post, Location location) {
         //Firstly, we need to keep track of all posts so we put them into a posts path.
         final Firebase postsRef = firebaseRef.child("posts").push();
-        String postId = AndroidUtils.generateId();
+        String postId = postsRef.getKey();
         post.setId(postId);
         Date date = new Date();
         postsRef.setValue(post, date.getTime() - 0);
 
-        //Next, we need to set that post in your own post's path to be true
-        firebaseRef.child("users/" + userId + "/posts/" + postsRef.getKey()).setValue(true);
-
-        //Also need to set this post in your displayed feed to be true
-//        firebaseRef.child("users/" + userId + "/feed/" + postsRef.getKey()).setValue(true);
-
-        //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
-        long time = new Date().getTime();
-        firebaseRef.child("recent-users").child(userId).setPriority(time, new Firebase.CompletionListener() {
+        //Set the location for public posts
+        geoFire.setLocation("post_locations/" + postsRef.getKey(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
             @Override
-            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
-                if (firebaseError != null) {
-                    System.out.println("Data could not be saved. " + firebaseError.getMessage());
+            public void onComplete(String key, FirebaseError error) {
+                if (error != null) {
+                    System.err.println("There was an error saving the location to GeoFire: " + error);
                 } else {
-                    System.out.println("Data saved successfully.");
+                    //Successfully saved location data.
+                    //Next, we need to set that post in your own post's path to be true
+                    firebaseRef.child("users/" + userId + "/posts/" + postsRef.getKey()).setValue(true);
+
+                    //Also need to set this post in your displayed feed to be true
+                    //firebaseRef.child("users/" + userId + "/feed/" + postsRef.getKey()).setValue(true);
+
+                    //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
+                    long time = new Date().getTime();
+                    firebaseRef.child("recent-users").child(userId).setPriority(time, new Firebase.CompletionListener() {
+                        @Override
+                        public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                            if (firebaseError != null) {
+                                System.out.println("Data could not be saved. " + firebaseError.getMessage());
+                            } else {
+                                System.out.println("Data saved successfully.");
+                            }
+                        }
+                    });
+
+                    //Display the post in a list that shows the most recent posts (what we would want by design)
+                    firebaseRef.child("recent-posts").child(postsRef.getKey()).setPriority(time, new Firebase.CompletionListener() {
+                        @Override
+                        public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                            if (firebaseError != null) {
+                                System.out.println("Data could not be saved. " + firebaseError.getMessage());
+                            } else {
+                                System.out.println("Data saved successfully.");
+                            }
+                        }
+                    });
+
+                    //Lastly add the post to everyone who follows the current user!
+                    currentUserPath.child("followers").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                                if(snapshot.getValue() == null) {
+                                    return;
+                                }
+                                firebaseRef.child("users/" + snapshot.getKey() + "/feed/" + postsRef.getKey()).setValue(true);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+
+                        }
+                    });
                 }
             }
         });
 
-        //Display the post in a list that shows the most recent posts (what we would want by design)
-        firebaseRef.child("recent-posts").child(postsRef.getKey()).setPriority(time, new Firebase.CompletionListener() {
-            @Override
-            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
-                if (firebaseError != null) {
-                    System.out.println("Data could not be saved. " + firebaseError.getMessage());
-                } else {
-                    System.out.println("Data saved successfully.");
-                }
-            }
-        });
 
-        //Lastly add the post to everyone who follows the current user!
-        currentUserPath.child("followers").addListenerForSingleValueEvent(new ValueEventListener() {
+    }
+
+    //THIS IS NEW!!!
+    public void getLatestPosts(Boolean loggedIn, Activity activity) {
+        Firebase feed = currentUserPath.child("feed");
+        onNewPostForFeed(loggedIn, activity, feed);
+    }
+
+    //THIS IS NEW!!!
+    public void onNewPostForFeed(final Boolean loggedIn, final Activity activity, Firebase feed) {
+        //Create a listener to listen for the content from the master post's feed
+        //this is the only feed that contains references in terms of the post id
+        feed.keepSynced(true);
+        feed.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                    if(snapshot.getValue() == null) {
-                        return;
-                    }
-                    firebaseRef.child("users/" + snapshot.getKey() + "/feed/" + postsRef.getKey()).setValue(true);
-                }
+                getMyTabsPosts(loggedIn, activity);
             }
 
             @Override
@@ -258,19 +328,6 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
-    }
-
-    //THIS IS NEW!!!
-    public void getLatestPosts() {
-        Firebase feed = currentUserPath.child("feed");
-        onNewPostForFeed(feed);
-    }
-
-    //THIS IS NEW!!!
-    public void onNewPostForFeed(Firebase feed) {
-        //Create a listener to listen for the content from the master post's feed
-        //this is the only feed that contains references in terms of the post id
-        feed.keepSynced(true);
         feed.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -281,7 +338,7 @@ public class DatabaseQuery implements Serializable {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             Post post = dataSnapshot.getValue(Post.class);
-                            if(application.getFollowingRecyclerViewAdapter().containsUserId(application.getFollowingRecyclerViewAdapter().getFollowers(), post.getPosterUserId()) != null) {
+                            if(application.getFollowingRecyclerViewAdapter().containsUserId(post.getPosterUserId()) != null) {
                                 application.getFollowingPostAdapter().add(post);
                             }
                         }
@@ -337,65 +394,118 @@ public class DatabaseQuery implements Serializable {
 
     }
 
-    public void getPublicPosts(final View progressOverlay, final View fragmentView, final Context context) {
+    public void getPublicPosts(Location location, final View progressOverlay, final View fragmentView, final Context context) {
         //Need to do order by / equal to.
-        Firebase postsRef = firebaseRef.child("posts");
-        Query query = postsRef.orderByChild("privacy").equalTo(PrivacyEnum.Public.toString());
-        query.keepSynced(true);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        final Firebase postsRef = firebaseRef.child("posts");
+        //Query at a location of 15 miles
+        Firebase locationsRef = firebaseRef.child("/post_locations");
+        geoFire = new GeoFire(locationsRef);
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), 24.1402);
+        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), TabEnum.Public, context);
+            public void onKeyEntered(String key, GeoLocation location) {
+                //Now that we entered into a query that has the public location, we have to add it to our adapter
+                postsRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        //If we have walked into a location with the key of that post, then we add it to the public adapter
+                        Post post = dataSnapshot.getValue(Post.class);
+                        Post existingPost = application.getPublicAdapter().containsId(post.getId());
+                        if(existingPost == null) {
+                            application.getPublicAdapter().getPosts().add(post);
+                            application.getPublicAdapter().notifyDataSetChanged();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onKeyExited(String key) {
+                //Now that we entered into a query that has the public location, we have to add it to our adapter
+//                postsRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(DataSnapshot dataSnapshot) {
+//                        //If we have walked into a location with the key of that post, then we add it to the public adapter
+//                        Post post = dataSnapshot.getValue(Post.class);
+//                        Post containedPost = application.getPublicAdapter().containsId(application.getPublicAdapter().getPosts(), post.getId());
+//                        if(containedPost != null) {
+//                            //Remove the post from our public adapter because we don't care about it anymore unfortunately (?) maybe bad for user exp but we'll see, can comment it out.
+//                            application.getPublicAdapter().remove(containedPost);
+//                        }
+//                        application.getPublicAdapter().notifyDataSetChanged();
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(FirebaseError firebaseError) {
+//
+//                    }
+//                });
+            }
+
+            @Override
+            public void onKeyMoved(String key, GeoLocation location) {
+
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+                //Now we can load all the posts and listen for posts that are incoming
+                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
                     progressOverlay.setVisibility(View.GONE);
                     AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                    fragmentView.findViewById(R.id.rv_public_feed).setVisibility(View.VISIBLE);
+                    fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
                 }
             }
+
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), TabEnum.Public, context);
+            public void onGeoQueryError(FirebaseError error) {
+                System.err.println("There was an error with this query: " + error);
+                //Still need to publish all the posts
+                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
             }
         });
+    }
 
-        query.addChildEventListener(new ChildEventListener() {
+    public void getPostsUserCommentedOn(final String userId) {
+        Firebase commentedPostsRef = firebaseRef.child("/users/" + userId + "/commented_posts");
+        final Firebase postsRef = firebaseRef.child("/posts");
+        commentedPostsRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Post newPost = dataSnapshot.getValue(Post.class);
-                List<Post> publicPosts = application.getPublicAdapter().getPosts();
-                if (application.getPublicAdapter().containsId(publicPosts, newPost.getId()) == null && newPost.getPrivacy() == PrivacyEnum.Public) {
-                    application.getPublicAdapter().getPosts().add(0, newPost);
-//                    application.getPublicAdapter().notifyDataSetChanged();
-                }
+                postsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        Post post = snapshot.getValue(Post.class);
+                        application.getPostsUserHasCommentedOnAdapter().getPosts().add(post);
+                        application.getPostsUserHasCommentedOnAdapter().notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Post changedPost = dataSnapshot.getValue(Post.class);
-                int length = application.getPublicAdapter().getPosts().size();
-                for (int i = 0; i < length; i++) {
-                    if (application.getPublicAdapter().getPosts().get(i).getId().equals(changedPost.getId())) {
-                        application.getPublicAdapter().getPosts().set(i, changedPost);
-                    }
-                }
-                application.getPublicAdapter().notifyDataSetChanged();
+                System.out.println("Here");
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Post removedPost = dataSnapshot.getValue(Post.class);
-                int length = application.getPublicAdapter().getPosts().size();
-                for (int i = 0; i < length; i++) {
-                    if (application.getPublicAdapter().getPosts().get(i).getId().equals(removedPost.getId())) {
-                        application.getPublicAdapter().getPosts().remove(i);
-                    }
-                }
-                application.getPublicAdapter().notifyDataSetChanged();
+
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                //Not sure if used
+
             }
 
             @Override
@@ -403,6 +513,63 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
+
+    }
+
+    public void getPostsCurrentUserCommentedOn(final Boolean loggedIn, final Activity activity) {
+        Firebase commentedPostsRef = currentUserPath.child("/commented_posts");
+        final Firebase postsRef = firebaseRef.child("/posts");
+        commentedPostsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (application.getFromAnotherActivity() == false) {
+                    setupNextActivity(loggedIn, activity);
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        commentedPostsRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                postsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapShot) {
+                        application.getPostsThatCurrentUserHasCommentedOnAdapter().getPosts().add(snapShot.getValue(Post.class));
+                        application.getPostsThatCurrentUserHasCommentedOnAdapter().notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
     }
 
     //THIS IS NEW!!!
@@ -413,11 +580,7 @@ public class DatabaseQuery implements Serializable {
         followersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (application.getFromAnotherActivity() == false) {
-                    getLatestPosts();
-                    getProfilePosts(userId);
-                    setupNextActivity(loggedIn, activity);
-                }
+                getLatestPosts(loggedIn, activity);
             }
 
             @Override
@@ -437,7 +600,7 @@ public class DatabaseQuery implements Serializable {
                         if(dataSnapshot.getValue().equals(true)) {
                             User user = snapshot.getValue(User.class);
                             user.setUserId(dataSnapshot.getKey());
-                            application.getFollowerRecyclerViewAdapter().add(user);
+                            application.getFollowersRecyclerViewAdapter().add(user);
                         }
                         //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
 //                        application.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
@@ -460,21 +623,22 @@ public class DatabaseQuery implements Serializable {
 //                } else {
 //
 //                }
+                System.out.println("Here");
                 //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
                 //TODO: Update hte UI because the follower has now changed to also being a follower. Need to update their button color
-                application.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
+                application.getFollowersRecyclerViewAdapter().notifyDataSetChanged();
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 Follower removedFollower = dataSnapshot.getValue(Follower.class);
-                int length = application.getFollowerRecyclerViewAdapter().getItemCount();
+                int length = application.getFollowersRecyclerViewAdapter().getItemCount();
                 for (int i = 0; i < length; i++) {
-                    if (application.getFollowerRecyclerViewAdapter().getFollowers().get(i).getId().equals(removedFollower.getId())) {
-                        application.getFollowerRecyclerViewAdapter().getFollowers().remove(i);
+                    if (application.getFollowersRecyclerViewAdapter().getFollowers().get(i).getId().equals(removedFollower.getId())) {
+                        application.getFollowersRecyclerViewAdapter().getFollowers().remove(i);
                     }
                 }
-                application.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
+                application.getFollowersRecyclerViewAdapter().notifyDataSetChanged();
             }
 
             @Override
@@ -626,12 +790,12 @@ public class DatabaseQuery implements Serializable {
     public void getComments(final String postId, final Activity activity, final View fragmentView, final View progressOverlay) {
         final List<Comment> commentItems = new ArrayList<>();
         application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(application, activity, new CommentsHeader(), commentItems));
-        Firebase commentsRef = firebaseRef.child("comments");
-        Query query = commentsRef.orderByChild("postId").equalTo(postId);
-        query.keepSynced(true);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        final Firebase postsRef = firebaseRef.child("/post_comments/" + postId);
+        final Firebase commentsRef = firebaseRef.child("/comments");
+        postsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                //After these are all finished, we finisht the fragment view
                 Comments.setupCommentsAdapter(postId, activity);
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
                     progressOverlay.setVisibility(View.GONE);
@@ -645,45 +809,38 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
-
-        query.addChildEventListener(new ChildEventListener() {
+        postsRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Comment newComment = dataSnapshot.getValue(Comment.class);
-                List<Comment> comments = application.getCommentsRecyclerViewAdapter().getCommentsList();
-                if (application.getCommentsRecyclerViewAdapter().containsId(comments, newComment.getId()) == null && newComment.getPostId().equals(postId)) {
-                    application.getCommentsRecyclerViewAdapter().getCommentsList().add(newComment);
-                    application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-                }
+                //For all the children inside this reference. these are comments so we add them
+                commentsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot commentSnapShot) {
+                        application.getCommentsRecyclerViewAdapter().getCommentsList().add(commentSnapShot.getValue(Comment.class));
+                        application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Comment changedComment = dataSnapshot.getValue(Comment.class);
-                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
-                for (int i = 0; i < length; i++) {
-                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(changedComment.getId())) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().set(i, changedComment);
-                    }
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
+                System.out.println("Here");
+
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Comment removedComment = dataSnapshot.getValue(Comment.class);
-                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
-                for (int i = 0; i < length; i++) {
-                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(removedComment.getId())) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().remove(i);
-                    }
-                }
-                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
+
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                //Not sure if used
+
             }
 
             @Override
@@ -691,9 +848,73 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
+//        Query query = commentsRef.orderByChild("postId").equalTo(postId);
+//        query.keepSynced(true);
+//        query.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                Comments.setupCommentsAdapter(postId, activity);
+//                if (progressOverlay.getVisibility() == View.VISIBLE) {
+//                    progressOverlay.setVisibility(View.GONE);
+//                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+//                    fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//
+//            }
+//        });
+//
+//        query.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                Comment newComment = dataSnapshot.getValue(Comment.class);
+//                List<Comment> comments = application.getCommentsRecyclerViewAdapter().getCommentsList();
+//                if (application.getCommentsRecyclerViewAdapter().containsId(comments, newComment.getId()) == null && newComment.getPostId().equals(postId)) {
+//                    application.getCommentsRecyclerViewAdapter().getCommentsList().add(newComment);
+//                    application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
+//                }
+//            }
+//
+//            @Override
+//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+//                Comment changedComment = dataSnapshot.getValue(Comment.class);
+//                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
+//                for (int i = 0; i < length; i++) {
+//                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(changedComment.getId())) {
+//                        application.getCommentsRecyclerViewAdapter().getCommentsList().set(i, changedComment);
+//                    }
+//                }
+//                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onChildRemoved(DataSnapshot dataSnapshot) {
+//                Comment removedComment = dataSnapshot.getValue(Comment.class);
+//                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
+//                for (int i = 0; i < length; i++) {
+//                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(removedComment.getId())) {
+//                        application.getCommentsRecyclerViewAdapter().getCommentsList().remove(i);
+//                    }
+//                }
+//                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+//                //Not sure if used
+//            }
+//
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//
+//            }
+//        });
     }
 
-    public void getMyTabsPosts(final View progressOverlay, final View fragmentView, final Context context) {
+    public void getMyTabsPosts(final Boolean loggedIn, final Activity activity) {
         final Firebase postsRef = firebaseRef.child("/posts");
         Firebase linkRef = currentUserPath.child("/posts");
         linkRef.addChildEventListener(new ChildEventListener() {
@@ -703,13 +924,8 @@ public class DatabaseQuery implements Serializable {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);
-                        application.getMyTabsAdapter().add(post);
-                        TabsUtil.populateNewsFeedList(fragmentView, application.getMyTabsAdapter(), TabEnum.MyTab, context);
-                        if (progressOverlay.getVisibility() == View.VISIBLE) {
-                            progressOverlay.setVisibility(View.GONE);
-                            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                            fragmentView.findViewById(R.id.rv_my_tabs_feed).setVisibility(View.VISIBLE);
-                        }
+                        application.getMyTabsAdapter().getPosts().add(post);
+                        application.getMyTabsAdapter().notifyDataSetChanged();
                     }
 
                     @Override
@@ -739,41 +955,11 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
-    }
 
-    public void getProfilePosts(String userId) {
-        final Firebase postsRef = firebaseRef.child("/posts");
-        Firebase linkRef = firebaseRef.child("/users/ " + userId + "/posts");
-        linkRef.addChildEventListener(new ChildEventListener() {
+        linkRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Post post = dataSnapshot.getValue(Post.class);
-                        application.getMyTabsAdapter().add(post);
-                    }
-
-                    @Override
-                    public void onCancelled(FirebaseError firebaseError) {
-
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                getPostsCurrentUserCommentedOn(loggedIn, activity);
             }
 
             @Override
@@ -783,7 +969,7 @@ public class DatabaseQuery implements Serializable {
         });
     }
 
-    public void getUserPosts(String userId, final View progressOverlay, final View fragmentView, final Context context) {
+    public void getUserPosts(String userId) {
         final Firebase postsRef = firebaseRef.child("/posts");
         Firebase linkRef = firebaseRef.child("/users/" + userId + "/posts");
         linkRef.addChildEventListener(new ChildEventListener() {
@@ -793,14 +979,8 @@ public class DatabaseQuery implements Serializable {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);
-                        application.getUserAdapter().add(post);
-                        TabsUtil.populateNewsFeedList(fragmentView, application.getUserAdapter(), TabEnum.User, context);
-                        //TODO: Fix this because this stopping of fragment view will be called so many times
-                        if(progressOverlay.getVisibility() == View.VISIBLE) {
-                            progressOverlay.setVisibility(View.GONE);
-                            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
-                        }
+                        application.getUserAdapter().getPosts().add(post);
+                        application.getUserAdapter().notifyDataSetChanged();
                     }
 
                     @Override

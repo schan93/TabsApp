@@ -41,6 +41,7 @@ import com.test.tabs.tabs.com.tabs.database.comments.CommentsDataSource;
 import com.test.tabs.tabs.com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.followers.Follower;
 import com.test.tabs.tabs.com.tabs.database.posts.Post;
+import com.test.tabs.tabs.com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.test.tabs.tabs.com.tabs.database.posts.PostsDataSource;
 import com.test.tabs.tabs.com.tabs.database.users.User;
 
@@ -68,7 +69,6 @@ public class Comments extends AppCompatActivity {
     private NotificationManager notificationManager;
     private boolean isNotificationActive;
     private String postId;
-    private String tab;
     private String userId;
     //Progress overlay
     View progressOverlay;
@@ -97,6 +97,15 @@ public class Comments extends AppCompatActivity {
         setupComment(comment);
         setupSendButton(comment, sendButton);
         populateCommentView(postId);
+
+
+        //TODO: But I worry about the fact that if we go idle on the user profile page we will have no posts. lets test this out.
+        //I think we should be calling this when the comments activity starts because that way we will actually be ready for the loading of the next page
+        if(!application.getUserId().equals(posterUserId)) {
+            databaseQuery.getUserPosts(posterUserId);
+            databaseQuery.getPostsUserCommentedOn(posterUserId);
+        }
+
         header = setupCommentsHeader();
     }
 
@@ -108,7 +117,7 @@ public class Comments extends AppCompatActivity {
         updatePost();
 
         databaseQuery.saveCommentToFirebase(createdComment);
-        updatePostCommentNumber(createdComment, tab);
+        updatePostCommentNumber(createdComment);
 
         //Push down the keyboard and make the cursor invisible, clear out the text
         resetKeyboardSettings();
@@ -288,12 +297,12 @@ public class Comments extends AppCompatActivity {
         return header;
     }
 
-    private void updatePostCommentNumber(Comment comment, String tab){
-        updatePostComments(comment.getPostId(), tab);
+    private void updatePostCommentNumber(Comment comment){
+        updatePostComments(comment.getPostId());
     }
 
-    private void updatePostComments(String postId, final String tab) {
-        Firebase reference = firebaseRef.child("Posts/" + postId + "/numComments");
+    private void updatePostComments(final String postId) {
+        Firebase reference = firebaseRef.child("posts/" + postId + "/numComments");
         reference.runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData mutableData) {
@@ -309,9 +318,25 @@ public class Comments extends AppCompatActivity {
             public void onComplete(FirebaseError firebaseError, boolean b, DataSnapshot dataSnapshot) {
                 if (firebaseError != null) {
                     System.out.println("Comments: Error: " + firebaseError);
+                } else {
+                    updatePostAdapters(application.getUserAdapter(), dataSnapshot);
+                    updatePostAdapters(application.getMyTabsAdapter(), dataSnapshot);
+                    updatePostAdapters(application.getPostsThatCurrentUserHasCommentedOnAdapter(), dataSnapshot);
+                    updatePostAdapters(application.getPostsUserHasCommentedOnAdapter(), dataSnapshot);
+                    updatePostAdapters(application.getPublicAdapter(), dataSnapshot);
+                    updatePostAdapters(application.getFollowingPostAdapter(), dataSnapshot);
+
                 }
             }
         });
+    }
+
+    void updatePostAdapters(PostRecyclerViewAdapter adapter, DataSnapshot dataSnapshot) {
+        Post post = adapter.containsId(postId);
+        if(post != null) {
+            post.setNumComments(Integer.valueOf(dataSnapshot.getValue().toString()));
+            adapter.notifyDataSetChanged();
+        }
     }
 
     private String getDateTime() {
@@ -325,7 +350,6 @@ public class Comments extends AppCompatActivity {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save the user's current game state
         savedInstanceState.putString("postId", postId);
-        savedInstanceState.putString("tab", tab);
         savedInstanceState.putString("userId", userId);
         savedInstanceState.putString("name", name);
         savedInstanceState.putString("posterUserId", posterUserId);
@@ -340,9 +364,6 @@ public class Comments extends AppCompatActivity {
     private void setupActivity(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             // Restore value of members from saved state
-            if(savedInstanceState.containsKey("tab")) {
-                tab = savedInstanceState.getString("tab");
-            }
             if(savedInstanceState.containsKey("postId")) {
                 postId = savedInstanceState.getString("postId");
             }
@@ -373,14 +394,13 @@ public class Comments extends AppCompatActivity {
         } else {
             //You get all these from the post view adapter
             postId = AndroidUtils.getIntentString(getIntent(), "postId");
-            tab = AndroidUtils.getIntentString(getIntent(), "tab");
             userId = AndroidUtils.getIntentString(getIntent(), "userId");
             postTitle = AndroidUtils.getIntentString(getIntent(), "postTitle");
             posterUserId = AndroidUtils.getIntentString(getIntent(), "posterUserId");
             posterName = AndroidUtils.getIntentString(getIntent(), "posterName");
             postTimeStamp = AndroidUtils.getIntentString(getIntent(), "postTimeStamp");
             postStatus = AndroidUtils.getIntentString(getIntent(), "postStatus");
-            User user = application.getFollowerRecyclerViewAdapter().containsUserId(application.getFollowerRecyclerViewAdapter().getFollowers(), posterUserId);
+            User user = application.getFollowersRecyclerViewAdapter().containsUserId(posterUserId);
             if (user != null) {
                 isFollowingPoster = true;
             } else {
@@ -407,6 +427,14 @@ public class Comments extends AppCompatActivity {
 //        noCommentsView = (TextView) findViewById(R.id.no_comments_text);
         llm = new LinearLayoutManager(this);
         commentsView.setLayoutManager(llm);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(Comments.this, news_feed.class);
+        startActivity(intent);
+        finish();
     }
 
 }

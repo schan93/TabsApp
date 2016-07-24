@@ -52,7 +52,7 @@ public class FollowersTab extends Fragment {
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.followers_tab, container, false);
+        fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
         application = ((FireBaseApplication) getActivity().getApplication());
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         databaseQuery = new DatabaseQuery(getActivity());
@@ -61,7 +61,7 @@ public class FollowersTab extends Fragment {
             userId = application.getUserId();
         }
         setupActivity(savedInstanceState);
-        TabsUtil.populateNewsFeedList(fragmentView, application.getFollowingPostAdapter(), TabEnum.Following, getContext());
+        TabsUtil.populateNewsFeedList(fragmentView, application.getFollowingPostAdapter(), getContext());
         return fragmentView;
     }
 
@@ -77,12 +77,12 @@ public class FollowersTab extends Fragment {
                 if(application.getFromAnotherActivity() == true) {
                     System.out.println("Followers Tab setUserVisible: VISIBLE");
                     AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-                    fragmentView.findViewById(R.id.rv_followers_feed).setVisibility(View.GONE);
+                    fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.GONE);
                 } else {
                     if (progressOverlay.getVisibility() == View.VISIBLE) {
                         progressOverlay.setVisibility(View.GONE);
                         AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                        fragmentView.findViewById(R.id.rv_followers_feed).setVisibility(View.VISIBLE);
+                        fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
                     }
                 }
             }

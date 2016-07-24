@@ -1,14 +1,6 @@
 package com.test.tabs.tabs.com.tabs.database.posts;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-import com.firebase.client.Firebase;
 import com.test.tabs.tabs.com.tabs.activity.PrivacyEnum;
-import com.test.tabs.tabs.com.tabs.activity.TabEnum;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Chiharu on 10/26/2015.
@@ -21,8 +13,6 @@ public class Post{
     private String posterUserId;
     private String timeStamp;
     private PrivacyEnum privacy;
-    private String longitude;
-    private String latitude;
     private Integer numComments;
 
     /**
@@ -31,7 +21,7 @@ public class Post{
     public Post(){
     }
 
-    public Post(String id, String title, String name, String status, String posterUserId, String timeStamp, PrivacyEnum privacy, String latitude, String longitude, Integer numComments) {
+    public Post(String id, String title, String name, String status, String posterUserId, String timeStamp, PrivacyEnum privacy, Integer numComments) {
         super();
         this.id = id;
         this.title = title;
@@ -40,8 +30,6 @@ public class Post{
         this.posterUserId = posterUserId;
         this.timeStamp = timeStamp;
         this.privacy = privacy;
-        this.latitude = latitude;
-        this.longitude = longitude;
         this.numComments = numComments;
     }
 
@@ -87,20 +75,6 @@ public class Post{
 
     public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
-    }
-
-    public String getLatitude() { return latitude; }
-
-    public void setLatitude(String latitude) {
-        this.latitude = latitude;
-    }
-
-    public String getLongitude() {
-        return longitude;
-    }
-
-    public void getLongitude(String longitude) {
-        this.longitude = longitude;
     }
 
     public Integer getNumComments() { return numComments; }

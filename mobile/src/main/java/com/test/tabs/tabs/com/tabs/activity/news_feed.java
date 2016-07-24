@@ -169,6 +169,7 @@ public class news_feed extends AppCompatActivity
             LoginManager.getInstance().logOut();
             Intent intent = new Intent(news_feed.this, login.class);
             if(intent != null) {
+                application.initializeAdapters();
                 startActivity(intent);
             }
             return true;

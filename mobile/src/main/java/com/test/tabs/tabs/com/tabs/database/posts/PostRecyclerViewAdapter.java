@@ -16,13 +16,16 @@ import android.widget.TextView;
 import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.activity.AndroidUtils;
 import com.test.tabs.tabs.com.tabs.activity.Comments;
 import com.test.tabs.tabs.com.tabs.activity.PrivacyEnum;
 import com.test.tabs.tabs.com.tabs.activity.TabEnum;
 import com.test.tabs.tabs.com.tabs.activity.TabsUtil;
-import com.test.tabs.tabs.com.tabs.activity.news_feed;
 
 /**
  * Created by Chiharu on 10/26/2015.
@@ -32,6 +35,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     Context context;
     TabEnum tabType;
     String userId;
+    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
 
     public List<Post> getPosts() {
         return posts;
@@ -86,51 +90,51 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     }
 
     @Override
-    public void onBindViewHolder(PostViewHolder postViewHolder, int i) {
-        final String name = posts.get(i).getName();
-        final String userId = getUserId();
-        postViewHolder.postTitle.setText(posts.get(i).getTitle());
-        postViewHolder.name.setText(name);
-        postViewHolder.timestamp.setText(AndroidUtils.convertDate(posts.get(i).getTimeStamp()));
-        postViewHolder.statusMsg.setText(posts.get(i).getStatus());
-        DraweeController controller = TabsUtil.getImage(posts.get(i).getPosterUserId());
-        RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
-        roundingParams.setRoundAsCircle(true);
-        postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
-        postViewHolder.posterPhoto.setController(controller);
-        postViewHolder.numComments.setText(posts.get(i).getNumComments() + " Comments");
-        postViewHolder.numComments.setTextSize(14);
-        if(getTabType() == TabEnum.Public || getTabType() == TabEnum.User) {
-            postViewHolder.privacyStatus.setVisibility(View.GONE);
-        }
-//        } else {
-//            if (!isPublic) {
-//                //If it is a friends post, set the text to be "Friends"
-//                postViewHolder.privacyStatus.setText(PrivacyEnum.Following.toString());
-//            } else {
-//                //We know that it is in the public tab so we don't show it.
-//                postViewHolder.privacyStatus.setText("");
-//            }
-//        }
+    public void onBindViewHolder(final PostViewHolder postViewHolder, int i) {
         final Post post = posts.get(i);
+        if (post != null) {
+            final String name = post.getName();
+            final String userId = getUserId();
+            postViewHolder.numComments.setText(post.getNumComments() + " Comments");
+            postViewHolder.postTitle.setText(post.getTitle());
+            postViewHolder.name.setText(name);
+            postViewHolder.timestamp.setText(AndroidUtils.convertDate(post.getTimeStamp()));
+            postViewHolder.statusMsg.setText(post.getStatus());
+            DraweeController controller = TabsUtil.getImage(post.getPosterUserId());
+            RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
+            roundingParams.setRoundAsCircle(true);
+            postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
+            postViewHolder.posterPhoto.setController(controller);
+            postViewHolder.numComments.setTextSize(14);
+            if (getTabType() == TabEnum.Public || getTabType() == TabEnum.Following) {
+                postViewHolder.privacyStatus.setVisibility(View.GONE);
+            } else {
+                if (post.getPrivacy() == PrivacyEnum.Public) {
+                    postViewHolder.privacyStatus.setText(PrivacyEnum.Public.toString());
+                } else if (post.getPrivacy() == PrivacyEnum.Following) {
+                    postViewHolder.privacyStatus.setText(PrivacyEnum.Following.toString());
+                }
 
-        postViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), Comments.class);
-                Bundle bundle = new Bundle();
-                bundle.putString("postId", post.getId());
-                bundle.putString("posterUserId", post.getPosterUserId());
-                bundle.putString("posterName", post.getName());
-                bundle.putString("postTimeStamp", post.getTimeStamp());;
-                bundle.putString("postStatus", post.getStatus());
-                bundle.putString("tab", tabType.toString());
-                bundle.putString("postTitle", post.getTitle());
-                bundle.putString("userId", userId);
-                intent.putExtras(bundle);
-                v.getContext().startActivity(intent);
             }
-        });
+
+            postViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(v.getContext(), Comments.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("postId", post.getId());
+                    bundle.putString("posterUserId", post.getPosterUserId());
+                    bundle.putString("posterName", post.getName());
+                    bundle.putString("postTimeStamp", post.getTimeStamp());
+
+                    bundle.putString("postStatus", post.getStatus());
+                    bundle.putString("postTitle", post.getTitle());
+                    bundle.putString("userId", userId);
+                    intent.putExtras(bundle);
+                    v.getContext().startActivity(intent);
+                }
+            });
+        }
     }
 
     public PostRecyclerViewAdapter(List<Post> posts, Context context, TabEnum tab) {
@@ -159,9 +163,9 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         }
     }
 
-    public static Post containsId(List<Post> list, String id) {
+    public Post containsId(String id) {
         System.out.println("PostRecyclerViewAdapter: id: " + id);
-        for (Post object : list) {
+        for (Post object : posts) {
             if (object.getId().equals(id)) {
                 return object;
             }

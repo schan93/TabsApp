@@ -8,9 +8,11 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
+import com.test.tabs.tabs.com.tabs.database.users.User;
 
 /**
  * Created by schan on 6/22/16.
@@ -42,12 +44,16 @@ public class FollowersList extends AppCompatActivity {
         //All we need to do is render the page now
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.follow_list);
 
-        TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getFollowerRecyclerViewAdapter());
 
-//        if (progressOverlay.getVisibility() == View.VISIBLE) {
-//            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-//            findViewById(R.id.follow_list).setVisibility(View.VISIBLE);
-//        }
+        Button followButton = (Button) findViewById(R.id.follower_button);
+        if(!posterUserId.equals(application.getUserId())) {
+            TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getUserFollowersAdapter());
+            application.getUserFollowersAdapter().setupFollowersRecyclerView(databaseQuery, getApplicationContext());
+        } else {
+            TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getFollowersRecyclerViewAdapter());
+            application.getFollowersRecyclerViewAdapter().setupFollowersRecyclerView(databaseQuery, getApplicationContext());
+
+        }
 
     }
 

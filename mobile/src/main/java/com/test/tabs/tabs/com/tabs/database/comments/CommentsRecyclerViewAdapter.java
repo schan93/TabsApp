@@ -151,15 +151,17 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         }
         else if(commentViewHolder instanceof CommentsViewHolder){
             Comment currentItem = getItem(i - 1);
-            CommentsViewHolder comment = (CommentsViewHolder) commentViewHolder;
-            comment.name.setText(currentItem.getCommenter());
-            comment.message.setText(currentItem.getComment());
-            DraweeController controller = TabsUtil.getImage(currentItem.getCommenterUserId());
-            RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
-            roundingParams.setRoundAsCircle(true);
-            comment.photo.getHierarchy().setRoundingParams(roundingParams);
-            comment.photo.setController(controller);
-            comment.timeStamp.setText(AndroidUtils.convertDate(currentItem.getTimeStamp()));
+            if(currentItem != null) {
+                CommentsViewHolder comment = (CommentsViewHolder) commentViewHolder;
+                comment.name.setText(currentItem.getCommenter());
+                comment.message.setText(currentItem.getComment());
+                DraweeController controller = TabsUtil.getImage(currentItem.getCommenterUserId());
+                RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
+                roundingParams.setRoundAsCircle(true);
+                comment.photo.getHierarchy().setRoundingParams(roundingParams);
+                comment.photo.setController(controller);
+                comment.timeStamp.setText(AndroidUtils.convertDate(currentItem.getTimeStamp()));
+            }
         }
     }
 

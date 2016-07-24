@@ -37,19 +37,46 @@ import java.util.List;
  * Created by KCKusumi on 2/1/2016.
  */
 public class FireBaseApplication extends Application {
+    //May be used in case
     private static boolean fromAnotherActivity = false;
     private static String name = "";
     private static String userId = "";
+
+    //For the public tab
     private static PostRecyclerViewAdapter publicAdapter;
+
+    //For the following tab
     private static PostRecyclerViewAdapter followingPostAdapter;
+
+    //For my own tab
     private static PostRecyclerViewAdapter myTabsAdapter;
+
+    //For another user's posts when you click on their name to view their profile
     private static PostRecyclerViewAdapter userAdapter;
+
+    //For the comments that you see when you click on a recycler view item
     private static CommentsRecyclerViewAdapter commentsRecyclerViewAdapter;
+
+    //For the followers you have when you click on view followers button
     private static FollowerRecyclerViewAdapter followerRecyclerViewAdapter;
+
+    //For the following you have when you click on view followers button
     private static FollowerRecyclerViewAdapter followingRecyclerViewAdapter;
+
+    //Not sure actually
     private static List<String> userInfoAdapter;
 
-    private static PostRecyclerViewAdapter postsThatUserHasCommentedOnAdapter;
+    //For the user's followers that can be seen when you click on view followers button
+    private static FollowerRecyclerViewAdapter userFollowersAdapter;
+
+    //For the user's followers that can be seen when you click on view following button
+    private static FollowerRecyclerViewAdapter userFollowingAdapter;
+
+    //For the user's posts that can be seen when you click on their profile picture and you go to the comments tab
+    private static PostRecyclerViewAdapter postsUserHasCommentedOnAdapter;
+
+    //For the user's posts that can be seen when on profile tab and you go to the comments tab
+    private static PostRecyclerViewAdapter postsThatCurrentUserHasCommentedOnAdapter;
 
     @Override
     public void onCreate() {
@@ -107,7 +134,7 @@ public class FireBaseApplication extends Application {
         this.followerRecyclerViewAdapter = followerRecyclerViewAdapter;
     }
 
-    public static FollowerRecyclerViewAdapter getFollowerRecyclerViewAdapter(){
+    public static FollowerRecyclerViewAdapter getFollowersRecyclerViewAdapter(){
         return followerRecyclerViewAdapter;
     }
 
@@ -151,27 +178,53 @@ public class FireBaseApplication extends Application {
 
     public void setUserAdapter(PostRecyclerViewAdapter userAdapter) { this.userAdapter = userAdapter; }
 
-    public PostRecyclerViewAdapter getPostsThatUserHasCommentedOnAdapter() { return postsThatUserHasCommentedOnAdapter; }
+    public static PostRecyclerViewAdapter getPostsThatCurrentUserHasCommentedOnAdapter() { return postsThatCurrentUserHasCommentedOnAdapter; }
 
-    public void setPostsThatUserHasCommentedOnAdapter(PostRecyclerViewAdapter postsThatUserHasCommentedOnAdapter) { this.postsThatUserHasCommentedOnAdapter = postsThatUserHasCommentedOnAdapter; }
+    public void setPostsThatCurrentUserHasCommentedOnAdapter(PostRecyclerViewAdapter postsThatCurrentUserHasCommentedOnAdapter) { this.postsThatCurrentUserHasCommentedOnAdapter = postsThatCurrentUserHasCommentedOnAdapter; }
 
-    private void initializeAdapters() {
+    public static PostRecyclerViewAdapter getPostsUserHasCommentedOnAdapter() { return postsUserHasCommentedOnAdapter; }
+
+    public void setPostsUserHasCommentedOnAdapter(PostRecyclerViewAdapter postsUserHasCommentedOnAdapter) { this.postsUserHasCommentedOnAdapter = postsUserHasCommentedOnAdapter; }
+
+    public void setUserFollowersAdapter(FollowerRecyclerViewAdapter userFollowersAdapter) {
+        this.userFollowersAdapter = userFollowersAdapter;
+    }
+
+    public FollowerRecyclerViewAdapter getUserFollowingAdapter() {
+        return userFollowersAdapter;
+    }
+
+    public void setUserFollowingAdapter(FollowerRecyclerViewAdapter userFollowingAdapter) {
+        this.userFollowingAdapter = userFollowingAdapter;
+    }
+
+    public FollowerRecyclerViewAdapter getUserFollowersAdapter() {
+        return userFollowingAdapter;
+    }
+
+    public void initializeAdapters() {
         List<User> followers = new ArrayList<User>();
         List<User> following = new ArrayList<User>();
+        List<User> userFollowers = new ArrayList<User>();
+        List<User> userFollowing = new ArrayList<User>();
         List<Post> publicPosts = new ArrayList<Post>();
         List<Post> myTabsPosts = new ArrayList<Post>();
         List<Post> followingPosts = new ArrayList<>();
         List<Post> userPosts = new ArrayList<>();
         List<Post> commentPosts = new ArrayList<>();
+        List<Post> userCommentPosts = new ArrayList<>();
         List<String> userInfoAdapter = new ArrayList<>();
         setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), new ArrayList<Comment>()));
         setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, TabEnum.Public));
         setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, TabEnum.MyTab));
         setFollowingPostAdapter(new PostRecyclerViewAdapter(followingPosts, this, TabEnum.Following));
-        setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(followers));
-        setFollowingRecyclerViewAdapter(new FollowerRecyclerViewAdapter(following));
+        setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(followers, this));
+        setFollowingRecyclerViewAdapter(new FollowerRecyclerViewAdapter(following, this));
+        setUserFollowersAdapter(new FollowerRecyclerViewAdapter(userFollowers));
+        setUserFollowingAdapter(new FollowerRecyclerViewAdapter(userFollowing));
         setUserAdapter(new PostRecyclerViewAdapter(userPosts, this, null));
-        setPostsThatUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(commentPosts, this, null));
+        setPostsThatCurrentUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(commentPosts, this, null));
+        setPostsUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(userCommentPosts, this, null));
         setUserInfoAdapter(userInfoAdapter);
 
     }

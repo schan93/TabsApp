@@ -2,7 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     xmlns:fresco="http://schemas.android.com/tools"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     >
@@ -60,17 +60,6 @@
                 android:textSize="14sp" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/privacy_status"
-                android:paddingTop="8dp"
-                android:paddingLeft="8dp"
-                android:fontFamily="sans-serif"
-                android:layout_marginBottom="40dp"
-                android:layout_below="@id/poster_profile_photo"
-                />
-
-            <TextView
                 android:layout_toRightOf="@id/poster_profile_photo"
                 android:layout_below="@id/txt_post_title"
                 android:id="@+id/txt_statusMsg"
@@ -92,6 +81,7 @@
                 >
 
                 <TextView
+                    android:layout_alignParentBottom="true"
                     android:layout_alignParentLeft="true"
                     android:id="@+id/txt_name"
                     android:paddingLeft="8dp"
@@ -100,6 +90,16 @@
                     android:layout_width="wrap_content"
                     android:maxWidth="125dp"
                     android:layout_height="wrap_content" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/privacy_status"
+                    android:paddingTop="8dp"
+                    android:paddingLeft="8dp"
+                    android:fontFamily="sans-serif"
+                    android:layout_toRightOf="@id/txt_name"
+                    />
 
                 <TextView
                     android:layout_alignParentBottom="true"

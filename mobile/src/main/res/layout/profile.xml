@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/tools"
+    android:id="@+id/profile_layout"
+    android:layout_height="match_parent">
+
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:layout_marginTop="16dp"
+        android:id="@+id/profile_picture"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        fresco:roundingBorderColor="@color/white"
+        fresco:roundingBorderWidth="10dp"
+        android:layout_centerHorizontal="true"
+        fresco:placeholderImageScaleType="centerCrop"
+        fresco:placeholderImage="@mipmap/blank_prof_pic"
+        fresco:roundAsCircle="true"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_below="@id/profile_picture"
+        android:textStyle="bold"
+        android:id="@+id/profile_name"/>
+
+    <Button
+        android:layout_marginTop="8dp"
+        android:id="@+id/follow_button"
+        android:fontFamily="sans-serif-medium"
+        android:textSize="12sp"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:visibility="gone"
+        android:background="@drawable/following_button_bg"
+        android:textColor="@color/white"
+        android:layout_below="@id/profile_name"
+        android:layout_centerHorizontal="true" />
+
+    <LinearLayout
+        android:id="@+id/button_row"
+        android:orientation="horizontal"
+        android:layout_below="@id/follow_button"
+        android:layout_width="match_parent"
+        android:weightSum="4"
+        android:layout_marginTop="8dp"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:layout_marginBottom="32dp"
+            android:textColor="@color/black"
+            android:layout_marginLeft="16dp"
+            android:textAlignment="center"
+            android:layout_weight="1"
+            android:id="@+id/total_num_posts"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:layout_marginBottom="32dp"
+            android:textColor="@color/black"
+            android:layout_marginLeft="16dp"
+            android:layout_weight="1"
+            android:id="@+id/total_num_comments"/>
+
+        <Button
+            android:stateListAnimator="@null"
+            android:text="@string/followers"
+            android:textSize="16sp"
+            android:background="?android:attr/selectableItemBackground"
+            android:id="@+id/followers_button"
+            android:layout_marginLeft="16dp"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:textAllCaps="false"
+            android:fontFamily="sans-serif"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:stateListAnimator="@null"
+            android:text="@string/following"
+            android:layout_marginLeft="16dp"
+            android:textSize="16sp"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif"
+            android:textAllCaps="false"
+            android:background="?android:attr/selectableItemBackground"
+            android:id="@+id/following_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+    <android.support.design.widget.TabLayout
+        android:id="@+id/comments_post_tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_below="@id/button_row"
+        android:background="?attr/colorPrimary"
+        android:elevation="6dp"
+        app:tabIndicatorColor="#00BCD4"
+        android:minHeight="60dp"
+        android:layout_centerInParent="true"
+        app:tabGravity="fill"
+        app:tabMode="fixed"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/comments_posts_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/comments_post_tab_layout"/>
+
+</RelativeLayout>

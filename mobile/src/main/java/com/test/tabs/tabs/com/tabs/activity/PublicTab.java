@@ -63,12 +63,13 @@ public class PublicTab extends Fragment {
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.public_tab, container, false);
+        fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         databaseQuery = new DatabaseQuery(getActivity());
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         setupActivity(savedInstanceState);
-        databaseQuery.getPublicPosts(progressOverlay, fragmentView, getContext());
+        Location location = LocationService.getLastLocation();
+        databaseQuery.getPublicPosts(location, progressOverlay, fragmentView, getContext());
         return fragmentView;
     }
 

@@ -66,7 +66,7 @@ public class PostsDataSource {
 //                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
 //                new String[]{postId, posterName, posterUserId, status, privacy.toString(), Double.toString(latitude), Double.toString(longitude)});
 
-        Post post = new Post(postId, "title", posterName, status, posterUserId, dateTime, privacy, Double.toString(latitude), Double.toString(longitude), 0);
+        Post post = new Post(postId, "title", posterName, status, posterUserId, dateTime, privacy, 0);
         return post;
     }
 
@@ -92,7 +92,7 @@ public class PostsDataSource {
 //                values, SQLiteDatabase.CONFLICT_IGNORE);
         database.insert(DatabaseHelper.TABLE_POSTS, null, values);
 
-        Post post = new Post(postId, "title", posterName, status, posterUserId, timeStamp, privacy, Double.toString(latitude), Double.toString(longitude), 0);
+        Post post = new Post(postId, "title", posterName, status, posterUserId, timeStamp, privacy, 0);
         return post;
     }
 
@@ -121,10 +121,9 @@ public class PostsDataSource {
         System.out.println("User Id: " + cursor.getString(2));
         System.out.println("Time Stamp: " + cursor.getString(4));
         System.out.println("Privacy: " + cursor.getString(5));
-        System.out.println("Latitude: " + cursor.getString(6));
 
         Post post = new Post(cursor.getString(0), "title", cursor.getString(1), cursor.getString(3),
-                cursor.getString(2), cursor.getString(4), PrivacyEnum.valueOf(cursor.getString(5)), cursor.getString(6), cursor.getString(7), 0);
+                cursor.getString(2), cursor.getString(4), PrivacyEnum.valueOf(cursor.getString(5)), 0);
         return post;
     }
 
@@ -162,35 +161,35 @@ public class PostsDataSource {
      * @return
      */
     public List<Post> getAllPublicPosts(double latitude, double longitude, double radius) {
-        PointF center = new PointF((float)latitude, (float)longitude);
-        System.out.println("Center: " + center);
-        final double mult = 1; // mult = 1.1; is more reliable
-        PointF p1 = calculateDerivedPosition(center, mult * radius, 0);
-        PointF p2 = calculateDerivedPosition(center, mult * radius, 90);
-        PointF p3 = calculateDerivedPosition(center, mult * radius, 180);
-        PointF p4 = calculateDerivedPosition(center, mult * radius, 270);
-
+//        PointF center = new PointF((float)latitude, (float)longitude);
+//        System.out.println("Center: " + center);
+//        final double mult = 1; // mult = 1.1; is more reliable
+//        PointF p1 = calculateDerivedPosition(center, mult * radius, 0);
+//        PointF p2 = calculateDerivedPosition(center, mult * radius, 90);
+//        PointF p3 = calculateDerivedPosition(center, mult * radius, 180);
+//        PointF p4 = calculateDerivedPosition(center, mult * radius, 270);
+//
         List<Post> posts = new ArrayList<Post>();
-
-        Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
-                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? AND " + DatabaseHelper.COLUMN_LATITUDE + " > ? AND " +
-                DatabaseHelper.COLUMN_LATITUDE + " < ? AND " + DatabaseHelper.COLUMN_LONGITUDE + " < ? AND "
-                        + DatabaseHelper.COLUMN_LONGITUDE + " > ?" , new String[]{Integer.toString(0), String.valueOf(p3.x), String.valueOf(p1.x), String.valueOf(p2.y), String.valueOf(p4.y)}, null, null, null);
-
-        cursor.moveToFirst();
-
-        while (!cursor.isAfterLast()) {
-            Post post = cursorToPost(cursor);
-            PointF pointForCheck = new PointF(Float.parseFloat(post.getLatitude()), Float.parseFloat(post.getLongitude()));
-            if(pointIsInCircle(pointForCheck, center, radius)) {
-                System.out.println("Point was in circle radius: " + radius + " point for check: " + pointForCheck);
-                posts.add(post);
-            }
-            cursor.moveToNext();
-        }
-        // make sure to close the cursor
-        System.out.println("Number of posts from public: " + posts.size());
-        cursor.close();
+//
+//        Cursor cursor = database.query(DatabaseHelper.TABLE_POSTS,
+//                allColumns, DatabaseHelper.COLUMN_PRIVACY + " = ? AND " + DatabaseHelper.COLUMN_LATITUDE + " > ? AND " +
+//                DatabaseHelper.COLUMN_LATITUDE + " < ? AND " + DatabaseHelper.COLUMN_LONGITUDE + " < ? AND "
+//                        + DatabaseHelper.COLUMN_LONGITUDE + " > ?" , new String[]{Integer.toString(0), String.valueOf(p3.x), String.valueOf(p1.x), String.valueOf(p2.y), String.valueOf(p4.y)}, null, null, null);
+//
+//        cursor.moveToFirst();
+//
+//        while (!cursor.isAfterLast()) {
+//            Post post = cursorToPost(cursor);
+////            PointF pointForCheck = new PointF(Float.parseFloat(post.getLatitude()), Float.parseFloat(post.getLongitude()));
+//            if(pointIsInCircle(pointForCheck, center, radius)) {
+//                System.out.println("Point was in circle radius: " + radius + " point for check: " + pointForCheck);
+//                posts.add(post);
+//            }
+//            cursor.moveToNext();
+//        }
+//        // make sure to close the cursor
+//        System.out.println("Number of posts from public: " + posts.size());
+//        cursor.close();
         return posts;
     }
 

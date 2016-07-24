@@ -1,6 +1,7 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -41,21 +42,8 @@ public class TabsUtil {
 
     static FireBaseApplication application;
 
-    private static View getTabType(View fragmentView, TabEnum tabType) {
-        if(tabType == TabEnum.User) {
-            return fragmentView.findViewById(R.id.rv_posts_feed);
-        } else if(tabType == TabEnum.Following) {
-            return fragmentView.findViewById(R.id.rv_followers_feed);
-        } else if(tabType == TabEnum.Public) {
-            return fragmentView.findViewById(R.id.rv_public_feed);
-        } else if(tabType == TabEnum.MyTab) {
-            return fragmentView.findViewById(R.id.rv_my_tabs_feed);
-        }
-        return null;
-    }
-
-    public static void populateNewsFeedList(View fragmentView, PostRecyclerViewAdapter adapter, TabEnum tabType, Context context) {
-        RecyclerView rv = (RecyclerView) getTabType(fragmentView, tabType);
+    public static void populateNewsFeedList(View fragmentView, PostRecyclerViewAdapter adapter, Context context) {
+        RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_posts_feed);
         RecyclerView.ItemAnimator animator = rv.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
@@ -118,14 +106,17 @@ public class TabsUtil {
         //draweeView.setImageURI(uri);
     }
 
-    public static void setupProfileView(final View view, final String callingActivityName, String ... intentVariables) {
+    public static void setupProfileView(final View view, final String callingActivityName, FireBaseApplication fireBaseApplication,  String ... intentVariables) {
+        application = fireBaseApplication;
         final Bundle bundle = new Bundle();
         if(intentVariables.length > 0) {
             bundle.putString("posterUserId", intentVariables[0]);
             bundle.putString("posterName", intentVariables[1]);
-            bundle.putString("postStatus", intentVariables[2]);
-            bundle.putString("postTimeStamp", intentVariables[3]);
-            bundle.putString("postTitle", intentVariables[4]);
+            if(intentVariables.length > 2) {
+                bundle.putString("postStatus", intentVariables[2]);
+                bundle.putString("postTimeStamp", intentVariables[3]);
+                bundle.putString("postTitle", intentVariables[4]);
+            }
         }
         bundle.putString("parentClass", callingActivityName);
 
@@ -133,14 +124,21 @@ public class TabsUtil {
         Button followingButton = (Button) view.findViewById(R.id.following_button);
         TextView totalNumPosts = (TextView) view.findViewById(R.id.total_num_posts);
         TextView totalNumComments = (TextView) view.findViewById(R.id.total_num_comments);
-
-        SpannableString spanString = new SpannableString(String.valueOf(application.getMyTabsAdapter().getItemCount()));
-        spanString.setSpan(new StyleSpan(Typeface.BOLD), 0, spanString.length(), 0);
-
-        totalNumPosts.setText(Html.fromHtml("<b>" + application.getMyTabsAdapter().getItemCount() + "</b>" + "\nPosts"));
-        totalNumComments.setText(Html.fromHtml("<b>" + application.getCommentsRecyclerViewAdapter().getItemCount() + "</b>" + "\nComments"));
-        followersButton.setText(Html.fromHtml("<b>" + application.getFollowerRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowers"));
-        followingButton.setText(Html.fromHtml("<b>" + application.getFollowingRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowing"));
+        
+        if(callingActivityName.equals("Profile")) {
+            totalNumPosts.setText(Html.fromHtml("<b>" + application.getMyTabsAdapter().getItemCount() + "</b>" + "\nPosts"));
+            //TODO: This wont work. this will only show the number of posts that a user has commented on but not necessarily the # comments
+            totalNumComments.setText(Html.fromHtml("<b>" + application.getPostsThatCurrentUserHasCommentedOnAdapter().getItemCount() + "</b>" + "\nComments"));
+            followersButton.setText(Html.fromHtml("<b>" + application.getFollowersRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowers"));
+            followingButton.setText(Html.fromHtml("<b>" + application.getFollowingRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowing"));
+        } else {
+            //TODO: when we restart application for example on the user page we have to get all the posts first
+            totalNumPosts.setText(Html.fromHtml("<b>" + application.getUserAdapter().getItemCount() + "</b>" + "\nPosts"));
+            totalNumComments.setText(Html.fromHtml("<b>" + application.getPostsUserHasCommentedOnAdapter().getItemCount() + "</b>" + "\nComments"));
+            followersButton.setText(Html.fromHtml("<b>" + application.getUserFollowersAdapter().getItemCount() + "</b>" + "\nFollowers"));
+            followingButton.setText(Html.fromHtml("<b>" + application.getUserFollowingAdapter().getItemCount() + "</b>" + "\nFollowing"));
+            // correctly the posts and such of another user.
+        }
 
         followersButton.setOnClickListener(new View.OnClickListener() {
             @Override
