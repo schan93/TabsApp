@@ -777,6 +777,7 @@ public class DatabaseQuery implements Serializable {
                                 @Override
                                 public void run() {
                                     getFollowing(userId, loggedIn, activity);
+                                    getNumComments();
                                 }
                             });
                         }
@@ -914,13 +915,44 @@ public class DatabaseQuery implements Serializable {
 //        });
     }
 
+    public void getNumComments() {
+        final Firebase commentsRef = currentUserPath.child("/comments");
+        commentsRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                application.setCommentsCount(application.getCommentsCount() + 1);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
+    }
+
     public void getMyTabsPosts(final Boolean loggedIn, final Activity activity) {
         final Firebase postsRef = firebaseRef.child("/posts");
         Firebase linkRef = currentUserPath.child("/posts");
         linkRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);

@@ -166,7 +166,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     public Post containsId(String id) {
         System.out.println("PostRecyclerViewAdapter: id: " + id);
         for (Post object : posts) {
-            if (object.getId().equals(id)) {
+            if (object != null && object.getId().equals(id)) {
                 return object;
             }
         }

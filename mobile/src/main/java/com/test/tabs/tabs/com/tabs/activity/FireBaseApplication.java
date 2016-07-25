@@ -78,6 +78,8 @@ public class FireBaseApplication extends Application {
     //For the user's posts that can be seen when on profile tab and you go to the comments tab
     private static PostRecyclerViewAdapter postsThatCurrentUserHasCommentedOnAdapter;
 
+    private static Integer commentsCount;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -94,6 +96,10 @@ public class FireBaseApplication extends Application {
         //Make sure that adapters don't
 
     }
+
+    public static Integer getCommentsCount() { return commentsCount; };
+
+    public void setCommentsCount(Integer commentsCount) { this.commentsCount = commentsCount; }
 
     public static String getName() {
         return name;
@@ -226,6 +232,7 @@ public class FireBaseApplication extends Application {
         setPostsThatCurrentUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(commentPosts, this, null));
         setPostsUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(userCommentPosts, this, null));
         setUserInfoAdapter(userInfoAdapter);
+        setCommentsCount(0);
 
     }
 

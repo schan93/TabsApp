@@ -128,7 +128,7 @@ public class TabsUtil {
         if(callingActivityName.equals("Profile")) {
             totalNumPosts.setText(Html.fromHtml("<b>" + application.getMyTabsAdapter().getItemCount() + "</b>" + "\nPosts"));
             //TODO: This wont work. this will only show the number of posts that a user has commented on but not necessarily the # comments
-            totalNumComments.setText(Html.fromHtml("<b>" + application.getPostsThatCurrentUserHasCommentedOnAdapter().getItemCount() + "</b>" + "\nComments"));
+            totalNumComments.setText(Html.fromHtml("<b>" + application.getCommentsCount() + "</b>" + "\nComments"));
             followersButton.setText(Html.fromHtml("<b>" + application.getFollowersRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowers"));
             followingButton.setText(Html.fromHtml("<b>" + application.getFollowingRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowing"));
         } else {
