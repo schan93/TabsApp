@@ -1,14 +1,24 @@
 package com.test.tabs.tabs.com.tabs.activity;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.test.tabs.tabs.R;
 import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
@@ -17,7 +27,7 @@ import com.test.tabs.tabs.com.tabs.database.Database.DatabaseQuery;
 /**
  * Created by schan on 12/30/15.
  */
-public class PublicTab extends Fragment {
+public class PublicTab extends Fragment implements android.location.LocationListener {
 
     private View fragmentView;
     private LocationManager locationManager;
@@ -68,6 +78,7 @@ public class PublicTab extends Fragment {
         databaseQuery = new DatabaseQuery(getActivity());
         AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         setupActivity(savedInstanceState);
+        checkLocation(getActivity());
         Location location = LocationService.getLastLocation();
         databaseQuery.getPublicPosts(location, progressOverlay, fragmentView, getContext());
         return fragmentView;
@@ -88,102 +99,105 @@ public class PublicTab extends Fragment {
         }
     }
 
-//    public void checkLocation(Activity activity) {
-//        locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
-//        Criteria c = new Criteria();
-//        provider = locationManager.getBestProvider(c, false);
-//        location = getLocation(activity);
-//        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            // TODO: Consider calling
-//            //    ActivityCompat#requestPermissions
-//            // here to request the missing permissions, and then overriding
-//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//            //                                          int[] grantResults)
-//            // to handle the case where the user grants the permission. See the documentation
-//            // for ActivityCompat#requestPermissions for more details.
-//            return;
-//        }
-//        locationManager.requestLocationUpdates(provider, 400, 1, this);
-//        locationManager.removeUpdates(this);
-//
-//        if (location != null) {
-//            // get latitude and longitude of the location
-//            onLocationChanged(location);
-//
-//        } else {
-//            Log.d("TAG", "Unable to find Location");
-//        }
-//    }
-//
-//    public Location getLocation(Activity activity) {
-//        try {
-//            locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
-//
-//            // getting GPS status
-//            isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-//
-//            // getting network status
-//            isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-//
-//            if (!isGPSEnabled && !isNetworkEnabled) {
-//                // no network provider is enabled
-//            } else {
-//                if (isNetworkEnabled) {
-//                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 400, 0, this);
-//                    Log.d("Network", "Network Enabled");
-//                    if (locationManager != null) {
-//                        location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-//                        if (location != null) {
-//                            lat = location.getLatitude();
-//                            lng = location.getLongitude();
-//                        }
-//                    }
-//                }
-//                // if GPS Enabled get lat/long using GPS Services
-//                if (isGPSEnabled) {
-//                    if (location == null) {
-//                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 0, this);
-//                        Log.d("GPS", "GPS Enabled");
-//                        if (locationManager != null) {
-//                            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//                            if (location != null) {
-//                                lat = location.getLatitude();
-//                                lng = location.getLongitude();
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//        } catch (SecurityException e) {
-//            Log.e("PERMISSION_EXCEPTION","PERMISSION_NOT_GRANTED");
-//        }catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        return location;
-//    }
-//
-//    @Override
-//    public void onLocationChanged(Location location) {
-//        lat = location.getLatitude();
-//        lng = location.getLongitude();
-//    }
-//
-//    @Override
-//    public void onStatusChanged(String provider, int status, Bundle extras) {
-//
-//    }
-//
-//    @Override
-//    public void onProviderEnabled(String provider) {
-//
-//    }
-//
-//    @Override
-//    public void onProviderDisabled(String provider) {
-//
-//    }
+
+    public void checkLocation(Activity activity) {
+        locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+        Criteria c = new Criteria();
+        provider = locationManager.getBestProvider(c, false);
+        location = getLocation(activity);
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(provider, 400, 1, this);
+        locationManager.removeUpdates(this);
+
+        if (location != null) {
+            // get latitude and longitude of the location
+            onLocationChanged(location);
+
+        } else {
+            Log.d("TAG","Unable to find Location");
+        }
+    }
+
+
+
+    public Location getLocation(Activity activity) {
+        try {
+            locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+
+            // getting GPS status
+            isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+            // getting network status
+            isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+            if (!isGPSEnabled && !isNetworkEnabled) {
+                // no network provider is enabled
+            } else {
+                if (isNetworkEnabled) {
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 400, 0, this);
+                    Log.d("Network", "Network Enabled");
+                    if (locationManager != null) {
+                        location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                        if (location != null) {
+                            lat = location.getLatitude();
+                            lng = location.getLongitude();
+                        }
+                    }
+                }
+                // if GPS Enabled get lat/long using GPS Services
+                if (isGPSEnabled) {
+                    if (location == null) {
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 0, this);
+                        Log.d("GPS", "GPS Enabled");
+                        if (locationManager != null) {
+                            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                            if (location != null) {
+                                lat = location.getLatitude();
+                                lng = location.getLongitude();
+                            }
+                        }
+                    }
+                }
+            }
+
+        } catch (SecurityException e) {
+            Log.e("PERMISSION_EXCEPTION","PERMISSION_NOT_GRANTED");
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return location;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        lat = location.getLatitude();
+        lng = location.getLongitude();
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
 
     private void setNameAndId() {
         if(application.getUserId() != null && !application.getUserId().equals("")) {
