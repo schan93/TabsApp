@@ -80,6 +80,9 @@ public class FireBaseApplication extends Application {
 
     private static Integer commentsCount;
 
+    private static Integer postCount;
+
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -100,6 +103,10 @@ public class FireBaseApplication extends Application {
     public static Integer getCommentsCount() { return commentsCount; };
 
     public void setCommentsCount(Integer commentsCount) { this.commentsCount = commentsCount; }
+
+    public static Integer getPostCount() { return postCount; };
+
+    public void setPostCount(Integer postCount) { this.postCount = postCount; }
 
     public static String getName() {
         return name;
@@ -233,7 +240,7 @@ public class FireBaseApplication extends Application {
         setPostsUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(userCommentPosts, this, null));
         setUserInfoAdapter(userInfoAdapter);
         setCommentsCount(0);
-
+        setPostCount(0);
     }
 
     /**

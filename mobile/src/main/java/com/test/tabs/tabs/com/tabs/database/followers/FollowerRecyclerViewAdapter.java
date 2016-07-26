@@ -145,14 +145,9 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
     }
 
     public void add(User follower){
-        for(int i = 0; i < followers.size(); i++) {
-            if(follower.getId().equals(followers.get(i).getId())) {
-                return;
-            }
-        }
         followers.add(follower);
-        notifyItemInserted(followers.size() + 1);
-        notifyItemRangeChanged(followers.size() + 1, followers.size());
+        notifyItemInserted(followers.size() - 1);
+//        notifyItemRangeChanged(followers.size() + 1, followers.size());
     }
 
     public void remove(Follower item) {

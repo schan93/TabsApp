@@ -71,7 +71,8 @@ public class DatabaseQuery implements Serializable {
         String commentId = commentsRef.getKey();
         comment.setId(commentId);
         Date date = new Date();
-        commentsRef.setValue(comment, date.getTime());
+        commentsRef.setPriority(0 - date.getTime());
+        commentsRef.setValue(comment);
 
         //Next, we need to set that comment in your own comment's path to be true
         //For now I don't think we'll be using this BUT we can keep this here just in case. I think actually
@@ -179,7 +180,7 @@ public class DatabaseQuery implements Serializable {
         final Firebase currentUserFeed = currentUserPath.child("feed");
 
         //Now for every of that new follower's post, set them to be true in your own feed so you see their posts
-        gainedFollower.child("/posts").addListenerForSingleValueEvent(new ValueEventListener() {
+        gainedFollower.child("/posts").orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot data: dataSnapshot.getChildren()) {
@@ -213,7 +214,7 @@ public class DatabaseQuery implements Serializable {
         final Firebase currentUserFeed = currentUserPath.child("feed");
 
         //Now for every of that new follower's post, set them to be true in your own feed so you see their posts
-        gainedFollower.child("/posts").addListenerForSingleValueEvent(new ValueEventListener() {
+        gainedFollower.child("/posts").orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot data: dataSnapshot.getChildren()) {
@@ -241,7 +242,8 @@ public class DatabaseQuery implements Serializable {
         String postId = postsRef.getKey();
         post.setId(postId);
         Date date = new Date();
-        postsRef.setValue(post, date.getTime() - 0);
+        postsRef.setPriority(0 - date.getTime());
+        postsRef.setValue(post);
 
         //Set the location for public posts
         geoFire.setLocation("post_locations/" + postsRef.getKey(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
@@ -317,7 +319,7 @@ public class DatabaseQuery implements Serializable {
         //Create a listener to listen for the content from the master post's feed
         //this is the only feed that contains references in terms of the post id
         feed.keepSynced(true);
-        feed.addListenerForSingleValueEvent(new ValueEventListener() {
+        feed.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 getMyTabsPosts(loggedIn, activity);
@@ -328,13 +330,13 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
-        feed.addChildEventListener(new ChildEventListener() {
+        feed.orderByPriority().addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String postId = dataSnapshot.getKey();
                 if(dataSnapshot.getValue().equals(true)) {
                     Firebase path = firebaseRef.child("posts/" + postId);
-                    path.addListenerForSingleValueEvent(new ValueEventListener() {
+                    path.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             Post post = dataSnapshot.getValue(Post.class);
@@ -354,12 +356,12 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onChildChanged(final DataSnapshot initalSnapshot, String s) {
                     Firebase path = firebaseRef.child("posts/" + initalSnapshot.getKey());
-                    path.addListenerForSingleValueEvent(new ValueEventListener() {
+                    path.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             Post post = dataSnapshot.getValue(Post.class);
                             if(initalSnapshot.getValue().equals(true)) {
-                                application.getFollowingPostAdapter().getPosts().add(post);
+                                application.getFollowingPostAdapter().add(post);
                             } else {
                                 application.getFollowingPostAdapter().remove(post);
                             }
@@ -405,15 +407,15 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
                 //Now that we entered into a query that has the public location, we have to add it to our adapter
-                postsRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(key).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
+                        System.out.println("Priority!: " + "Name :" + dataSnapshot.getValue(Post.class).getTitle() + dataSnapshot.getPriority());
                         //If we have walked into a location with the key of that post, then we add it to the public adapter
                         Post post = dataSnapshot.getValue(Post.class);
                         Post existingPost = application.getPublicAdapter().containsId(post.getId());
                         if(existingPost == null) {
-                            application.getPublicAdapter().getPosts().add(post);
-                            application.getPublicAdapter().notifyDataSetChanged();
+                            application.getPublicAdapter().add(post);
                         }
                     }
 
@@ -475,15 +477,14 @@ public class DatabaseQuery implements Serializable {
     public void getPostsUserCommentedOn(final String userId) {
         Firebase commentedPostsRef = firebaseRef.child("/users/" + userId + "/commented_posts");
         final Firebase postsRef = firebaseRef.child("/posts");
-        commentedPostsRef.addChildEventListener(new ChildEventListener() {
+        commentedPostsRef.orderByPriority().addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         Post post = snapshot.getValue(Post.class);
-                        application.getPostsUserHasCommentedOnAdapter().getPosts().add(post);
-                        application.getPostsUserHasCommentedOnAdapter().notifyDataSetChanged();
+                        application.getPostsUserHasCommentedOnAdapter().add(post);
                     }
 
                     @Override
@@ -519,7 +520,7 @@ public class DatabaseQuery implements Serializable {
     public void getPostsCurrentUserCommentedOn(final Boolean loggedIn, final Activity activity) {
         Firebase commentedPostsRef = currentUserPath.child("/commented_posts");
         final Firebase postsRef = firebaseRef.child("/posts");
-        commentedPostsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        commentedPostsRef.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (application.getFromAnotherActivity() == false) {
@@ -535,11 +536,10 @@ public class DatabaseQuery implements Serializable {
         commentedPostsRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapShot) {
-                        application.getPostsThatCurrentUserHasCommentedOnAdapter().getPosts().add(snapShot.getValue(Post.class));
-                        application.getPostsThatCurrentUserHasCommentedOnAdapter().notifyDataSetChanged();
+                        application.getPostsThatCurrentUserHasCommentedOnAdapter().add(snapShot.getValue(Post.class));
                     }
 
                     @Override
@@ -623,7 +623,6 @@ public class DatabaseQuery implements Serializable {
 //                } else {
 //
 //                }
-                System.out.println("Here");
                 //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
                 //TODO: Update hte UI because the follower has now changed to also being a follower. Need to update their button color
                 application.getFollowersRecyclerViewAdapter().notifyDataSetChanged();
@@ -793,7 +792,7 @@ public class DatabaseQuery implements Serializable {
         application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(application, activity, new CommentsHeader(), commentItems));
         final Firebase postsRef = firebaseRef.child("/post_comments/" + postId);
         final Firebase commentsRef = firebaseRef.child("/comments");
-        postsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        postsRef.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //After these are all finished, we finisht the fragment view
@@ -814,11 +813,10 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 //For all the children inside this reference. these are comments so we add them
-                commentsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                commentsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot commentSnapShot) {
-                        application.getCommentsRecyclerViewAdapter().getCommentsList().add(commentSnapShot.getValue(Comment.class));
-                        application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
+                        application.getCommentsRecyclerViewAdapter().add(commentSnapShot.getValue(Comment.class));
                     }
 
                     @Override
@@ -949,15 +947,15 @@ public class DatabaseQuery implements Serializable {
     public void getMyTabsPosts(final Boolean loggedIn, final Activity activity) {
         final Firebase postsRef = firebaseRef.child("/posts");
         Firebase linkRef = currentUserPath.child("/posts");
-        linkRef.addChildEventListener(new ChildEventListener() {
+        linkRef.orderByPriority().addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);
-                        application.getMyTabsAdapter().getPosts().add(post);
-                        application.getMyTabsAdapter().notifyDataSetChanged();
+                        application.getMyTabsAdapter().add(post);
+                        application.setPostCount(application.getPostCount() + 1);
                     }
 
                     @Override
@@ -988,7 +986,7 @@ public class DatabaseQuery implements Serializable {
             }
         });
 
-        linkRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        linkRef.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 getPostsCurrentUserCommentedOn(loggedIn, activity);
@@ -1004,15 +1002,14 @@ public class DatabaseQuery implements Serializable {
     public void getUserPosts(String userId) {
         final Firebase postsRef = firebaseRef.child("/posts");
         Firebase linkRef = firebaseRef.child("/users/" + userId + "/posts");
-        linkRef.addChildEventListener(new ChildEventListener() {
+        linkRef.orderByPriority().addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);
-                        application.getUserAdapter().getPosts().add(post);
-                        application.getUserAdapter().notifyDataSetChanged();
+                        application.getUserAdapter().add(post);
                     }
 
                     @Override

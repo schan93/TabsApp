@@ -145,14 +145,9 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
 
     public void add(Post item){
-        for(int i = 0; i < posts.size(); i++) {
-            if(item.getId().equals(posts.get(i).getId())) {
-                return;
-            }
-        }
         posts.add(item);
         notifyItemInserted(posts.size() - 1);
-        notifyItemRangeChanged(posts.size() - 1, posts.size());
+//        notifyItemRangeChanged(posts.size() - 1, posts.size());
     }
 
     public void remove(Post item){
