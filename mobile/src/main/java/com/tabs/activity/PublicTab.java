@@ -20,6 +20,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 
+import java.util.List;
+
 
 /**
  * Created by schan on 12/30/15.
@@ -77,6 +79,9 @@ public class PublicTab extends Fragment implements android.location.LocationList
         setupActivity(savedInstanceState);
         checkLocation(getActivity());
         Location location = LocationService.getLastLocation();
+        if(location == null) {
+           location = getLastKnownLocation();
+        }
         databaseQuery.getPublicPosts(location, progressOverlay, fragmentView, getContext());
         return fragmentView;
     }
@@ -120,10 +125,9 @@ public class PublicTab extends Fragment implements android.location.LocationList
             onLocationChanged(location);
 
         } else {
-            Log.d("TAG","Unable to find Location");
+            Log.d("TAG", "Unable to find Location");
         }
     }
-
 
 
     public Location getLocation(Activity activity) {
@@ -167,8 +171,8 @@ public class PublicTab extends Fragment implements android.location.LocationList
             }
 
         } catch (SecurityException e) {
-            Log.e("PERMISSION_EXCEPTION","PERMISSION_NOT_GRANTED");
-        }catch (Exception e) {
+            Log.e("PERMISSION_EXCEPTION", "PERMISSION_NOT_GRANTED");
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -197,10 +201,10 @@ public class PublicTab extends Fragment implements android.location.LocationList
     }
 
     private void setNameAndId() {
-        if(application.getUserId() != null && !application.getUserId().equals("")) {
+        if (application.getUserId() != null && !application.getUserId().equals("")) {
             userId = application.getUserId();
         }
-        if(application.getName() != null && !application.getName().equals("")) {
+        if (application.getName() != null && !application.getName().equals("")) {
             name = application.getName();
         }
     }
@@ -216,13 +220,50 @@ public class PublicTab extends Fragment implements android.location.LocationList
     private void setupActivity(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             // Restore value of members from saved state
-            if(savedInstanceState.containsKey("userId")) {
+            if (savedInstanceState.containsKey("userId")) {
                 userId = savedInstanceState.getString("userId");
             }
-            if(savedInstanceState.containsKey("name")) {
+            if (savedInstanceState.containsKey("name")) {
                 name = savedInstanceState.getString("name");
             }
         }
+    }
+
+    private Location getLastKnownLocation() {
+        locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                Location l = locationManager.getLastKnownLocation(provider);
+                if (l == null) {
+                    continue;
+                }
+                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                    // Found best last known location: %s", l);
+                    bestLocation = l;
+                }
+                return l;
+            } else {
+                Location l = locationManager.getLastKnownLocation(provider);
+                if (l == null) {
+                    continue;
+                }
+                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                    // Found best last known location: %s", l);
+                    bestLocation = l;
+                }
+            }
+        }
+
+        return bestLocation;
     }
 
 
