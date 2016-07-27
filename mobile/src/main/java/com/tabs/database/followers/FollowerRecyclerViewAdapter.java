@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.activity.AndroidUtils;
 import com.tabs.activity.FireBaseApplication;
 import com.tabs.activity.TabsUtil;

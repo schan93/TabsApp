@@ -8,6 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
+import com.tabs.MyDisplayActivity;
+import com.schan.tabs.R;
+
 public class MyPostNotificationReceiver extends BroadcastReceiver {
     public static final String CONTENT_KEY = "contentText";
 

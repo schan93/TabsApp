@@ -9,7 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.NotificationCompat;
 
-import com.tabs.R;
+import com.schan.tabs.R;
 
 /**
  * Created by kevinkusumi on 3/3/16.

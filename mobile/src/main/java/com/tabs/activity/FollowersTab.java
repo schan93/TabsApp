@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 
 /**

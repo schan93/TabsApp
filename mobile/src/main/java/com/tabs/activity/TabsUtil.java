@@ -21,7 +21,7 @@ import com.facebook.drawee.controller.ControllerListener;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.image.QualityInfo;
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.database.followers.FollowerRecyclerViewAdapter;
 import com.tabs.database.posts.PostRecyclerViewAdapter;
 

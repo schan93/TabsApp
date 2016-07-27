@@ -17,11 +17,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
     defaultConfig {
-        applicationId 'com.tabs'
+        applicationId 'com.schan.tabs'
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 4
-        versionName "4.0"
+        versionCode 5
+        versionName "5.0"
         multiDexEnabled = true
         signingConfig signingConfigs.Tabs
     }

@@ -9,7 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 
 /**

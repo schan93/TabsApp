@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.tabs.tabs.tabs" >
+    package="com.schan.tabs" >
 
     <uses-feature android:name="android.hardware.type.watch" />
 
@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault" >
         <activity
-            android:name="com.tabs.tabs.tabs.MyStubBroadcastActivity"
+            android:name="com.tabs.MyStubBroadcastActivity"
             android:label="MyStubBroadcastActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.tabs.tabs.tabs.MyDisplayActivity"
+            android:name="com.tabs.MyDisplayActivity"
             android:allowEmbedded="true"
             android:exported="true"
             android:taskAffinity=""
@@ -28,10 +28,10 @@
         </activity>
 
         <receiver
-            android:name="com.tabs.tabs.tabs.MyPostNotificationReceiver"
+            android:name="com.tabs.MyPostNotificationReceiver"
             android:exported="true" >
             <intent-filter>
-                <action android:name="com.test.tabs.tabs.SHOW_NOTIFICATION" />
+                <action android:name="com.tabs.SHOW_NOTIFICATION" />
             </intent-filter>
         </receiver>
     </application>

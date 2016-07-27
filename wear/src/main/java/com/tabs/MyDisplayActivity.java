@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import com.schan.tabs.R;
+
 public class MyDisplayActivity extends Activity {
 
     private TextView mTextView;

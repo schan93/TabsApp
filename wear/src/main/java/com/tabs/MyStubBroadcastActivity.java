@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.tabs.MyPostNotificationReceiver;
+import com.schan.tabs.R;
+
 /**
  * Example shell activity which simply broadcasts to our receiver and exits.
  */

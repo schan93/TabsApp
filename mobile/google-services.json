@@ -8,10 +8,10 @@
     {
       "client_info": {
         "mobilesdk_app_id": "1:213033849274:android:716b798e9bffb8e0",
-        "client_id": "android:com.tabs",
+        "client_id": "android:com.schan.tabs",
         "client_type": 1,
         "android_client_info": {
-          "package_name": "com.tabs",
+          "package_name": "com.schan.app",
           "certificate_hash": []
         }
       },
@@ -40,10 +40,10 @@
     {
       "client_info": {
         "mobilesdk_app_id": "1:213033849274:android:411f0ccfe7fc64d9",
-        "client_id": "android:com.tabs",
+        "client_id": "android:com.schan.tabs",
         "client_type": 1,
         "android_client_info": {
-          "package_name": "com.tabs",
+          "package_name": "com.schan.tabs",
           "certificate_hash": []
         }
       },

@@ -30,7 +30,7 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.MutableData;
 import com.firebase.client.Transaction;
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 import com.tabs.database.comments.Comment;
 import com.tabs.database.comments.CommentsRecyclerViewAdapter;

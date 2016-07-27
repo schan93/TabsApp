@@ -17,7 +17,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.firebase.client.Firebase;
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 import com.tabs.database.posts.Post;
 

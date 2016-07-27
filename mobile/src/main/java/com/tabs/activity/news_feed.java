@@ -19,7 +19,7 @@ import android.view.View;
 
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 
 public class news_feed extends AppCompatActivity

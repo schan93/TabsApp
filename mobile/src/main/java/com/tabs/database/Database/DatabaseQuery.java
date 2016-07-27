@@ -20,7 +20,7 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.activity.AndroidUtils;
 import com.tabs.activity.Comments;
 import com.tabs.activity.CommentsHeader;

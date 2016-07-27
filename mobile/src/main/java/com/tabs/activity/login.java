@@ -16,7 +16,7 @@ import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
-import com.tabs.R;
+import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 
 
@@ -88,7 +88,7 @@ public class login extends Activity implements Serializable{
      * we will need to grab information about their friends every time they login (better way to do this?)
      * @param userId
      */
-    private void getUserInfo(String userId) {
+    private void getUserInfo(String userId, String name) {
         application.setName(name);
         application.setUserId(userId);
         application.getPublicAdapter().setUserId(userId);
@@ -142,7 +142,7 @@ public class login extends Activity implements Serializable{
             setContentView(R.layout.loading_panel);
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
             currentUserId = accessToken.getUserId();
-            getUserInfo(currentUserId);
+            getUserInfo(currentUserId, name);
         }
         else {
             loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
@@ -169,7 +169,7 @@ public class login extends Activity implements Serializable{
                     }
                     AccessToken accessToken = loginResult.getAccessToken();
                     currentUserId = accessToken.getUserId();
-                    getUserInfo(currentUserId);
+                    getUserInfo(currentUserId, name);
                 }
 
                 @Override
