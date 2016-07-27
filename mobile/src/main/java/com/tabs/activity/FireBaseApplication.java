@@ -1,12 +1,14 @@
 package com.tabs.activity;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.common.internal.Supplier;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.firebase.client.Firebase;
+import com.schan.tabs.R;
 import com.tabs.database.comments.Comment;
 
 import com.tabs.database.comments.CommentsRecyclerViewAdapter;
@@ -15,13 +17,21 @@ import com.tabs.database.posts.Post;
 import com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.tabs.database.users.User;
 
+import org.acra.ACRA;
+import org.acra.ReportingInteractionMode;
+import org.acra.annotation.ReportsCrashes;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * Created by KCKusumi on 2/1/2016.
  */
+@ReportsCrashes(mailTo = "stmchan8593@gmail.com",
+        mode = ReportingInteractionMode.TOAST,
+        resToastText = R.string.crash_toast_text)
 public class FireBaseApplication extends Application {
     //May be used in case
     private static boolean fromAnotherActivity = false;
@@ -227,6 +237,14 @@ public class FireBaseApplication extends Application {
         setUserInfoAdapter(userInfoAdapter);
         setCommentsCount(0);
         setPostCount(0);
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+
+        // The following line triggers the initialization of ACRA
+        ACRA.init(this);
     }
 
     /**

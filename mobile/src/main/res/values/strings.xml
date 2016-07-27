@@ -13,4 +13,5 @@
 
     <string name="notFollowing">+ Follow</string>
     <string name="isFollowing">Following</string>
+    <string name="crash_toast_text">Tabs has crashed. Please contact an administrator for more details.</string>
 </resources>

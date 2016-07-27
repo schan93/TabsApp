@@ -81,4 +81,5 @@ dependencies {
     compile 'com.firebase:geofire:1.1.0+'
     //Bottom nav bar
     compile 'com.roughike:bottom-bar:1.4.0'
+    compile 'ch.acra:acra:4.9.0'
 }
