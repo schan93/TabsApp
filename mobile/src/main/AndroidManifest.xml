@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.test.tabs.tabs" >
+    package="com.tabs" >
 
     <uses-sdk
         android:minSdkVersion="23"
@@ -20,19 +20,17 @@
       to match your app's package name + ".permission.C2D_MESSAGE".
     -->
     <permission
-        android:name="com.test.tabs.tabs.permission.C2D_MESSAGE"
+        android:name="com.tabs.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.test.tabs.tabs.permission.C2D_MESSAGE" />
-
+    <uses-permission android:name="com.tabs.permission.C2D_MESSAGE" />
     <uses-permission android:name="com.example.gcm.permission.C2D_MESSAGE" />
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
-        android:name=".com.tabs.activity.FireBaseApplication"
+        android:name="com.tabs.activity.FireBaseApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -43,33 +41,32 @@
             android:value="@string/facebook_app_id" />
 
         <activity
-            android:name=".com.tabs.activity.news_feed"
+            android:name="com.tabs.activity.news_feed"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:name=".com.tabs.activity.CreatePost"
+            android:name="com.tabs.activity.CreatePost"
             android:label="Create Post"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateVisible" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".com.tabs.activity.news_feed" />
+                android:value="com.tabs.activity.news_feed" />
         </activity>
         <activity
-            android:name=".com.tabs.activity.Comments"
-            android:label="View Post"
+            android:name="com.tabs.activity.Comments"
             android:configChanges="orientation|keyboardHidden"
-            android:windowSoftInputMode="stateAlwaysHidden|adjustResize"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:label="View Post"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".com.tabs.activity.news_feed"
-                android:configChanges="orientation|keyboardHidden" />
-
+                android:configChanges="orientation|keyboardHidden"
+                android:value="com.tabs.activity.news_feed" />
         </activity>
         <activity
-            android:name=".com.tabs.activity.login"
+            android:name="com.tabs.activity.login"
             android:label="Tabs"
             android:theme="@style/AppTheme.NoActionBar" >
             <intent-filter>
@@ -84,27 +81,27 @@
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
-            android:name=".com.tabs.activity.MoreInfoNotification"
+            android:name="com.tabs.activity.MoreInfoNotification"
             android:label="More on Notification"
-            android:parentActivityName=".com.tabs.activity.news_feed" >
+            android:parentActivityName="com.tabs.tabs.tabs.com.tabs.activity.news_feed" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".com.tabs.activity.news_feed" />
+                android:value="com.tabs.tabs.tabs.com.tabs.activity.news_feed" />
         </activity>
         <activity
-            android:name=".com.tabs.activity.UserProfile"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name="com.tabs.activity.UserProfile"
+            android:theme="@style/AppTheme.NoActionBar" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".com.tabs.activity.Comments" />
+                android:value="com.tabs.tabs.tabs.com.tabs.activity.Comments" />
         </activity>
         <activity
-            android:name=".com.tabs.activity.FollowersList"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name="com.tabs.activity.FollowersList"
+            android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:name=".com.tabs.activity.FollowingList"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name="com.tabs.activity.FollowingList"
+            android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <!--
         <meta-data
@@ -155,17 +152,17 @@
         </receiver>
         -->
 
-
         <receiver
-            android:name="com.test.tabs.tabs.com.tabs.gcm.GcmBroadcastReceiver"
+            android:name="com.tabs.tabs.tabs.com.tabs.gcm.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+
                 <category android:name="com.test.tabs.tabs.com.tabs.gcm" />
             </intent-filter>
         </receiver>
-        <service android:name="com.test.tabs.tabs.com.tabs.gcm.GcmIntentService" />
 
+        <service android:name="com.tabs.tabs.tabs.com.tabs.gcm.GcmIntentService" />
     </application>
 
 </manifest>
