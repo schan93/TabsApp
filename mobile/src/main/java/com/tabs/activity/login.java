@@ -95,7 +95,7 @@ public class login extends Activity implements Serializable{
         application.getFollowingPostAdapter().setUserId(userId);
         application.getMyTabsAdapter().setUserId(userId);
         databaseQuery = new DatabaseQuery(this);
-        databaseQuery.getUserFromFacebook(currentUserId, loggedIn, login.this);
+        databaseQuery.getUserFromFacebook(name, currentUserId, loggedIn, login.this);
     }
 
     /**

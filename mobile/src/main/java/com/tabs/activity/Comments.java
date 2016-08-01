@@ -30,6 +30,7 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.MutableData;
 import com.firebase.client.Transaction;
+import com.firebase.client.ValueEventListener;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 import com.tabs.database.comments.Comment;
@@ -60,7 +61,7 @@ public class Comments extends AppCompatActivity {
     private Toolbar toolbar;
     private NotificationManager notificationManager;
     private boolean isNotificationActive;
-    private String postId;
+    private static String postId;
     private String userId;
     //Progress overlay
     View progressOverlay;
@@ -93,12 +94,28 @@ public class Comments extends AppCompatActivity {
 
         //TODO: But I worry about the fact that if we go idle on the user profile page we will have no posts. lets test this out.
         //I think we should be calling this when the comments activity starts because that way we will actually be ready for the loading of the next page
-        if(!application.getUserId().equals(posterUserId)) {
-            databaseQuery.getUserPosts(posterUserId);
-            databaseQuery.getPostsUserCommentedOn(posterUserId);
-        }
 
         header = setupCommentsHeader();
+        if(application.getUserAdapter().getUserId() != null && !application.getUserAdapter().getUserId().equals(posterUserId)) {
+            //if the user of the user adapter is not the same as the current user, then we need to get their comments. otherwise we don't need to get their number of comments
+            //Since we have a listener for htem.
+            application.getUserAdapter().setUserId(posterUserId);
+            application.getUserAdapter().getPosts().clear();
+            application.getUserAdapter().notifyDataSetChanged();
+            //Remove the listeners for the current posts
+
+            application.getPostsUserHasCommentedOnAdapter().setUserId(posterUserId);
+            application.getPostsUserHasCommentedOnAdapter().getPosts().clear();
+            application.getPostsUserHasCommentedOnAdapter().notifyDataSetChanged();
+
+            databaseQuery.getNumUserComments(posterUserId);
+            databaseQuery.getNumUserPosts(posterUserId);
+        }
+        if(application.getUserAdapter().getUserId() == null) {
+            application.getUserAdapter().setUserId(posterUserId);
+            databaseQuery.getNumUserComments(posterUserId);
+            databaseQuery.getNumUserPosts(posterUserId);
+        }
     }
 
     private void createComment() {
@@ -279,7 +296,8 @@ public class Comments extends AppCompatActivity {
     }
 
     public static com.tabs.activity.CommentsHeader setupCommentsHeader() {
-        com.tabs.activity.CommentsHeader header = new com.tabs.activity.CommentsHeader();
+        com.tabs.activity.CommentsHeader header = new CommentsHeader();
+        header.setPostId(postId);
         header.setPosterUserId(posterUserId);
         header.setPosterName(posterName);
         header.setPosterDate(postTimeStamp);

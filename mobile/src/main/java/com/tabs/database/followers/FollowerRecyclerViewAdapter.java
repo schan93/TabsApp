@@ -34,10 +34,16 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
     private DatabaseQuery databaseQuery;
     Context context;
     private Map<String, Boolean> changedFollowing;
+    private Boolean isSetup;
 
     public Map<String, Boolean> getChangedFollowing() {
         return this.changedFollowing;
     }
+
+    public void initializeChangedFollowing() {
+        this.changedFollowing = new HashMap<String, Boolean>();
+    }
+
 
     public void setFollowers(List<User> followers) {
         this.followers = followers;
@@ -59,12 +65,13 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
     public FollowerRecyclerViewAdapter(List<User> followers, Context context) {
         this.followers = followers;
         this.context = context;
+        this.changedFollowing = new HashMap<String, Boolean>();
+        this.isSetup = true;
     }
 
     public void setupFollowersRecyclerView(DatabaseQuery databaseQuery, Context context) {
         this.databaseQuery = databaseQuery;
         this.context = context;
-        this.changedFollowing = new HashMap<String, Boolean>();
     }
 
     public List<User> getFollowers(){
@@ -100,7 +107,8 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         roundingParams.setRoundAsCircle(true);
         followerViewHolder.followerProfilePhoto.getHierarchy().setRoundingParams(roundingParams);
         followerViewHolder.followerProfilePhoto.setController(controller);
-        List<User> followers = fireBaseApplication.getFollowingRecyclerViewAdapter().getFollowers();
+        //Want to make sure it is only teh first time we initialize the array because if it is setting up, then
+        //We need to initialze the button, otherwise we don't need to keep recalling the setup button, only the first time.
         setupFollowButton(followerViewHolder.isFollowingButton, currentItem.getUserId(), currentItem.getName());
 //        if(fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(followers, currentItem.getUserId()) != null) {
 //            followerViewHolder.isFollowingButton.setText("Following");
@@ -142,10 +150,13 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         return followers.get(position);
     }
 
-    public void add(User follower){
-        followers.add(follower);
-        notifyItemInserted(followers.size() - 1);
-//        notifyItemRangeChanged(followers.size() + 1, followers.size());
+    public void add(User follower, FollowerRecyclerViewAdapter adapter){
+        if(adapter.containsUserId(follower.getUserId()) == null) {
+            followers.add(follower);
+            notifyItemInserted(followers.size() - 1);
+            notifyItemRangeChanged(followers.size() + 1, followers.size());
+        }
+
     }
 
     public void remove(Follower item) {
@@ -172,6 +183,7 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
                 if(user != null && (changedFollowing.get(posterUserId) == null || (changedFollowing.get(posterUserId) != null && changedFollowing.get(posterUserId)))) {
                     changedFollowing.put(posterUserId, false);
                     databaseQuery.removeFollowing(posterUserId);
+                    setButtonIsNotFollowing(button, context);
                 } else {
                     User newUser = new User();
                     newUser.setUserId(posterUserId);
@@ -179,6 +191,7 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
                     newUser.setId(AndroidUtils.generateId());
                     changedFollowing.put(posterUserId, true);
                     databaseQuery.addFollowing(posterUserId);
+                    setButtonIsFollowing(button, context);
                 }
             }
         });

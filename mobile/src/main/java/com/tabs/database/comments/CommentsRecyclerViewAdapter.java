@@ -60,8 +60,8 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         return this.commentsHeader;
     }
 
-    public static Comment containsId(List<Comment> list, String id) {
-        for (Comment object : list) {
+    public Comment containsId(String id) {
+        for (Comment object : comments) {
             if (object.getId().equals(id)) {
                 return object;
             }
@@ -120,6 +120,7 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
                     public void onClick(View v) {
                         Intent intent = new Intent(context, UserProfile.class);
                         Bundle bundle = new Bundle();
+                        bundle.putString("postId", commentsHeader.getPostId());
                         bundle.putString("posterUserId", commentsHeader.getPosterUserId());
                         bundle.putString("posterName", commentsHeader.getPosterName());
                         bundle.putString("postStatus", commentsHeader.getViewStatus());
@@ -159,9 +160,12 @@ public class CommentsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerVi
         }
     }
 
-    public void add(Comment item){
-        comments.add(item);
-        notifyItemInserted(comments.size() - 1);
+    public void add(Comment item, CommentsRecyclerViewAdapter adapter){
+        if(adapter.containsId(item.getId()) == null) {
+            comments.add(item);
+            notifyItemInserted(comments.size() - 1);
+            notifyItemRangeChanged(comments.size() - 1, comments.size());
+        }
         //Also need to update the post that you are updating
     }
 

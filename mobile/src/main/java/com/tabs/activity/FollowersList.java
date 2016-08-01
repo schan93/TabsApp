@@ -11,6 +11,11 @@ import android.widget.Button;
 
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
+import com.tabs.database.followers.FollowerRecyclerViewAdapter;
+import com.tabs.database.users.User;
+
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by schan on 6/22/16.
@@ -125,6 +130,8 @@ public class FollowersList extends AppCompatActivity {
         switch(parentClass) {
             case "Profile":
                 intent = new Intent(FollowersList.this, news_feed.class);
+                Map<String, Boolean> changedFollowing = application.getFollowersRecyclerViewAdapter().getChangedFollowing();
+                updateFollowing(changedFollowing, application.getFollowingRecyclerViewAdapter());
                 break;
             case "UserProfile":
                 bundle.putString("posterUserId", posterUserId);
@@ -132,6 +139,8 @@ public class FollowersList extends AppCompatActivity {
                 bundle.putString("postStatus", postStatus);
                 bundle.putString("postTimeStamp", postTimeStamp);
                 bundle.putString("postTitle", postTitle);
+                Map<String, Boolean> changedUserFollowing = application.getUserFollowersAdapter().getChangedFollowing();
+                updateFollowing(changedUserFollowing, application.getUserFollowingAdapter());
                 intent = new Intent(FollowersList.this, UserProfile.class);
                 break;
             default:
@@ -139,5 +148,29 @@ public class FollowersList extends AppCompatActivity {
         }
         intent.putExtras(bundle);
         startActivity(intent);
+    }
+
+    private void updateFollowing(Map<String, Boolean> changedFollowing, FollowerRecyclerViewAdapter adapter) {
+        Iterator it = changedFollowing.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            if((Boolean)pair.getValue() == false) {
+                User user = adapter.containsUserId((String)pair.getKey());
+                if(user != null) {
+                    adapter.getFollowers().remove(user);
+                }
+            } else {
+                User user = adapter.containsUserId((String)pair.getKey());
+                if(user == null) {
+                    user = new User();
+                    user.setUserId((String)pair.getKey());
+                    user.setId(AndroidUtils.generateId());
+                    user.setName(posterName);
+                    adapter.getFollowers().add(user);
+                }
+            }
+            it.remove(); // avoids a ConcurrentModificationException
+        }
+        changedFollowing.clear();
     }
 }

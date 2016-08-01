@@ -123,8 +123,8 @@ public class TabsUtil {
             followingButton.setText(Html.fromHtml("<b>" + application.getFollowingRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowing"));
         } else {
             //TODO: when we restart application for example on the user page we have to get all the posts first
-            totalNumPosts.setText(Html.fromHtml("<b>" + application.getUserAdapter().getItemCount() + "</b>" + "\nPosts"));
-            totalNumComments.setText(Html.fromHtml("<b>" + application.getPostsUserHasCommentedOnAdapter().getItemCount() + "</b>" + "\nComments"));
+            totalNumPosts.setText(Html.fromHtml("<b>" + application.getUserPostNum() + "</b>" + "\nPosts"));
+            totalNumComments.setText(Html.fromHtml("<b>" + application.getUserCommentNum() + "</b>" + "\nComments"));
             followersButton.setText(Html.fromHtml("<b>" + application.getUserFollowersAdapter().getItemCount() + "</b>" + "\nFollowers"));
             followingButton.setText(Html.fromHtml("<b>" + application.getUserFollowingAdapter().getItemCount() + "</b>" + "\nFollowing"));
             // correctly the posts and such of another user.

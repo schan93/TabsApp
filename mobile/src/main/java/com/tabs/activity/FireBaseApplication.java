@@ -78,6 +78,10 @@ public class FireBaseApplication extends Application {
 
     private static Integer postCount;
 
+    private static Integer userPostNum;
+
+    private static Integer userCommentNum;
+
 
     @Override
     public void onCreate() {
@@ -99,6 +103,14 @@ public class FireBaseApplication extends Application {
     public static Integer getCommentsCount() { return commentsCount; };
 
     public void setCommentsCount(Integer commentsCount) { this.commentsCount = commentsCount; }
+
+    public static Integer getUserPostNum() { return userPostNum; };
+
+    public void setUserPostNum(Integer userPostNum) { this.userPostNum = userPostNum; }
+
+    public static Integer getUserCommentNum() { return userCommentNum; };
+
+    public void setUserCommentNum(Integer userCommentNum) { this.userCommentNum = userCommentNum; }
 
     public static Integer getPostCount() { return postCount; };
 
@@ -199,7 +211,7 @@ public class FireBaseApplication extends Application {
         this.userFollowersAdapter = userFollowersAdapter;
     }
 
-    public FollowerRecyclerViewAdapter getUserFollowingAdapter() {
+    public static FollowerRecyclerViewAdapter getUserFollowingAdapter() {
         return userFollowersAdapter;
     }
 
@@ -207,7 +219,7 @@ public class FireBaseApplication extends Application {
         this.userFollowingAdapter = userFollowingAdapter;
     }
 
-    public FollowerRecyclerViewAdapter getUserFollowersAdapter() {
+    public static FollowerRecyclerViewAdapter getUserFollowersAdapter() {
         return userFollowingAdapter;
     }
 

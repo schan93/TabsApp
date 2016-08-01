@@ -35,6 +35,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
     private String postStatus;
     private String postTimeStamp;
     private String postTitle;
+    private String postId;
     private Toolbar toolbar;
     private Button followersButton;
     private Button followingButton;
@@ -66,6 +67,14 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         String [] intentStrings = {posterUserId, posterName, postStatus, postTimeStamp, postTitle};
         TabsUtil.setupProfileView(findViewById(R.id.user_profile_coordinator_layout), "UserProfile", application, intentStrings);
         setupFollowButton(followButton, following);
+        if(!application.getUserId().equals(posterUserId)) {
+            application.getUserAdapter().setUserId(posterUserId);
+            application.getPostsUserHasCommentedOnAdapter().setUserId(posterUserId);
+            application.getUserFollowersAdapter().initializeChangedFollowing();
+            application.getUserFollowingAdapter().initializeChangedFollowing();
+            databaseQuery.getUserPosts(posterUserId);
+            databaseQuery.getPostsUserCommentedOn(posterUserId);
+        }
     }
 
     private void setupFollowButton(final Button button, final List<User> following) {
@@ -83,6 +92,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
                     newUser.setUserId(posterUserId);
                     newUser.setName(posterName);
                     newUser.setId(AndroidUtils.generateId());
+                    //No need to add this to the adapter database because it is already done for us in the Firebase getFollowing call
                     application.getFollowingRecyclerViewAdapter().getFollowers().add(newUser);
                     databaseQuery.addFollowing(posterUserId);
                     setButtonIsFollowing(button);
@@ -135,6 +145,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         savedInstanceState.putString("postStatus", postStatus);
         savedInstanceState.putString("postTimeStamp", postTimeStamp);
         savedInstanceState.putString("postTitle", postTitle);
+        savedInstanceState.putString("postId", postId);
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -157,8 +168,12 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
             if(savedInstanceState.containsKey("postTitle")) {
                 postTitle = savedInstanceState.getString("postTitle");
             }
+            if(savedInstanceState.containsKey("postId")) {
+                postId = savedInstanceState.getString("postId");
+            }
         } else {
             if(getIntent().getExtras() != null) {
+                postId = AndroidUtils.getIntentString(getIntent(), "postId");
                 posterUserId = AndroidUtils.getIntentString(getIntent(), "posterUserId");
                 posterName =  AndroidUtils.getIntentString(getIntent(), "posterName");
                 postStatus =  AndroidUtils.getIntentString(getIntent(), "postStatus");
@@ -183,8 +198,11 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        application.getUserAdapter().getPosts().clear();
+        application.getUserAdapter().notifyDataSetChanged();
         Intent intent = new Intent(UserProfile.this, Comments.class);
         Bundle bundle = new Bundle();
+        bundle.putString("postId", postId);
         bundle.putString("posterUserId", posterUserId);
         bundle.putString("posterName", posterName);
         bundle.putString("postStatus", postStatus);
@@ -221,6 +239,12 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
 
             }
         });
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
 

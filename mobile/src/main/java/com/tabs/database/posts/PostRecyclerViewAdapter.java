@@ -141,10 +141,12 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     }
 
 
-    public void add(Post item){
-        posts.add(item);
-        notifyItemInserted(posts.size() - 1);
-//        notifyItemRangeChanged(posts.size() - 1, posts.size());
+    public void add(Post item, PostRecyclerViewAdapter adapter){
+        if(adapter.containsId(item.getId()) == null) {
+            posts.add(item);
+            notifyItemInserted(posts.size() - 1);
+            notifyItemRangeChanged(posts.size() - 1, posts.size());
+        }
     }
 
     public void remove(Post item){
@@ -156,7 +158,6 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     }
 
     public Post containsId(String id) {
-        System.out.println("PostRecyclerViewAdapter: id: " + id);
         for (Post object : posts) {
             if (object != null && object.getId().equals(id)) {
                 return object;

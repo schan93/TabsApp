@@ -148,12 +148,6 @@ public class PostsTab extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        application.getUserAdapter().getPosts().clear();
-    }
-
-    @Override
     public void onStop() {
         super.onStop();
     }

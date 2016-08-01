@@ -242,15 +242,7 @@ public class PublicTab extends Fragment implements android.location.LocationList
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
-                Location l = locationManager.getLastKnownLocation(provider);
-                if (l == null) {
-                    continue;
-                }
-                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-                    // Found best last known location: %s", l);
-                    bestLocation = l;
-                }
-                return l;
+                return null;
             } else {
                 Location l = locationManager.getLastKnownLocation(provider);
                 if (l == null) {

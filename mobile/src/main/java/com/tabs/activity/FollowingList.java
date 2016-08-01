@@ -141,7 +141,7 @@ public class FollowingList extends AppCompatActivity {
                 bundle.putString("postTimeStamp", postTimeStamp);
                 bundle.putString("postTitle", postTitle);
                 Map<String, Boolean> changedUserFollowing = application.getUserFollowingAdapter().getChangedFollowing();
-                updateFollowing(changedUserFollowing, application.getFollowingRecyclerViewAdapter());
+                updateFollowing(changedUserFollowing, application.getUserFollowingAdapter());
                 intent = new Intent(FollowingList.this, UserProfile.class);
                 break;
             default:

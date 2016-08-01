@@ -10,9 +10,12 @@ public class CommentsHeader {
     private String posterUserId;
     private Boolean isFollowing;
     private String postTitle;
+    private String postId;
 
     public CommentsHeader(){}
 
+    public String getPostId() { return postId; };
+    public void setPostId(String postId) { this.postId = postId; };
     public String getPosterUserId(){
         return posterUserId;
     }

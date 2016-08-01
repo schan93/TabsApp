@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 
 import com.facebook.AccessToken;
@@ -340,7 +341,7 @@ public class DatabaseQuery implements Serializable {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             Post post = dataSnapshot.getValue(Post.class);
                             if(application.getFollowingRecyclerViewAdapter().containsUserId(post.getPosterUserId()) != null) {
-                                application.getFollowingPostAdapter().add(post);
+                                application.getFollowingPostAdapter().add(post, application.getFollowingPostAdapter());
                             }
                         }
 
@@ -360,7 +361,7 @@ public class DatabaseQuery implements Serializable {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             Post post = dataSnapshot.getValue(Post.class);
                             if(initalSnapshot.getValue().equals(true)) {
-                                application.getFollowingPostAdapter().add(post);
+                                application.getFollowingPostAdapter().add(post, application.getFollowingPostAdapter());
                             } else {
                                 application.getFollowingPostAdapter().remove(post);
                             }
@@ -401,7 +402,7 @@ public class DatabaseQuery implements Serializable {
         //Query at a location of 15 miles
         Firebase locationsRef = firebaseRef.child("/post_locations");
         geoFire = new GeoFire(locationsRef);
-        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), 24.1402);
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), 48.2804);
         geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
@@ -414,7 +415,7 @@ public class DatabaseQuery implements Serializable {
                         Post post = dataSnapshot.getValue(Post.class);
                         Post existingPost = application.getPublicAdapter().containsId(post.getId());
                         if(existingPost == null) {
-                            application.getPublicAdapter().add(post);
+                            application.getPublicAdapter().add(post, application.getPublicAdapter());
                         }
                     }
 
@@ -483,7 +484,7 @@ public class DatabaseQuery implements Serializable {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         Post post = snapshot.getValue(Post.class);
-                        application.getPostsUserHasCommentedOnAdapter().add(post);
+                        application.getPostsUserHasCommentedOnAdapter().add(post, application.getPostsUserHasCommentedOnAdapter());
                     }
 
                     @Override
@@ -538,7 +539,7 @@ public class DatabaseQuery implements Serializable {
                 postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapShot) {
-                        application.getPostsThatCurrentUserHasCommentedOnAdapter().add(snapShot.getValue(Post.class));
+                        application.getPostsThatCurrentUserHasCommentedOnAdapter().add(snapShot.getValue(Post.class), application.getPostsThatCurrentUserHasCommentedOnAdapter());
                     }
 
                     @Override
@@ -596,10 +597,10 @@ public class DatabaseQuery implements Serializable {
                 firebaseRef.child("people/" + dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
-                        if(dataSnapshot.getValue().equals(true)) {
+                        if(dataSnapshot.getValue() != null) {
                             User user = snapshot.getValue(User.class);
                             user.setUserId(dataSnapshot.getKey());
-                            application.getFollowersRecyclerViewAdapter().add(user);
+                            application.getFollowersRecyclerViewAdapter().add(user, application.getFollowersRecyclerViewAdapter());
                         }
                         //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
 //                        application.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
@@ -654,68 +655,31 @@ public class DatabaseQuery implements Serializable {
     //THIS IS NEW!!!
     public void getFollowing(final String userId, final boolean loggedIn, final Activity activity) {
         Firebase followingRef = currentUserPath.child("/following");
-//        Firebase followingRef = firebaseRef.child("Users/" + userId + "/Following");
-        followingRef.keepSynced(true);
+
         followingRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                getFollowers(userId, loggedIn, activity);
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-
-        followingRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
-                firebaseRef.child("people/" + dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if(snapshot.getValue() != null) {
-                            if(dataSnapshot.getValue().equals(true)) {
+                for(final DataSnapshot child: dataSnapshot.getChildren()) {
+                    firebaseRef.child("people/" + child.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot snapshot) {
+                            Boolean isFriend = (Boolean) child.getValue();
+                            Log.d("IsFriend:",isFriend.toString());
+                            if(isFriend) {
                                 User user = snapshot.getValue(User.class);
-                                user.setUserId(dataSnapshot.getKey());
-                                application.getFollowingRecyclerViewAdapter().add(user);
+                                user.setUserId(child.getKey());
+                                application.getFollowingRecyclerViewAdapter().add(user, application.getFollowingRecyclerViewAdapter());
                             }
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
 
-                    }
-                });
-//                addFollowerPosts(newFollower);
-            }
-
-
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                //We need to get the number of posts that that changed friend has and update the private adapters post
-//                Follower changedFollower = dataSnapshot.getValue(Follower.class);
-                //TODO: Update hte UI because the follower has now changed to also being a follower. Need to update their button color
-                application.getFollowingRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Follower removedFollower = dataSnapshot.getValue(Follower.class);
-                int length = application.getFollowingRecyclerViewAdapter().getItemCount();
-                for (int i = 0; i < length; i++) {
-                    if (application.getFollowingRecyclerViewAdapter().getFollowers().get(i).getId().equals(removedFollower.getId())) {
-                        application.getFollowingRecyclerViewAdapter().getFollowers().remove(i);
-                    }
+                        }
+                    });
                 }
-                application.getFollowingRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                //Not sure if used
+                Log.d("IsFriend:", userId);
+                getFollowers(userId, loggedIn, activity);
             }
 
             @Override
@@ -747,7 +711,7 @@ public class DatabaseQuery implements Serializable {
      * @param userId
      * @return
      */
-    public void getUserFromFacebook(final String userId, final Boolean loggedIn, final Activity activity) {
+    public void getUserFromFacebook(final String name, final String userId, final Boolean loggedIn, final Activity activity) {
         final Handler handler = new Handler();
         final User[] user = new User[1];
 //        User user = new User(id, userId, name);
@@ -761,9 +725,11 @@ public class DatabaseQuery implements Serializable {
                         try {
                             if(jsonObject != null) {
                                 String userId = jsonObject.getString("id");
-                                String name = jsonObject.getString("name");
+                                String fullName = jsonObject.getString("name");
                                 String id = AndroidUtils.generateId();
-                                saveUserToFirebase(id, userId, name);
+                                //We use the full name to store into DB, but we get first name to store into poeple because
+                                //This is our "object facing" object
+                                saveUserToFirebase(id, userId, fullName);
                                 //I guess we don't really care when we save to the "people"
                                 saveUserToPeople(id, userId, name);
                             }
@@ -785,22 +751,21 @@ public class DatabaseQuery implements Serializable {
         return;
     }
 
-    //Put the loading screen thing
-    public void getComments(final String postId, final Activity activity, final View fragmentView, final View progressOverlay) {
-        final List<Comment> commentItems = new ArrayList<>();
-        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(application, activity, new CommentsHeader(), commentItems));
-        final Firebase postsRef = firebaseRef.child("/post_comments/" + postId);
-        final Firebase commentsRef = firebaseRef.child("/comments");
-        postsRef.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+    public void removeUserCommentsListener(String posterUserId, ValueEventListener listener){
+        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "comments");
+        userCommentsRef.removeEventListener(listener);
+    }
+    public void removeUserPostsListener(String posterUserId, ValueEventListener listener) {
+        final Firebase userPostsRef = firebaseRef.child("users/" + posterUserId + "posts");
+        userPostsRef.removeEventListener(listener);
+    }
+
+    public ValueEventListener getNumUserComments(String posterUserId) {
+        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "/comments");
+        ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                //After these are all finished, we finisht the fragment view
-                Comments.setupCommentsAdapter(postId, activity);
-                if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    progressOverlay.setVisibility(View.GONE);
-                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                    fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
-                }
+                application.setUserCommentNum(Long.valueOf(dataSnapshot.getChildrenCount()).intValue());
             }
 
             @Override
@@ -808,26 +773,38 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
-        postsRef.addChildEventListener(new ChildEventListener() {
+        return listener;
+    }
+
+    public ValueEventListener getNumUserPosts(String posterUserId) {
+        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "/posts");
+        ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                application.setUserPostNum(Long.valueOf(dataSnapshot.getChildrenCount()).intValue());
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        return listener;
+    }
+
+    //Put the loading screen thing
+    public void getComments(final String postId, final Activity activity, final View fragmentView, final View progressOverlay) {
+        final List<Comment> commentItems = new ArrayList<>();
+        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(application, activity, new CommentsHeader(), commentItems));
+        final Firebase commentsRef = firebaseRef.child("/comments");
+        commentsRef.orderByChild("postId").equalTo(postId).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                //For all the children inside this reference. these are comments so we add them
-                commentsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot commentSnapShot) {
-                        application.getCommentsRecyclerViewAdapter().add(commentSnapShot.getValue(Comment.class));
-                    }
-
-                    @Override
-                    public void onCancelled(FirebaseError firebaseError) {
-
-                    }
-                });
+                application.getCommentsRecyclerViewAdapter().add(dataSnapshot.getValue(Comment.class), application.getCommentsRecyclerViewAdapter());
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                System.out.println("Here");
 
             }
 
@@ -846,70 +823,23 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
-//        Query query = commentsRef.orderByChild("postId").equalTo(postId);
-//        query.keepSynced(true);
-//        query.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                Comments.setupCommentsAdapter(postId, activity);
-//                if (progressOverlay.getVisibility() == View.VISIBLE) {
-//                    progressOverlay.setVisibility(View.GONE);
-//                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-//                    fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(FirebaseError firebaseError) {
-//
-//            }
-//        });
-//
-//        query.addChildEventListener(new ChildEventListener() {
-//            @Override
-//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                Comment newComment = dataSnapshot.getValue(Comment.class);
-//                List<Comment> comments = application.getCommentsRecyclerViewAdapter().getCommentsList();
-//                if (application.getCommentsRecyclerViewAdapter().containsId(comments, newComment.getId()) == null && newComment.getPostId().equals(postId)) {
-//                    application.getCommentsRecyclerViewAdapter().getCommentsList().add(newComment);
-//                    application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-//                }
-//            }
-//
-//            @Override
-//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-//                Comment changedComment = dataSnapshot.getValue(Comment.class);
-//                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
-//                for (int i = 0; i < length; i++) {
-//                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(changedComment.getId())) {
-//                        application.getCommentsRecyclerViewAdapter().getCommentsList().set(i, changedComment);
-//                    }
-//                }
-//                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-//            }
-//
-//            @Override
-//            public void onChildRemoved(DataSnapshot dataSnapshot) {
-//                Comment removedComment = dataSnapshot.getValue(Comment.class);
-//                int length = application.getCommentsRecyclerViewAdapter().getCommentsList().size();
-//                for (int i = 0; i < length; i++) {
-//                    if (application.getCommentsRecyclerViewAdapter().getCommentsList().get(i).getId().equals(removedComment.getId())) {
-//                        application.getCommentsRecyclerViewAdapter().getCommentsList().remove(i);
-//                    }
-//                }
-//                application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
-//            }
-//
-//            @Override
-//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-//                //Not sure if used
-//            }
-//
-//            @Override
-//            public void onCancelled(FirebaseError firebaseError) {
-//
-//            }
-//        });
+
+        commentsRef.orderByChild("postId").equalTo(postId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Comments.setupCommentsAdapter(postId, activity);
+                if (progressOverlay.getVisibility() == View.VISIBLE) {
+                    progressOverlay.setVisibility(View.GONE);
+                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                    fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
     }
 
     public void getNumComments() {
@@ -954,7 +884,7 @@ public class DatabaseQuery implements Serializable {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);
                         System.out.println("Snapshot With Priority: " + dataSnapshot.getValue(true));
-                        application.getMyTabsAdapter().add(post);
+                        application.getMyTabsAdapter().add(post, application.getMyTabsAdapter());
                         application.setPostCount(application.getPostCount() + 1);
                     }
 
@@ -1007,9 +937,9 @@ public class DatabaseQuery implements Serializable {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Post post = dataSnapshot.getValue(Post.class);
-                        application.getUserAdapter().add(post);
+                    public void onDataChange(DataSnapshot snapshot) {
+                        Post post = snapshot.getValue(Post.class);
+                        application.getUserAdapter().add(post, application.getUserAdapter());
                     }
 
                     @Override
