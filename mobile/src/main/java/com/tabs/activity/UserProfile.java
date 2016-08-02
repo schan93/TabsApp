@@ -209,7 +209,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         bundle.putString("postTimeStamp", postTimeStamp);
         bundle.putString("postTitle", postTitle);
         intent.putExtras(bundle);
-        startActivity(intent);
+        setResult(RESULT_OK, intent);
         finish();
     }
 
@@ -239,6 +239,20 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
 
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK){
+                posterUserId = AndroidUtils.getIntentString(data, "posterUserId");
+                posterName = AndroidUtils.getIntentString(data, "posterName");
+                postStatus = AndroidUtils.getIntentString(data, "postStatus");
+                postTimeStamp = AndroidUtils.getIntentString(data, "postTimeStamp");
+                postTitle = AndroidUtils.getIntentString(data, "postTitle");
+            }
+        }
     }
 
 

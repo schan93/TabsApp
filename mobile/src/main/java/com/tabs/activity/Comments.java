@@ -1,9 +1,11 @@
 package com.tabs.activity;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -230,7 +233,7 @@ public class Comments extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 //What happens if you click back
-                NavUtils.navigateUpFromSameTask(this);
+                onBackPressed();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -440,11 +443,24 @@ public class Comments extends AppCompatActivity {
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if(resultCode == RESULT_OK){
+                postId = AndroidUtils.getIntentString(data, "postId");
+                posterUserId = AndroidUtils.getIntentString(data, "posterUserId");
+                posterName = AndroidUtils.getIntentString(data, "posterName");
+                postStatus = AndroidUtils.getIntentString(data, "postStatus");
+                postTimeStamp = AndroidUtils.getIntentString(data, "postTimeStamp");
+                postTitle = AndroidUtils.getIntentString(data, "postTitle");
+            }
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Intent intent = new Intent(Comments.this, com.tabs.activity.news_feed.class);
-        startActivity(intent);
-        finish();
+        this.finish();
     }
 
 }

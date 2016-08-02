@@ -60,10 +60,10 @@
             android:label="View Post"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateAlwaysHidden|adjustResize" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:configChanges="orientation|keyboardHidden"
-                android:value="com.tabs.activity.news_feed" />
+            <!--<meta-data-->
+                <!--android:name="android.support.PARENT_ACTIVITY"-->
+                <!--android:configChanges="orientation|keyboardHidden"-->
+                <!--android:value="com.tabs.activity.news_feed" />-->
         </activity>
         <activity
             android:name="com.tabs.activity.login"

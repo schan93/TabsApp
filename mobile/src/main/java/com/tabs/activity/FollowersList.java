@@ -147,7 +147,7 @@ public class FollowersList extends AppCompatActivity {
                 intent = new Intent(FollowersList.this, news_feed.class);
         }
         intent.putExtras(bundle);
-        startActivity(intent);
+        setResult(RESULT_OK, intent);
     }
 
     private void updateFollowing(Map<String, Boolean> changedFollowing, FollowerRecyclerViewAdapter adapter) {
