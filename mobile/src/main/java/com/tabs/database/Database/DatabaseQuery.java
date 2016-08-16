@@ -242,8 +242,10 @@ public class DatabaseQuery implements Serializable {
         String postId = postsRef.getKey();
         post.setId(postId);
         Date date = new Date();
-        postsRef.setPriority(0 - date.getTime());
-        postsRef.setValue(post);
+        postsRef.setValue(post, 0 - date.getTime());
+
+//        postsRef.setPriority(date.getTime());
+//        postsRef.setValue(post);
 
         //Set the location for public posts
         geoFire.setLocation("post_locations/" + postsRef.getKey(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
@@ -410,7 +412,12 @@ public class DatabaseQuery implements Serializable {
                 postsRef.child(key).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        System.out.println("Priority!: " + "Name :" + dataSnapshot.getValue(Post.class).getTitle() + dataSnapshot.getPriority());
+                        if(dataSnapshot.getPriority() != null) {
+                            System.out.println("Post123: " + dataSnapshot.getValue(Post.class).getTitle() +  " Priority: " + dataSnapshot.getPriority());
+                        } else {
+                            System.out.println("Post456: " + dataSnapshot.getValue(Post.class).getTitle() +  " Priority: " + dataSnapshot.getPriority());
+
+                        }
                         //If we have walked into a location with the key of that post, then we add it to the public adapter
                         Post post = dataSnapshot.getValue(Post.class);
                         Post existingPost = application.getPublicAdapter().containsId(post.getId());
@@ -515,6 +522,140 @@ public class DatabaseQuery implements Serializable {
             }
         });
 
+    }
+
+    public void getUserFollowing(final String userId) {
+        Firebase userFollowingRef = firebaseRef.child("/users/" + userId + "/following");
+//        Firebase followersRef = firebaseRef.child("Users/" + userId + "/Followers");
+        userFollowingRef.keepSynced(true);
+        userFollowingRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
+//                I think this would mainly be for a profile kind of section or deal so that you don't always have to requery for the
+                //user information about an individual
+                firebaseRef.child("people/" + dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        if(dataSnapshot.getValue() != null) {
+                            User user = snapshot.getValue(User.class);
+                            user.setUserId(dataSnapshot.getKey());
+                            application.getUserFollowingAdapter().add(user, application.getUserFollowingAdapter());
+                        }
+                        //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
+//                        application.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
+            }
+
+
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                //We need to get the number of posts that that changed friend has and update the private adapters post
+                //The data snap shot here will just be they user id of the follower and if they are actaully a follower or not
+//                if(dataSnapshot.getValue() == false) {
+//                } else {
+//
+//                }
+                //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
+                //TODO: Update hte UI because the follower has now changed to also being a follower. Need to update their button color
+                application.getUserFollowingAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Follower removedFollower = dataSnapshot.getValue(Follower.class);
+                int length = application.getUserFollowingAdapter().getItemCount();
+                for (int i = 0; i < length; i++) {
+                    if (application.getUserFollowingAdapter().getFollowers().get(i).getId().equals(removedFollower.getId())) {
+                        application.getUserFollowingAdapter().getFollowers().remove(i);
+                    }
+                }
+                application.getUserFollowingAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                //Not sure if used
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+    }
+
+    public void getUserFollowers(final String userId) {
+        Firebase userFollowingRef = firebaseRef.child("/users/" + userId + "/followers");
+//        Firebase followersRef = firebaseRef.child("Users/" + userId + "/Followers");
+        userFollowingRef.keepSynced(true);
+        userFollowingRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
+//                I think this would mainly be for a profile kind of section or deal so that you don't always have to requery for the
+                //user information about an individual
+                firebaseRef.child("people/" + dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        if(dataSnapshot.getValue() != null) {
+                            User user = snapshot.getValue(User.class);
+                            user.setUserId(dataSnapshot.getKey());
+                            application.getUserFollowersAdapter().add(user, application.getUserFollowersAdapter());
+                        }
+                        //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
+//                        application.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
+            }
+
+
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                //We need to get the number of posts that that changed friend has and update the private adapters post
+                //The data snap shot here will just be they user id of the follower and if they are actaully a follower or not
+//                if(dataSnapshot.getValue() == false) {
+//                } else {
+//
+//                }
+                //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
+                //TODO: Update hte UI because the follower has now changed to also being a follower. Need to update their button color
+                application.getUserFollowersAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Follower removedFollower = dataSnapshot.getValue(Follower.class);
+                int length = application.getUserFollowersAdapter().getItemCount();
+                for (int i = 0; i < length; i++) {
+                    if (application.getUserFollowersAdapter().getFollowers().get(i).getId().equals(removedFollower.getId())) {
+                        application.getUserFollowersAdapter().getFollowers().remove(i);
+                    }
+                }
+                application.getUserFollowersAdapter().notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                //Not sure if used
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
     }
 
     public void getPostsCurrentUserCommentedOn(final Boolean loggedIn, final Activity activity) {
@@ -742,6 +883,8 @@ public class DatabaseQuery implements Serializable {
                                 public void run() {
                                     getFollowing(userId, loggedIn, activity);
                                     getNumComments();
+                                    getNumFollowers();
+                                    getNumFollowing();
                                 }
                             });
                         }
@@ -782,6 +925,94 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 application.setUserPostNum(Long.valueOf(dataSnapshot.getChildrenCount()).intValue());
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        return listener;
+    }
+
+    public ValueEventListener getNumUserFollowers(String posterUserId) {
+        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "/followers");
+        ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Integer count = 0;
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    if(snapshot.getValue().equals(true)) {
+                        count++;
+                    }
+                }
+                application.setUserFollowerNum(count);
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        return listener;
+    }
+
+    public ValueEventListener getNumUserFollowing(String posterUserId) {
+        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "/following");
+        ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Integer count = 0;
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    if(snapshot.getValue().equals(true)) {
+                        count++;
+                    }
+                    application.setUserFollowingNum(count);
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        return listener;
+    }
+
+    public ValueEventListener getNumFollowers() {
+        final Firebase userCommentsRef = currentUserPath.child("/followers");
+        ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Integer count = 0;
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    if(snapshot.getValue().equals(true)) {
+                        count++;
+                    }
+                }
+                application.setFollowerNum(count);
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        return listener;
+    }
+
+    public ValueEventListener getNumFollowing() {
+        final Firebase userCommentsRef = currentUserPath.child("/following");
+        ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Integer count = 0;
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    if(snapshot.getValue().equals(true)) {
+                        count++;
+                    }
+                }
+                application.setFollowingNum(count);
             }
 
             @Override

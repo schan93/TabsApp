@@ -10,6 +10,7 @@ import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
+import com.tabs.gcm.registration.model.RegistrationRecord;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -53,7 +54,7 @@ public class RegistrationEndpoint {
             return;
         }
         RegistrationRecord record = new RegistrationRecord();
-        record.setRegId(regId);
+//        record.setRegId(regId);
         ofy().save().entity(record).now();
     }
 

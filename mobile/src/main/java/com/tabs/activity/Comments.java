@@ -113,11 +113,15 @@ public class Comments extends AppCompatActivity {
 
             databaseQuery.getNumUserComments(posterUserId);
             databaseQuery.getNumUserPosts(posterUserId);
+            databaseQuery.getNumUserFollowers(posterUserId);
+            databaseQuery.getNumUserFollowing(posterUserId);
         }
         if(application.getUserAdapter().getUserId() == null) {
             application.getUserAdapter().setUserId(posterUserId);
             databaseQuery.getNumUserComments(posterUserId);
             databaseQuery.getNumUserPosts(posterUserId);
+            databaseQuery.getNumUserFollowers(posterUserId);
+            databaseQuery.getNumUserFollowing(posterUserId);
         }
     }
 
@@ -135,6 +139,8 @@ public class Comments extends AppCompatActivity {
         resetKeyboardSettings();
         comment.setText("");
         Toast.makeText(Comments.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
+        NotificationService notificationService = new NotificationService();
+        notificationService.sendNotification(name + " has commented on your post. Click here to reply!");
     }
 
     private void setupSendButton(final EditText comment, Button sendButton) {

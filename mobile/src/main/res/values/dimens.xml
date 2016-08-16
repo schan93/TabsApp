@@ -16,6 +16,7 @@
     <dimen name="margin_top">16dp</dimen>
     <dimen name="margin_bottom">16dp</dimen>
     <dimen name="icon_height">40dp</dimen>
+    <dimen name="bb_height_fab_height">72dp</dimen>
     <dimen name="icon_width">40dp</dimen>
     <dimen name="margin_right_handle">22dp</dimen>
 

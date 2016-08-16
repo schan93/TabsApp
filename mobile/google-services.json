@@ -1,75 +1,42 @@
 {
   "project_info": {
-    "project_id": "tabs-1124",
-    "project_number": "213033849274",
-    "name": "Tabs"
+    "project_number": "578131640354",
+    "firebase_url": "https://tabsapp.firebaseio.com",
+    "project_id": "firebase-tabsapp",
+    "storage_bucket": "firebase-tabsapp.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:213033849274:android:716b798e9bffb8e0",
-        "client_id": "android:com.schan.tabs",
-        "client_type": 1,
+        "mobilesdk_app_id": "1:578131640354:android:fcc8787f514a8698",
         "android_client_info": {
-          "package_name": "com.schan.app",
-          "certificate_hash": []
+          "package_name": "com.schan.tabs"
         }
       },
-      "oauth_client": [],
-      "api_key": [],
+      "oauth_client": [
+        {
+          "client_id": "578131640354-n324lrg30k1h6nqgk7i4j3152kup4egf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBazCD_jGxV1OZLvaEUdSJpCDfjMVXoOFM"
+        }
+      ],
       "services": {
         "analytics_service": {
           "status": 1
-        },
-        "cloud_messaging_service": {
-          "status": 2,
-          "apns_config": []
         },
         "appinvite_service": {
           "status": 1,
           "other_platform_oauth_client": []
         },
-        "google_signin_service": {
-          "status": 1
-        },
         "ads_service": {
-          "status": 1
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:213033849274:android:411f0ccfe7fc64d9",
-        "client_id": "android:com.schan.tabs",
-        "client_type": 1,
-        "android_client_info": {
-          "package_name": "com.schan.tabs",
-          "certificate_hash": []
-        }
-      },
-      "oauth_client": [],
-      "api_key": [],
-      "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "cloud_messaging_service": {
-          "status": 2,
-          "apns_config": []
-        },
-        "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
-        },
-        "google_signin_service": {
-          "status": 1
-        },
-        "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }
   ],
-  "client_info": [],
-  "ARTIFACT_VERSION": "1"
+  "configuration_version": "1"
 }

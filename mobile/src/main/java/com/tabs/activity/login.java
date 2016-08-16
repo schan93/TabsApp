@@ -2,9 +2,11 @@ package com.tabs.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -130,7 +132,10 @@ public class login extends Activity implements Serializable{
         loginButton.setReadPermissions(Arrays.asList("user_friends", "public_profile"));
 
         //Set the application status bar color
-        getWindow().setStatusBarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            getWindow().setStatusBarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
+        }
     }
 
     private void checkIsLoggedIn() {

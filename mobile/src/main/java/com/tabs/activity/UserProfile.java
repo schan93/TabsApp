@@ -74,6 +74,8 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
             application.getUserFollowingAdapter().initializeChangedFollowing();
             databaseQuery.getUserPosts(posterUserId);
             databaseQuery.getPostsUserCommentedOn(posterUserId);
+            databaseQuery.getUserFollowers(posterUserId);
+            databaseQuery.getUserFollowing(posterUserId);
         }
     }
 

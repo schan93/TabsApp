@@ -28,6 +28,18 @@ import java.util.List;
  */
 public class PublicTab extends Fragment implements android.location.LocationListener {
 
+    public static PublicTab  newInstance(int instance) {
+        Bundle args = new Bundle();
+        args.putInt(TabsUtil.ARGS_INSTANCE, instance);
+        PublicTab fragment = new PublicTab();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+
+    public PublicTab(){
+    }
+
     private View fragmentView;
     private LocationManager locationManager;
     private FireBaseApplication application;
@@ -72,17 +84,19 @@ public class PublicTab extends Fragment implements android.location.LocationList
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
-        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
-        databaseQuery = new DatabaseQuery(getActivity());
-        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-        setupActivity(savedInstanceState);
-        checkLocation(getActivity());
-        Location location = LocationService.getLastLocation();
-        if(location == null) {
-           location = getLastKnownLocation();
+        if(fragmentView == null) {
+            fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
+            progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
+            databaseQuery = new DatabaseQuery(getActivity());
+            AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
+            setupActivity(savedInstanceState);
+            checkLocation(getActivity());
+            Location location = LocationService.getLastLocation();
+            if(location == null) {
+                location = getLastKnownLocation();
+            }
+            databaseQuery.getPublicPosts(location, progressOverlay, fragmentView, getContext());
         }
-        databaseQuery.getPublicPosts(location, progressOverlay, fragmentView, getContext());
         return fragmentView;
     }
 

@@ -110,6 +110,9 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         //Want to make sure it is only teh first time we initialize the array because if it is setting up, then
         //We need to initialze the button, otherwise we don't need to keep recalling the setup button, only the first time.
         setupFollowButton(followerViewHolder.isFollowingButton, currentItem.getUserId(), currentItem.getName());
+        if(fireBaseApplication.getUserId().equals(currentItem.getUserId())) {
+            followerViewHolder.isFollowingButton.setVisibility(View.GONE);
+        }
 //        if(fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(followers, currentItem.getUserId()) != null) {
 //            followerViewHolder.isFollowingButton.setText("Following");
 //            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.following_button_bg);

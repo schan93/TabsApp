@@ -3,6 +3,7 @@ package com.tabs.gcm;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
+import com.tabs.gcm.registration.model.RegistrationRecord;
 
 /**
  * Objectify service wrapper so we can statically register our persistence classes

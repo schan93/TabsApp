@@ -148,6 +148,7 @@ public class FollowersList extends AppCompatActivity {
         }
         intent.putExtras(bundle);
         setResult(RESULT_OK, intent);
+        finish();
     }
 
     private void updateFollowing(Map<String, Boolean> changedFollowing, FollowerRecyclerViewAdapter adapter) {

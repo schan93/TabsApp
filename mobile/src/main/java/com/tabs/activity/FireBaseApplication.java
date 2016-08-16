@@ -82,6 +82,13 @@ public class FireBaseApplication extends Application {
 
     private static Integer userCommentNum;
 
+    private static Integer userFollowerNum;
+
+    private static Integer userFollowingNum;
+
+    private static Integer followerNum;
+
+    private static Integer followingNum;
 
     @Override
     public void onCreate() {
@@ -107,6 +114,22 @@ public class FireBaseApplication extends Application {
     public static Integer getUserPostNum() { return userPostNum; };
 
     public void setUserPostNum(Integer userPostNum) { this.userPostNum = userPostNum; }
+
+    public static Integer getUserFollowerNum() { return userFollowerNum; };
+
+    public void setUserFollowerNum(Integer userFollowerNum) { this.userFollowerNum = userFollowerNum; }
+
+    public static Integer getUserFollowingNum() { return userFollowingNum; };
+
+    public void setUserFollowingNum(Integer userFollowingNum) { this.userFollowingNum = userFollowingNum; }
+
+    public static Integer getFollowerNum() { return followerNum; };
+
+    public void setFollowerNum(Integer followerNum) { this.followerNum = followerNum; }
+
+    public static Integer getFollowingNum() { return followingNum; };
+
+    public void setFollowingNum(Integer followingNum) { this.followingNum = followingNum; }
 
     public static Integer getUserCommentNum() { return userCommentNum; };
 
@@ -241,8 +264,8 @@ public class FireBaseApplication extends Application {
         setFollowingPostAdapter(new PostRecyclerViewAdapter(followingPosts, this, TabEnum.Following));
         setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(followers, this));
         setFollowingRecyclerViewAdapter(new FollowerRecyclerViewAdapter(following, this));
-        setUserFollowersAdapter(new FollowerRecyclerViewAdapter(userFollowers));
-        setUserFollowingAdapter(new FollowerRecyclerViewAdapter(userFollowing));
+        setUserFollowersAdapter(new FollowerRecyclerViewAdapter(userFollowers, this));
+        setUserFollowingAdapter(new FollowerRecyclerViewAdapter(userFollowing, this));
         setUserAdapter(new PostRecyclerViewAdapter(userPosts, this, null));
         setPostsThatCurrentUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(commentPosts, this, null));
         setPostsUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(userCommentPosts, this, null));

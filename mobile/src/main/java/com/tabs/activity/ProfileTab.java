@@ -23,6 +23,17 @@ import com.tabs.database.Database.DatabaseQuery;
  */
 public class ProfileTab extends Fragment {
 
+    public static ProfileTab  newInstance(int instance) {
+        Bundle args = new Bundle();
+        args.putInt(TabsUtil.ARGS_INSTANCE, instance);
+        ProfileTab fragment = new ProfileTab();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public ProfileTab(){
+    }
+
     private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
     private View fragmentView;
     private FireBaseApplication application;
@@ -64,6 +75,12 @@ public class ProfileTab extends Fragment {
 
         //TODO: Only call this after u get all the posts!
         TabsUtil.setupProfileView(fragmentView, "Profile", application, intentStrings);
+//        TabsUtil.populateNewsFeedList(fragmentView, application.getMyTabsAdapter(), getContext());
+//        if (progressOverlay.getVisibility() == View.VISIBLE) {
+//            progressOverlay.setVisibility(View.GONE);
+//            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+//            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
+//        }
         return fragmentView;
     }
 
@@ -136,7 +153,7 @@ public class ProfileTab extends Fragment {
         final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.comments_posts_pager);
         viewPager.setOffscreenPageLimit(2);
         final PostsCommentsAdapter adapter = new PostsCommentsAdapter
-                (getFragmentManager(), tabLayout.getTabCount());
+                (getChildFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(adapter);
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {

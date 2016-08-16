@@ -32,6 +32,8 @@ public class TabsUtil {
 
     static FireBaseApplication application;
 
+    public static final String ARGS_INSTANCE = "com.tabs.argInstance";
+
     public static void populateNewsFeedList(View fragmentView, PostRecyclerViewAdapter adapter, Context context) {
         RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_posts_feed);
         RecyclerView.ItemAnimator animator = rv.getItemAnimator();
@@ -50,6 +52,7 @@ public class TabsUtil {
         if (animator instanceof SimpleItemAnimator) {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
         }
+        recyclerView.setNestedScrollingEnabled(false);
         //Assuming we refresh the followers list, we have to make sure that new followers are loaded
         adapter.notifyDataSetChanged();
         LinearLayoutManager llm = new LinearLayoutManager(context);
@@ -119,14 +122,14 @@ public class TabsUtil {
             totalNumPosts.setText(Html.fromHtml("<b>" + application.getMyTabsAdapter().getItemCount() + "</b>" + "\nPosts"));
             //TODO: This wont work. this will only show the number of posts that a user has commented on but not necessarily the # comments
             totalNumComments.setText(Html.fromHtml("<b>" + application.getCommentsCount() + "</b>" + "\nComments"));
-            followersButton.setText(Html.fromHtml("<b>" + application.getFollowersRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowers"));
-            followingButton.setText(Html.fromHtml("<b>" + application.getFollowingRecyclerViewAdapter().getItemCount() + "</b>" + "\nFollowing"));
+            followersButton.setText(Html.fromHtml("<b>" + application.getFollowerNum() + "</b>" + "\nFollowers"));
+            followingButton.setText(Html.fromHtml("<b>" + application.getFollowingNum() + "</b>" + "\nFollowing"));
         } else {
             //TODO: when we restart application for example on the user page we have to get all the posts first
             totalNumPosts.setText(Html.fromHtml("<b>" + application.getUserPostNum() + "</b>" + "\nPosts"));
             totalNumComments.setText(Html.fromHtml("<b>" + application.getUserCommentNum() + "</b>" + "\nComments"));
-            followersButton.setText(Html.fromHtml("<b>" + application.getUserFollowersAdapter().getItemCount() + "</b>" + "\nFollowers"));
-            followingButton.setText(Html.fromHtml("<b>" + application.getUserFollowingAdapter().getItemCount() + "</b>" + "\nFollowing"));
+            followersButton.setText(Html.fromHtml("<b>" + application.getUserFollowerNum() + "</b>" + "\nFollowers"));
+            followingButton.setText(Html.fromHtml("<b>" + application.getUserFollowingNum() + "</b>" + "\nFollowing"));
             // correctly the posts and such of another user.
         }
 

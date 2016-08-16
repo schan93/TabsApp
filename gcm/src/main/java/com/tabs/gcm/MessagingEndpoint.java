@@ -12,6 +12,7 @@ import com.google.android.gcm.server.Result;
 import com.google.android.gcm.server.Sender;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiNamespace;
+import com.tabs.gcm.registration.model.RegistrationRecord;
 
 import java.io.IOException;
 import java.util.List;
@@ -66,20 +67,21 @@ public class MessagingEndpoint {
         Message msg = new Message.Builder().addData("message", message).build();
         List<RegistrationRecord> records = ofy().load().type(RegistrationRecord.class).limit(10).list();
         for (RegistrationRecord record : records) {
-            Result result = sender.send(msg, record.getRegId(), 5);
+//            sender.send(msg, "", 5);
+            Result result = sender.send(msg, "", 5);
             if (result.getMessageId() != null) {
-                log.info("Message sent to " + record.getRegId());
+//                log.info("Message sent to " + record.getRegId());
                 String canonicalRegId = result.getCanonicalRegistrationId();
                 if (canonicalRegId != null) {
                     // if the regId changed, we have to update the datastore
-                    log.info("Registration Id changed for " + record.getRegId() + " updating to " + canonicalRegId);
-                    record.setRegId(canonicalRegId);
+//                    log.info("Registration Id changed for " + record.getRegId() + " updating to " + canonicalRegId);
+//                    record.setRegId(canonicalRegId);
                     ofy().save().entity(record).now();
                 }
             } else {
                 String error = result.getErrorCodeName();
                 if (error.equals(Constants.ERROR_NOT_REGISTERED)) {
-                    log.warning("Registration Id " + record.getRegId() + " no longer registered with GCM, removing from datastore");
+//                    log.warning("Registration Id " + record.getRegId() + " no longer registered with GCM, removing from datastore");
                     // if the device is no longer registered with Gcm, remove it from the datastore
                     ofy().delete().entity(record).now();
                 } else {

@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!--<item-->
-        <!--android:id="@+id/bottomBarItemOne"-->
-        <!--android:icon="@drawable/ic_recents"-->
-        <!--android:title="Recents" />-->
+    <item
+        android:id="@+id/bb_menu_nearby"
+        android:icon="@drawable/ic_place_white_24dp"
+        android:title="Nearby" />
+    <item
+        android:id="@+id/bb_menu_followers"
+        android:icon="@drawable/ic_group_white_24dp"
+        android:title="Followers" />
+    <item
+        android:id="@+id/bb_menu_profile"
+        android:icon="@drawable/ic_person_white_24dp"
+        android:title="Profile" />
 </menu>

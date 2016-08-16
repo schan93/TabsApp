@@ -1,11 +1,18 @@
 package com.tabs.activity;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.IdRes;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,11 +23,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
+import com.ncapdevi.fragnav.FragNavController;
+import com.roughike.bottombar.BottomBar;
+import com.roughike.bottombar.OnMenuTabClickListener;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
+import com.tabs.database.followers.Follower;
 
 public class news_feed extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -28,9 +40,10 @@ public class news_feed extends AppCompatActivity
     String userId;
     Handler handler;
     FireBaseApplication application;
-    List<String> currentFollowerItems = new ArrayList<String>();
     DatabaseQuery databaseQuery;
     String name;
+    private BottomBar mBottomBar;
+    private FragNavController fragNavController;
     private static TabLayout tabLayout;
     public news_feed(){
 
@@ -46,6 +59,7 @@ public class news_feed extends AppCompatActivity
         handler = new Handler();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
         if(application.getName() != null && !application.getName().equals("")) {
             name = application.getName();
         }
@@ -55,37 +69,6 @@ public class news_feed extends AppCompatActivity
         setupActivity(savedInstanceState);
 
         View layout = findViewById(R.id.activity_main);
-
-        tabLayout = (TabLayout) layout.findViewById(R.id.tab_layout);
-        tabLayout.addTab(tabLayout.newTab().setText("Public"));
-        tabLayout.addTab(tabLayout.newTab().setText("Following"));
-        tabLayout.addTab(tabLayout.newTab().setText("Profile"));
-        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
-
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-        viewPager.setOffscreenPageLimit(3);
-        final PagerAdapter adapter = new PagerAdapter
-                (getSupportFragmentManager(), tabLayout.getTabCount());
-        viewPager.setAdapter(adapter);
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
-
-        checkFromIntent(viewPager);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -99,7 +82,95 @@ public class news_feed extends AppCompatActivity
                 }
             }
         });
+
+        List<Fragment> fragments = new ArrayList<>(3);
+
+        fragments.add(PublicTab.newInstance(0));
+        fragments.add(FollowersTab.newInstance(1));
+        fragments.add(ProfileTab.newInstance(2));
+
+        fragNavController = new FragNavController(getSupportFragmentManager(), R.id.container, fragments);
+
+        // Instead of attach(), use attachShy():
+
+        mBottomBar = BottomBar.attach(findViewById(R.id.activity_main), savedInstanceState);
+        mBottomBar.setItems(R.menu.bottombar_menu);
+        mBottomBar.setOnMenuTabClickListener(new OnMenuTabClickListener() {
+            @Override
+            public void onMenuTabSelected(@IdRes int menuItemId) {
+                if (menuItemId == R.id.bb_menu_nearby) {
+                    fragNavController.switchTab(FragNavController.TAB1);
+//                    startActivity(new Intent(getApplicationContext(), PublicTab.class));
+                    // The user selected item number one.
+                }
+                if (menuItemId == R.id.bb_menu_followers) {
+                    fragNavController.switchTab(FragNavController.TAB2);
+
+//                    startActivity(new Intent(getApplicationContext(), FollowersTab.class));
+                    // The user selected item number two.
+                }
+                if (menuItemId == R.id.bb_menu_profile) {
+                    fragNavController.switchTab(FragNavController.TAB3);
+//                    startActivity(new Intent(getApplicationContext(), ProfileTab.class));
+                    // The user selected item number three.
+                }
+            }
+
+            @Override
+            public void onMenuTabReSelected(@IdRes int menuItemId) {
+//                if (menuItemId == R.id.bb_menu_nearby) {
+//                    // The user reselected item number one, scroll your content to top.
+//                }
+//                if (menuItemId == R.id.bb_menu_followers) {
+//                    // The user reselected item number two, scroll your content to top.
+//                }
+//                if (menuItemId == R.id.bb_menu_profile) {
+//                    // The user reselected item number three, scroll your content to top.
+//          tack();
+            }
+        });
+
+        // Set the color for the active tab. Ignored on mobile when there are more than three tabs.
+        mBottomBar.setActiveTabColor("#009688");
+
+        // Disable the left bar on tablets and behave exactly the same on mobile and tablets instead.
+//        mBottomBar.noTabletGoodness();
+
+//        tabLayout = (TabLayout) layout.findViewById(R.id.tab_layout);
+//        tabLayout.addTab(tabLayout.newTab().setText("Public"));
+//        tabLayout.addTab(tabLayout.newTab().setText("Following"));
+//        tabLayout.addTab(tabLayout.newTab().setText("Profile"));
+//        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+//
+//        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+//        viewPager.setOffscreenPageLimit(3);
+//        final PagerAdapter adapter = new PagerAdapter
+//                (getSupportFragmentManager(), tabLayout.getTabCount());
+//        viewPager.setAdapter(adapter);
+//        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+//        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+//            @Override
+//            public void onTabSelected(TabLayout.Tab tab) {
+//                viewPager.setCurrentItem(tab.getPosition());
+//            }
+//
+//            @Override
+//            public void onTabUnselected(TabLayout.Tab tab) {
+//
+//            }
+//
+//            @Override
+//            public void onTabReselected(TabLayout.Tab tab) {
+//
+//            }
+//        });
+//
+//        checkFromIntent(viewPager);
+
+
         //populateNewsFeedList();
+        getWindow().setStatusBarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
+
     }
 
     @Override
@@ -214,6 +285,10 @@ public class news_feed extends AppCompatActivity
         savedInstanceState.putString("name", name);
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
+        // Necessary to restore the BottomBar's state, otherwise we would
+        // lose the current tab on orientation change.
+        mBottomBar.onSaveInstanceState(savedInstanceState);
+
     }
 
     private void checkFromIntent(ViewPager viewPager) {
