@@ -85,10 +85,6 @@ public class PublicTab extends Fragment {
 
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
 
-
-    //GoogleApiClient
-    private GoogleApiClient mGoogleApiClient;
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -186,12 +182,13 @@ public class PublicTab extends Fragment {
         locationService = new LocationService(context, new LocationUpdateListener() {
             @Override
             public void canReceiveLocationUpdates() {
-                //Cant receieve location updates so we need to enable them here
 
             }
 
             @Override
             public void cannotReceiveLocationUpdates() {
+                createSettingsRequest();
+                //well we know we cant receive updates so we have to create a settings request
             }
 
             //update location to our servers for tracking purpose
@@ -208,5 +205,65 @@ public class PublicTab extends Fragment {
             }
         });
         locationService.startUpdates();
+    }
+
+
+    private void createSettingsRequest() {
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(30 * 1000);
+        locationRequest.setFastestInterval(5 * 1000);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+        builder.setAlwaysShow(true); //this is the key ingredient
+
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(locationService.mGoogleApiClient
+                        , builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                final LocationSettingsStates state = result.getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can initialize location
+                        // requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be fixed by showing the user
+                        // a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way to fix the
+                        // settings so we won't show the dialog.
+                        break;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            // Check for the integer request code originally supplied to startResolutionForResult().
+            case REQUEST_CHECK_SETTINGS:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        setupLocation();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        createSettingsRequest();//keep asking if imp or do whatever
+                        break;
+                }
+                break;
+        }
     }
 }

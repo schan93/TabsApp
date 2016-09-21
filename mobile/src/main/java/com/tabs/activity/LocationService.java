@@ -1,9 +1,11 @@
 package com.tabs.activity;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -15,9 +17,16 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 /**
  * Created by schan on 9/19/16.
@@ -37,6 +46,9 @@ public class LocationService {
 
     //About 1 mile, we will call locationOnChanged to re-update the location.
     public static final float UPDATE_DISPLACEMENT_IN_METERS = 1000;
+
+    //Settings request check
+    protected static final int REQUEST_CHECK_SETTINGS = 0x1;
 
 
     public LocationService(Context activity, LocationUpdateListener locationUpdateListener) {
@@ -131,7 +143,7 @@ public class LocationService {
                 startLocationUpdates();
             } else {
                 locationUpdateListener.cannotReceiveLocationUpdates();
-                Toast.makeText(activity, "Unable to get your location.Please turn on your device Gps", Toast.LENGTH_LONG).show();
+//                Toast.makeText(activity, "Unable to get your location.Please turn on your device GPS", Toast.LENGTH_LONG).show();
             }
         } else {
             locationUpdateListener.cannotReceiveLocationUpdates();
