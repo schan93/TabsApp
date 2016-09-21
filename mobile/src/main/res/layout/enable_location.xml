@@ -33,10 +33,13 @@
         android:src="@drawable/ic_tabs_logo_transparent"/>
 
     <Button
+        android:fontFamily="sans-serif"
         android:layout_margin="16dp"
-        android:layout_below="@id/tabs_logo_picture"
         android:layout_width="match_parent"
         android:id="@+id/enable_location_ok_button"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/teal"
+        android:textColor="@color/white"
         android:text="@string/ok"/>
 </RelativeLayout>
