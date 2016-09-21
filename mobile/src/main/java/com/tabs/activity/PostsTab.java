@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,22 +89,26 @@ public class PostsTab extends Fragment {
         setupActivity(savedInstanceState);
 
         databaseQuery = new DatabaseQuery(getActivity());
-        if(!userId.equals(application.getUserId())) {
-            TabsUtil.populateNewsFeedList(fragmentView, application.getUserAdapter(), getContext());
+        if(!userId.equals(application.getUserId()) && !TabsUtil.checkIfAdapterEmpty(application.getUserAdapter())) {
+            TabsUtil.populateNewsFeedList(fragmentView, application.getUserAdapter(), getContext(), 0);
             //TODO: Don't really know when this will be done but i guess I really need to fix this because I need
             //To only show the fragment view AFTER the posts are done loading but ill just keep this here for now
 //            if(progressOverlay.getVisibility() == View.VISIBLE) {
 //                progressOverlay.setVisibility(View.GONE);
 //                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
 //            }
-        } else {
-            TabsUtil.populateNewsFeedList(fragmentView, application.getMyTabsAdapter(), getContext());
         }
-        fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
-        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+        else if (userId.equals(application.getUserId()) && !TabsUtil.checkIfAdapterEmpty(application.getMyTabsAdapter())){
+            TabsUtil.populateNewsFeedList(fragmentView, application.getMyTabsAdapter(), getContext(), 0);
+        } else {
+            TabsUtil.setupPostsCommentsView(fragmentView, R.string.noPostsPosted);
+        }
+        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
         //This still needs to be called in case our app hangs in background then is recreated
         return fragmentView;
     }
+
+
 
     @Override
     public void onResume() {

@@ -69,7 +69,11 @@ public class AndroidUtils {
     );
 
     public static final List<String> timesString = Arrays.asList(
-            "y", "mo", "w", "d", "h", "m"
+            " years ago", " months ago", " weeks ago", " days ago", " hours ago", " minutes ago"
+    );
+
+    public static final List<String> timesStringSingular = Arrays.asList(
+            " year ago", " month ago", " week ago", " day ago", " hour ago", " minute ago"
     );
 
     /**
@@ -93,7 +97,11 @@ public class AndroidUtils {
         for(int i=0;i< times.size(); i++) {
             Long current = times.get(i);
             long temp = duration / current;
-            if (temp > 0) {
+            if(temp == 1) {
+                sb.append(temp)
+                        .append(timesStringSingular.get(i));
+                break;
+            } else if(temp > 1) {
                 sb.append(temp)
                         .append(timesString.get(i));
                 break;
@@ -106,11 +114,29 @@ public class AndroidUtils {
         return UUID.randomUUID().toString();
     }
 
+    public static Double getIntentDouble(Intent intent, String value){
+        Bundle extras = intent.getExtras();
+        Double result = null;
+        if (extras != null) {
+            result = extras.getDouble(value);
+        }
+        return result;
+    }
+
     public static String getIntentString(Intent intent, String value){
         Bundle extras = intent.getExtras();
         String result = "";
         if (extras != null) {
             result = extras.getString(value);
+        }
+        return result;
+    }
+
+    public static Boolean getIntentBoolean(Intent intent, String value){
+        Bundle extras = intent.getExtras();
+        Boolean result = false;
+        if (extras != null) {
+            result = extras.getBoolean(value);
         }
         return result;
     }

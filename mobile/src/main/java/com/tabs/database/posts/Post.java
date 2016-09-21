@@ -1,11 +1,18 @@
 package com.tabs.database.posts;
 
+import com.google.firebase.database.Exclude;
 import com.tabs.activity.PrivacyEnum;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Chiharu on 10/26/2015.
  */
-public class Post{
+public class Post implements Serializable {
+    private static final long serialVersionUID = -2022770406236044428L;
     private String title;
     private String id;
     private String name;
@@ -14,14 +21,15 @@ public class Post{
     private String timeStamp;
     private PrivacyEnum privacy;
     private Integer numComments;
+    private Map<String, Object> commenters;
 
     /**
-     * Empty default constructor, necessary for Firebase to be able to deserialize Posts
+     * Empty default constructor, necessary for DatabaseReference to be able to deserialize Posts
      */
     public Post(){
     }
 
-    public Post(String id, String title, String name, String status, String posterUserId, String timeStamp, PrivacyEnum privacy, Integer numComments) {
+    public Post(String id, String title, String name, String status, String posterUserId, String timeStamp, String privacy, Integer numComments) {
         super();
         this.id = id;
         this.title = title;
@@ -29,13 +37,26 @@ public class Post{
         this.status = status;
         this.posterUserId = posterUserId;
         this.timeStamp = timeStamp;
-        this.privacy = privacy;
+        setPrivacy(privacy);
         this.numComments = numComments;
     }
 
-    public PrivacyEnum getPrivacy() { return privacy; }
+    public String getPrivacy() {
+        // Convert enum to string
+        if (privacy == null) {
+            return null;
+        } else {
+            return privacy.name();
+        }
+    }
 
-    public void setPrivacy(PrivacyEnum privacy) { this.privacy = privacy; }
+    public void setPrivacy(String privacyString) {
+        if (privacyString == null) {
+            this.privacy = null;
+        } else {
+            this.privacy = privacy.valueOf(privacyString);
+        }
+    }
 
     public String getId() {
         return id;
@@ -84,4 +105,8 @@ public class Post{
     public void setTitle(String title) { this.title = title; }
 
     public String getTitle() { return title; };
+
+    public void setCommenters(Map<String, Object> commenters) { this.commenters = commenters; }
+
+    public Map<String, Object> getCommenters() { return this.commenters; }
 }

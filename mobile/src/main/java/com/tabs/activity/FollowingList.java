@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
@@ -53,6 +54,18 @@ public class FollowingList extends AppCompatActivity {
         } else {
             TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getFollowingRecyclerViewAdapter());
             application.getFollowingRecyclerViewAdapter().setupFollowersRecyclerView(databaseQuery, getApplicationContext());
+        }
+
+        if(TabsUtil.checkPostsLength(recyclerView)) {
+            findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
+            findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
+            TextView textView = (TextView) findViewById(R.id.no_posts_text);
+            textView.setText(R.string.noFollowers);
+            findViewById(R.id.follow_list).setVisibility(View.GONE);
+        } else {
+            findViewById(R.id.follow_list).setVisibility(View.VISIBLE);
+            findViewById(R.id.no_posts_layout).setVisibility(View.GONE);
+            findViewById(R.id.no_posts_text).setVisibility(View.GONE);
         }
 
 //        if (progressOverlay.getVisibility() == View.VISIBLE) {

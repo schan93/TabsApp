@@ -2,8 +2,12 @@ package com.tabs.activity;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.IdRes;
@@ -44,10 +48,29 @@ public class news_feed extends AppCompatActivity
     String name;
     private BottomBar mBottomBar;
     private FragNavController fragNavController;
+    private PublicTab publicTab;
     private static TabLayout tabLayout;
+    private Toolbar toolbar;
+    Location location;
     public news_feed(){
 
     }
+
+    private BroadcastReceiver locationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                if(location == null) {
+                    location = new Location("Provider");
+                }
+                location.setLatitude(intent.getDoubleExtra("latitude", 0.0));
+                location.setLongitude(intent.getDoubleExtra("longitude", 0.0));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+    };
 
 
     @Override
@@ -57,9 +80,6 @@ public class news_feed extends AppCompatActivity
         application =  (FireBaseApplication) getApplication();
         databaseQuery = new DatabaseQuery(this);
         handler = new Handler();
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
         if(application.getName() != null && !application.getName().equals("")) {
             name = application.getName();
         }
@@ -67,21 +87,32 @@ public class news_feed extends AppCompatActivity
             userId = application.getUserId();
         }
         setupActivity(savedInstanceState);
-
+        setupToolbar();
         View layout = findViewById(R.id.activity_main);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Bundle bundle = new Bundle();
-                Intent intent = new Intent(news_feed.this, CreatePost.class);
-                if (intent != null) {
-                    intent.putExtras(bundle);
-                    startActivity(intent);
+        if (fab != null) {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    //TODO: Maybe make fragment for create post
+//                    FragmentManager fm = getFragmentManager();
+//                    CreatePostDialog dialogFragment = new CreatePostDialog();
+//                    dialogFragment.show(fm, "Sample Fragment");
+                    Bundle bundle = new Bundle();
+                    Intent intent = new Intent(news_feed.this, CreatePost.class);
+                    if (intent != null) {
+                        intent.putExtras(bundle);
+                        if(location != null) {
+                            intent.putExtra("latitude", location.getLatitude());
+                            intent.putExtra("longitude", location.getLongitude());
+                        }
+                        startActivity(intent);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         List<Fragment> fragments = new ArrayList<>(3);
 
@@ -99,6 +130,7 @@ public class news_feed extends AppCompatActivity
             @Override
             public void onMenuTabSelected(@IdRes int menuItemId) {
                 if (menuItemId == R.id.bb_menu_nearby) {
+                    publicTab = PublicTab.newInstance(0);
                     fragNavController.switchTab(FragNavController.TAB1);
 //                    startActivity(new Intent(getApplicationContext(), PublicTab.class));
                     // The user selected item number one.
@@ -111,6 +143,8 @@ public class news_feed extends AppCompatActivity
                 }
                 if (menuItemId == R.id.bb_menu_profile) {
                     fragNavController.switchTab(FragNavController.TAB3);
+                    //Try to set the navigation toolbar to gone?
+//                    toolbar.setVisibility(View.GONE);
 //                    startActivity(new Intent(getApplicationContext(), ProfileTab.class));
                     // The user selected item number three.
                 }
@@ -174,6 +208,23 @@ public class news_feed extends AppCompatActivity
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PublicTab.REQUEST_LOCATION){
+            publicTab.onActivityResult(requestCode, resultCode, data);
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+
+    private void setupToolbar() {
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+    }
+
+    @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
@@ -182,8 +233,9 @@ public class news_feed extends AppCompatActivity
     @Override
     public void onResume(){
         super.onResume();
-        LocationService.getLocationManager(this);
         AppEventsLogger.activateApp(this);
+        registerReceiver(locationReceiver, new IntentFilter(LocationService.ACTION_LOCATION));
+
     }
 
     @Override

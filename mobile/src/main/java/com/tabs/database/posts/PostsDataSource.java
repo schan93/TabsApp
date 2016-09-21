@@ -66,7 +66,7 @@ public class PostsDataSource {
 //                        DatabaseHelper.KEY_ID +", " + DatabaseHelper.COLUMN_POSTER_NAME + ", " + DatabaseHelper.COLUMN_POSTER_USER_ID +", " + DatabaseHelper.COLUMN_STATUS +", " + DatabaseHelper.COLUMN_PRIVACY + ", " + DatabaseHelper.COLUMN_LATITUDE + ", " + DatabaseHelper.COLUMN_LONGITUDE + ") VALUES (?, ?, ?, ?, ?, ?, ?)",
 //                new String[]{postId, posterName, posterUserId, status, privacy.toString(), Double.toString(latitude), Double.toString(longitude)});
 
-        Post post = new Post(postId, "title", posterName, status, posterUserId, dateTime, privacy, 0);
+        Post post = new Post(postId, "title", posterName, status, posterUserId, dateTime, privacy.toString(), 0);
         return post;
     }
 
@@ -92,7 +92,7 @@ public class PostsDataSource {
 //                values, SQLiteDatabase.CONFLICT_IGNORE);
         database.insert(DatabaseHelper.TABLE_POSTS, null, values);
 
-        Post post = new Post(postId, "title", posterName, status, posterUserId, timeStamp, privacy, 0);
+        Post post = new Post(postId, "title", posterName, status, posterUserId, timeStamp, privacy.toString(), 0);
         return post;
     }
 
@@ -123,7 +123,7 @@ public class PostsDataSource {
         System.out.println("Privacy: " + cursor.getString(5));
 
         Post post = new Post(cursor.getString(0), "title", cursor.getString(1), cursor.getString(3),
-                cursor.getString(2), cursor.getString(4), PrivacyEnum.valueOf(cursor.getString(5)), 0);
+                cursor.getString(2), cursor.getString(4), cursor.getString(5), 0);
         return post;
     }
 

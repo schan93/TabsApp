@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_marginTop="?attr/actionBarSize"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_below="@id/create_post_app_bar"
+    xmlns:tool="http://schemas.android.com/tools"
+    android:id="@+id/create_post"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/privacy_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:background="@color/white"
+        android:gravity="center" >
+
+        <include layout="@layout/privacy_toggle_layout"/>
+
+    </RelativeLayout>
+
+    <EditText
+        android:layout_weight="2"
+        style="SingleLineEditText"
+        android:id="@+id/create_post_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:singleLine="true"
+        android:textColorHint="#d3d3d3"
+        android:padding="10dp"
+        android:maxLength="45"
+        android:gravity="top"
+        android:background="@drawable/edittext_bg"
+        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+        android:hint="@string/createTitle"/>
+
+
+    <EditText
+        android:layout_weight="100"
+        style="@style/FullWidthEditText"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textColorHint="#d3d3d3"
+        android:hint="@string/createStatus"
+        android:padding="10dp"
+        android:gravity="top"
+        android:backgroundTint="#ffffff"
+        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+        android:background="@drawable/edittext_bg"
+        android:inputType="textMultiLine"
+        android:id="@+id/create_post_status"/>
+
+    <Button
+        android:background="@drawable/button_bg_rounded_corners"
+        android:textColor="@color/white"
+        android:fontFamily="sans-serif-medium"
+        android:layout_weight="2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="@string/send"/>
+
+</LinearLayout>

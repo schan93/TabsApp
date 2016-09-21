@@ -14,7 +14,8 @@ import android.widget.TextView;
 import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
-import com.firebase.client.Firebase;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 
@@ -34,7 +35,7 @@ public class ProfileTab extends Fragment {
     public ProfileTab(){
     }
 
-    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
+    private DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReferenceFromUrl("https://tabsapp.firebaseio.com/");
     private View fragmentView;
     private FireBaseApplication application;
     private DatabaseQuery databaseQuery;
@@ -108,7 +109,7 @@ public class ProfileTab extends Fragment {
         profilePhoto.setController(controller);
         RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
         roundingParams.setRoundAsCircle(true);
-        roundingParams.setBorder(ContextCompat.getColor(getContext(), R.color.white), 10f);
+//        roundingParams.setBorder(ContextCompat.getColor(getContext(), R.color.white), 10f);
         profilePhoto.getHierarchy().setRoundingParams(roundingParams);
         TextView headerName = (TextView) fragmentView.findViewById(R.id.profile_name);
         headerName.setText(name);
@@ -145,12 +146,13 @@ public class ProfileTab extends Fragment {
     }
 
     private void setupPostsAndCommentsTabLayout(View fragmentView) {
-        tabLayout = (TabLayout) fragmentView.findViewById(R.id.comments_post_tab_layout);
+//        tabLayout = (TabLayout) fragmentView.findViewById(R.id.comments_post_tab_layout);
+        tabLayout = (TabLayout) fragmentView.findViewById(R.id.profile_tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("Posts"));
         tabLayout.addTab(tabLayout.newTab().setText("Comments"));
-        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
-        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.comments_posts_pager);
+//        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.comments_posts_pager);
+        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.profile_view_pager);
         viewPager.setOffscreenPageLimit(2);
         final PostsCommentsAdapter adapter = new PostsCommentsAdapter
                 (getChildFragmentManager(), tabLayout.getTabCount());
@@ -172,5 +174,10 @@ public class ProfileTab extends Fragment {
 
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 }

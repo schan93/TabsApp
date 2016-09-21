@@ -5,9 +5,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
@@ -55,7 +57,18 @@ public class FollowersList extends AppCompatActivity {
         } else {
             TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getFollowersRecyclerViewAdapter());
             application.getFollowersRecyclerViewAdapter().setupFollowersRecyclerView(databaseQuery, getApplicationContext());
+        }
 
+        if(TabsUtil.checkPostsLength(recyclerView)) {
+            findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
+            findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
+            TextView textView = (TextView) findViewById(R.id.no_posts_text);
+            textView.setText(R.string.noFollowers);
+            findViewById(R.id.follow_list).setVisibility(View.GONE);
+        } else {
+            findViewById(R.id.follow_list).setVisibility(View.VISIBLE);
+            findViewById(R.id.no_posts_layout).setVisibility(View.GONE);
+            findViewById(R.id.no_posts_text).setVisibility(View.GONE);
         }
 
     }
@@ -63,11 +76,9 @@ public class FollowersList extends AppCompatActivity {
     private void setupActionBar(){
         Toolbar toolbar = (Toolbar) findViewById(R.id.follow_toolbar);
         setSupportActionBar(toolbar);
-        //Back bar enabled
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
-        //Toggle bar enabled
     }
 
     @Override

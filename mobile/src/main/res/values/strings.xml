@@ -10,8 +10,26 @@
     <string name="following">Following</string>
     <string name="followers">Followers</string>
     <string name="publicString">Public</string>
-
+    <string name="noPostsPublic">No posts in your area. Be the first one to help others discover what\'s going on in your area!</string>
+    <string name="noPostsFollowing">No posts by your followers. Follow someone to find out what they\'re up to!</string>
+    <string name="noPostsPosted">You have not created any posts.</string>
+    <string name="noCommentsPosted">You have not commented on any posts.</string>
+    <string name="noComments">No Comments.</string>
+    <string name="noFollowers">No Followers.</string>
+    <string name="noFollowing">You are not following anyone.</string>
+    <string name="permission_location_rationale">Location permission is needed to allow the application to work properly.</string>
+    <string name="ok">OK</string>
+    <string name="send">Send</string>
+    <string name="commentBack">Comment back!</string>
+    <string name="enableLocation">Enable Location</string>
+    <string name="enableLocationDetails">Tabs needs your location in order to work properly. This will allow you to view posts around your current location.</string>
+    <string name="permissions_not_granted">Location permissions were not granted.</string>
+    <string name="gpsNetworkNotEnabled">Location services must be enabled to use Tabs. Would you like to enable it now?</string>
+    <string name="openLocationSettings">Open Location Settings</string>
+    <string name="cancel">Cancel</string>
     <string name="notFollowing">+ Follow</string>
     <string name="isFollowing">Following</string>
+    <string name="createTitle">Title your post</string>
+    <string name="createStatus">Post a status</string>
     <string name="crash_toast_text">Tabs has crashed. Please contact an administrator for more details.</string>
 </resources>

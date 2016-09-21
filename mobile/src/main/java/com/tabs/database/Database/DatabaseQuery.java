@@ -1,31 +1,41 @@
 package com.tabs.database.Database;
 
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Handler;
+import android.support.v4.app.NotificationCompat;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.firebase.client.ChildEventListener;
-import com.firebase.client.DataSnapshot;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.Query;
-import com.firebase.client.ValueEventListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.schan.tabs.R;
 import com.tabs.activity.AndroidUtils;
 import com.tabs.activity.Comments;
 import com.tabs.activity.CommentsHeader;
 import com.tabs.activity.FireBaseApplication;
+import com.tabs.activity.NotificationService;
 import com.tabs.activity.TabsUtil;
 import com.tabs.activity.news_feed;
 import com.tabs.database.comments.Comment;
@@ -40,20 +50,30 @@ import org.json.JSONObject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Created by schan on 3/9/16.
  */
 public class DatabaseQuery implements Serializable {
 
-    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
+    private DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReferenceFromUrl("https://tabsapp.firebaseio.com/");
     private Activity activity;
     private FireBaseApplication application;
     private String userId;
     private String name;
-    private final Firebase currentUserPath;
+    private DatabaseReference currentUserPath;
     private GeoFire geoFire;
+
+    public DatabaseQuery() {
+        userId = application.getUserId();
+        name = application.getName();
+        currentUserPath = firebaseRef.child("users/" + userId);
+        geoFire = new GeoFire(firebaseRef);
+    }
 
     public DatabaseQuery(Activity activity) {
         this.activity = activity;
@@ -64,10 +84,48 @@ public class DatabaseQuery implements Serializable {
         geoFire = new GeoFire(firebaseRef);
     }
 
+    public void getPost(final NotificationCompat.Builder notificationBuilder, final Intent resultIntent, final String postId, final String userId, final Context context) {
+        final DatabaseReference postsRef = firebaseRef.child("posts/" + postId);
+        postsRef.keepSynced(true);
+        postsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Post post = dataSnapshot.getValue(Post.class);
+                resultIntent.putExtra("postId", postId);
+                resultIntent.putExtra("userId", userId);
+                resultIntent.putExtra("postTitle", post.getTitle());
+                resultIntent.putExtra("posterUserId", post.getPosterUserId());
+                resultIntent.putExtra("posterName", post.getName());
+                resultIntent.putExtra("postTimeStamp", post.getTimeStamp());
+                resultIntent.putExtra("postStatus", post.getStatus());
 
-    public void saveCommentToFirebase(Comment comment) {
+                Intent backIntent = new Intent(context, news_feed.class);
+                backIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+
+                //Set a random notification Id for each notification so that if you get multiple, the first does not get replaced.
+                //I guess the pending intent request code will also be unique.
+                Random random = new Random();
+                int notificationId = random.nextInt(9999 - 1000) + 1000;
+                PendingIntent pendingIntent = PendingIntent.getActivities(context, notificationId, new Intent[] { backIntent, resultIntent}, PendingIntent.FLAG_ONE_SHOT);
+                //When the notification is actually clicked on
+                notificationBuilder.setContentIntent(pendingIntent);
+                //Notification manager to notify of background event
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
+                notificationManager.notify(notificationId, notificationBuilder.build());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+
+            }
+        });
+
+    }
+
+    public void saveCommentToDatabaseReference(Context context, Comment comment) {
         //Firstly we need to save a comment to firebase
-        final Firebase commentsRef = firebaseRef.child("comments").push();
+        final DatabaseReference commentsRef = firebaseRef.child("comments").push();
         String commentId = commentsRef.getKey();
         comment.setId(commentId);
         Date date = new Date();
@@ -85,11 +143,11 @@ public class DatabaseQuery implements Serializable {
 
         //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
         long time = new Date().getTime();
-        firebaseRef.child("recent-users").child(userId).setPriority(time, new Firebase.CompletionListener() {
+        firebaseRef.child("recent-users").child(userId).setPriority(time, new DatabaseReference.CompletionListener() {
             @Override
-            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
-                if (firebaseError != null) {
-                    System.out.println("Data could not be saved. " + firebaseError.getMessage());
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError != null) {
+                    System.out.println("Data could not be saved. " + databaseError.getMessage());
                 } else {
                     System.out.println("Data saved successfully.");
                 }
@@ -97,15 +155,16 @@ public class DatabaseQuery implements Serializable {
         });
 
         //Display the comment in a list that shows the most recent comments (what we would want by design)
-        firebaseRef.child("recent-comments").child(commentsRef.getKey()).setPriority(time, new Firebase.CompletionListener() {
+        firebaseRef.child("recent-comments").child(commentsRef.getKey()).setPriority(time, new DatabaseReference.CompletionListener() {
             @Override
-            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
-                if (firebaseError != null) {
-                    System.out.println("Data could not be saved. " + firebaseError.getMessage());
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError != null) {
+                    System.out.println("Data could not be saved. " + databaseError.getMessage());
                 } else {
                     System.out.println("Data saved successfully.");
                 }
             }
+
         });
 
         //Lastly add the comment as a child to the Post! I need the KEY of the post, not its id
@@ -116,47 +175,121 @@ public class DatabaseQuery implements Serializable {
         currentUserPath.child("commented_posts/" + comment.getPostId()).setValue(true);
     }
 
-    public void saveUserToFirebase(final String id, final String userId, final String name) {
-        final Firebase usersRef = firebaseRef.child("users");
-        Query query = usersRef.orderByChild("userId").equalTo(userId);
-        query.keepSynced(true);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+    public void getUsersToSendCommentNotificationTo(final String userId, final Comment comment, final String hasAction, final HashMap<String, String> users) {
+        final List<String> deviceIds = new ArrayList<String>();
+        final DatabaseReference usersRef = firebaseRef.child("people");
+        usersRef.keepSynced(true);
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    Firebase usersReference = usersRef.child(userId);
-                    User user = new User(id, userId, name);
-                    usersReference.setValue(user);
-                } else {
-                    System.out.println("DatabaseQuery: User " + name + " Already exists");
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    User user = snapshot.getValue(User.class);
+                    //If the user is in the userIds array, then we have to send the notification to this user
+                    if (users.get(user.getUserId()) != null && !deviceIds.contains(user.getDeviceId())) {
+                        //Get their device Ids
+                        deviceIds.add(user.getDeviceId());
+                    }
+                }
+                application.setDeviceIdsToNotifyUsers(deviceIds);
+
+                NotificationService notificationService = new NotificationService();
+                try {
+                    notificationService.sendCommentNotificationToServer(userId, comment, hasAction, deviceIds);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
     }
 
-    public void saveUserToPeople(final String id, final String userId, final String name) {
-        final Firebase usersRef = firebaseRef.child("people");
-        Query query = usersRef.orderByChild("userId").equalTo(userId);
-        query.keepSynced(true);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+    public void getUsersToSendPostNotificationTo(final String userId, final Post post, final String hasAction, final List<User> users) {
+        final List<String> deviceIds = new ArrayList<String>();
+        final DatabaseReference usersRef = firebaseRef.child("people");
+        usersRef.keepSynced(true);
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    User user = snapshot.getValue(User.class);
+                    //If the user is in the userIds array, then we have to send the notification to this user
+                    if (users.contains(user) && !deviceIds.contains(user.getDeviceId())) {
+                        //Get their device Ids
+                        deviceIds.add(user.getDeviceId());
+                    }
+                }
+                application.setDeviceIdsToNotifyUsers(deviceIds);
+
+                NotificationService notificationService = new NotificationService();
+                try {
+                    notificationService.sendPostNotificationToServer(userId, post, hasAction, deviceIds);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+
+            }
+        });
+    }
+
+    public void saveUserToDatabaseReference(final String id, final String userId, final String name, final String deviceId) {
+        final DatabaseReference usersRef = firebaseRef.child("users/" + userId);
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    Firebase peopleReference = usersRef.child(userId);
-                    User user = new User(id, userId, name);
-                    peopleReference.setValue(user);
+                    User user = new User(id, userId, name, deviceId);
+                    usersRef.setValue(user);
                 } else {
+                    User user = dataSnapshot.getValue(User.class);
+                    //Device Id can change
+                    if(user.getDeviceId().equals("") || !user.getDeviceId().equals(deviceId)) {
+                        user.setDeviceId(deviceId);
+                        Map<String,Object> updatedDevice = new HashMap<String,Object>();
+                        updatedDevice.put("deviceId", deviceId);
+                        usersRef.updateChildren(updatedDevice);
+                    }
+                    System.out.println("DatabaseQuery: User " + name + " Already exists");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+
+            }
+        });
+    }
+
+    public void saveUserToPeople(final String id, final String userId, final String name, final String deviceId) {
+        final DatabaseReference usersRef = firebaseRef.child("people/" + userId);
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    User user = new User(id, userId, name, deviceId);
+                    usersRef.setValue(user);
+                } else {
+                    User user = dataSnapshot.getValue(User.class);
+                    //Device id can change
+                    if(user.getDeviceId().equals("") || !user.getDeviceId().equals(deviceId)) {
+                        user.setDeviceId(deviceId);
+                        Map<String,Object> updatedDevice = new HashMap<String,Object>();
+                        updatedDevice.put("deviceId", deviceId);
+                        usersRef.updateChildren(updatedDevice);
+                    }
                     System.out.println("DatabaseQuery: People User " + name + " Already exists");
                 }
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -172,12 +305,12 @@ public class DatabaseQuery implements Serializable {
 
         //Now, the person that we are following has gained a follower!
         //That means we have to set their follower's of the current user id to be true
-        Firebase gainedFollower = firebaseRef.child("users/" + followerUserId);
+        DatabaseReference gainedFollower = firebaseRef.child("users/" + followerUserId);
         gainedFollower.child("/followers/" + userId).setValue(true);
 
         //Lastly, we need to copy all the posts generated by the user that you just followed into your own news feed
         //Firstly get your feed,
-        final Firebase currentUserFeed = currentUserPath.child("feed");
+        final DatabaseReference currentUserFeed = currentUserPath.child("feed");
 
         //Now for every of that new follower's post, set them to be true in your own feed so you see their posts
         gainedFollower.child("/posts").orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
@@ -189,7 +322,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -206,12 +339,12 @@ public class DatabaseQuery implements Serializable {
 
         //Now, the person that we are following has gained a follower!
         //That means we have to set their follower's of the current user id to be true
-        Firebase gainedFollower = firebaseRef.child("users/" + followerUserId);
+        DatabaseReference gainedFollower = firebaseRef.child("users/" + followerUserId);
         gainedFollower.child("/followers/" + userId).setValue(false);
 
         //Lastly, we need to copy all the posts generated by the user that you just followed into your own news feed
         //Firstly get your feed,
-        final Firebase currentUserFeed = currentUserPath.child("feed");
+        final DatabaseReference currentUserFeed = currentUserPath.child("feed");
 
         //Now for every of that new follower's post, set them to be true in your own feed so you see their posts
         gainedFollower.child("/posts").orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
@@ -223,7 +356,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -231,26 +364,30 @@ public class DatabaseQuery implements Serializable {
     }
 
     /**
-     * This method is designed to save a post to Firebase database. THIS IS NEW!!!
+     * This method is designed to save a post to DatabaseReference database. THIS IS NEW!!!
      *
      * @param post
      */
 
-    public void savePostToFirebase(final Post post, Location location) {
+    public void savePostToDatabaseReference(final Post post, Double latitude, Double longitude) {
         //Firstly, we need to keep track of all posts so we put them into a posts path.
-        final Firebase postsRef = firebaseRef.child("posts").push();
+        final DatabaseReference postsRef = firebaseRef.child("posts").push();
         String postId = postsRef.getKey();
         post.setId(postId);
         Date date = new Date();
         postsRef.setValue(post, 0 - date.getTime());
 
+        //Notify users that the post is completed and can be sent
+       getUsersToSendPostNotificationTo(userId, post, " has posted: ", application.getFollowersRecyclerViewAdapter().getFollowers());
+
+
 //        postsRef.setPriority(date.getTime());
 //        postsRef.setValue(post);
 
         //Set the location for public posts
-        geoFire.setLocation("post_locations/" + postsRef.getKey(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+        geoFire.setLocation("post_locations/" + postsRef.getKey(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
             @Override
-            public void onComplete(String key, FirebaseError error) {
+            public void onComplete(String key, DatabaseError error) {
                 if (error != null) {
                     System.err.println("There was an error saving the location to GeoFire: " + error);
                 } else {
@@ -263,9 +400,9 @@ public class DatabaseQuery implements Serializable {
 
                     //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
                     long time = new Date().getTime();
-                    firebaseRef.child("recent-users").child(userId).setPriority(time, new Firebase.CompletionListener() {
+                    firebaseRef.child("recent-users").child(userId).setPriority(time, new DatabaseReference.CompletionListener() {
                         @Override
-                        public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                        public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
                             if (firebaseError != null) {
                                 System.out.println("Data could not be saved. " + firebaseError.getMessage());
                             } else {
@@ -275,9 +412,9 @@ public class DatabaseQuery implements Serializable {
                     });
 
                     //Display the post in a list that shows the most recent posts (what we would want by design)
-                    firebaseRef.child("recent-posts").child(postsRef.getKey()).setPriority(time, new Firebase.CompletionListener() {
+                    firebaseRef.child("recent-posts").child(postsRef.getKey()).setPriority(time, new DatabaseReference.CompletionListener() {
                         @Override
-                        public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                        public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
                             if (firebaseError != null) {
                                 System.out.println("Data could not be saved. " + firebaseError.getMessage());
                             } else {
@@ -299,7 +436,7 @@ public class DatabaseQuery implements Serializable {
                         }
 
                         @Override
-                        public void onCancelled(FirebaseError firebaseError) {
+                        public void onCancelled(DatabaseError firebaseError) {
 
                         }
                     });
@@ -312,12 +449,12 @@ public class DatabaseQuery implements Serializable {
 
     //THIS IS NEW!!!
     public void getLatestPosts(Boolean loggedIn, Activity activity) {
-        Firebase feed = currentUserPath.child("feed");
+        DatabaseReference feed = currentUserPath.child("feed");
         onNewPostForFeed(loggedIn, activity, feed);
     }
 
     //THIS IS NEW!!!
-    public void onNewPostForFeed(final Boolean loggedIn, final Activity activity, Firebase feed) {
+    public void onNewPostForFeed(final Boolean loggedIn, final Activity activity, DatabaseReference feed) {
         //Create a listener to listen for the content from the master post's feed
         //this is the only feed that contains references in terms of the post id
         feed.keepSynced(true);
@@ -328,7 +465,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -337,7 +474,7 @@ public class DatabaseQuery implements Serializable {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String postId = dataSnapshot.getKey();
                 if(dataSnapshot.getValue().equals(true)) {
-                    Firebase path = firebaseRef.child("posts/" + postId);
+                    DatabaseReference path = firebaseRef.child("posts/" + postId);
                     path.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -348,7 +485,7 @@ public class DatabaseQuery implements Serializable {
                         }
 
                         @Override
-                        public void onCancelled(FirebaseError firebaseError) {
+                        public void onCancelled(DatabaseError firebaseError) {
 
                         }
                     });
@@ -357,7 +494,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onChildChanged(final DataSnapshot initalSnapshot, String s) {
-                    Firebase path = firebaseRef.child("posts/" + initalSnapshot.getKey());
+                    DatabaseReference path = firebaseRef.child("posts/" + initalSnapshot.getKey());
                     path.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -370,7 +507,7 @@ public class DatabaseQuery implements Serializable {
                         }
 
                         @Override
-                        public void onCancelled(FirebaseError firebaseError) {
+                        public void onCancelled(DatabaseError firebaseError) {
 
                         }
                     });
@@ -387,7 +524,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -400,15 +537,18 @@ public class DatabaseQuery implements Serializable {
 
     public void getPublicPosts(Location location, final View progressOverlay, final View fragmentView, final Context context) {
         //Need to do order by / equal to.
-        final Firebase postsRef = firebaseRef.child("posts");
+        final DatabaseReference postsRef = firebaseRef.child("posts");
+        final int [] publicPostsCount = new int[1];
         //Query at a location of 15 miles
-        Firebase locationsRef = firebaseRef.child("/post_locations");
+        DatabaseReference locationsRef = firebaseRef.child("/post_locations");
         geoFire = new GeoFire(locationsRef);
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), 48.2804);
         geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
                 //Now that we entered into a query that has the public location, we have to add it to our adapter
+                System.out.println("Keyu: " + key);
+                publicPostsCount[0]++;
                 postsRef.child(key).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -427,7 +567,7 @@ public class DatabaseQuery implements Serializable {
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -450,7 +590,7 @@ public class DatabaseQuery implements Serializable {
 //                    }
 //
 //                    @Override
-//                    public void onCancelled(FirebaseError firebaseError) {
+//                    public void onCancelled(DatabaseError firebaseError) {
 //
 //                    }
 //                });
@@ -464,26 +604,25 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onGeoQueryReady() {
                 //Now we can load all the posts and listen for posts that are incoming
-                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
+                System.out.println("Test size: " + publicPostsCount[0]);
+                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context, publicPostsCount[0]);
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    progressOverlay.setVisibility(View.GONE);
-                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                    fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
+                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
                 }
             }
 
             @Override
-            public void onGeoQueryError(FirebaseError error) {
+            public void onGeoQueryError(DatabaseError error) {
                 System.err.println("There was an error with this query: " + error);
                 //Still need to publish all the posts
-                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
+                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context, publicPostsCount[0]);
             }
         });
     }
 
     public void getPostsUserCommentedOn(final String userId) {
-        Firebase commentedPostsRef = firebaseRef.child("/users/" + userId + "/commented_posts");
-        final Firebase postsRef = firebaseRef.child("/posts");
+        DatabaseReference commentedPostsRef = firebaseRef.child("/users/" + userId + "/commented_posts");
+        final DatabaseReference postsRef = firebaseRef.child("/posts");
         commentedPostsRef.orderByPriority().addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -495,7 +634,7 @@ public class DatabaseQuery implements Serializable {
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -517,7 +656,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -525,8 +664,8 @@ public class DatabaseQuery implements Serializable {
     }
 
     public void getUserFollowing(final String userId) {
-        Firebase userFollowingRef = firebaseRef.child("/users/" + userId + "/following");
-//        Firebase followersRef = firebaseRef.child("Users/" + userId + "/Followers");
+        DatabaseReference userFollowingRef = firebaseRef.child("/users/" + userId + "/following");
+//        DatabaseReference followersRef = firebaseRef.child("Users/" + userId + "/Followers");
         userFollowingRef.keepSynced(true);
         userFollowingRef.addChildEventListener(new ChildEventListener() {
             @Override
@@ -546,7 +685,7 @@ public class DatabaseQuery implements Serializable {
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -585,15 +724,15 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
     }
 
     public void getUserFollowers(final String userId) {
-        Firebase userFollowingRef = firebaseRef.child("/users/" + userId + "/followers");
-//        Firebase followersRef = firebaseRef.child("Users/" + userId + "/Followers");
+        DatabaseReference userFollowingRef = firebaseRef.child("/users/" + userId + "/followers");
+//        DatabaseReference followersRef = firebaseRef.child("Users/" + userId + "/Followers");
         userFollowingRef.keepSynced(true);
         userFollowingRef.addChildEventListener(new ChildEventListener() {
             @Override
@@ -613,7 +752,7 @@ public class DatabaseQuery implements Serializable {
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -652,15 +791,15 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
     }
 
     public void getPostsCurrentUserCommentedOn(final Boolean loggedIn, final Activity activity) {
-        Firebase commentedPostsRef = currentUserPath.child("/commented_posts");
-        final Firebase postsRef = firebaseRef.child("/posts");
+        DatabaseReference commentedPostsRef = currentUserPath.child("/commented_posts");
+        final DatabaseReference postsRef = firebaseRef.child("/posts");
         commentedPostsRef.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -670,7 +809,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -684,7 +823,7 @@ public class DatabaseQuery implements Serializable {
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -706,7 +845,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -715,8 +854,8 @@ public class DatabaseQuery implements Serializable {
 
     //THIS IS NEW!!!
     public void getFollowers(final String userId, final Boolean loggedIn, final Activity activity) {
-        Firebase followersRef = currentUserPath.child("/followers");
-//        Firebase followersRef = firebaseRef.child("Users/" + userId + "/Followers");
+        DatabaseReference followersRef = currentUserPath.child("/followers");
+//        DatabaseReference followersRef = firebaseRef.child("Users/" + userId + "/Followers");
         followersRef.keepSynced(true);
         followersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -725,7 +864,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -748,7 +887,7 @@ public class DatabaseQuery implements Serializable {
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -787,7 +926,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -795,7 +934,7 @@ public class DatabaseQuery implements Serializable {
 
     //THIS IS NEW!!!
     public void getFollowing(final String userId, final boolean loggedIn, final Activity activity) {
-        Firebase followingRef = currentUserPath.child("/following");
+        DatabaseReference followingRef = currentUserPath.child("/following");
 
         followingRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -814,7 +953,7 @@ public class DatabaseQuery implements Serializable {
                         }
 
                         @Override
-                        public void onCancelled(FirebaseError firebaseError) {
+                        public void onCancelled(DatabaseError firebaseError) {
 
                         }
                     });
@@ -824,18 +963,18 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
     }
 
     /**
-     * This method is designed to move the user to the next activity after getting all the details from Firebase and storing information
+     * This method is designed to move the user to the next activity after getting all the details from DatabaseReference and storing information
      * into the local database is performed. This is because doing so will make our application function a lot faster
      * than getting everything on the fly.
      */
-    private void setupNextActivity(Boolean loggedIn, Activity activity) {
+    public void setupNextActivity(Boolean loggedIn, Activity activity) {
         if (loggedIn) {
             activity.findViewById(R.id.loadingPanel).setVisibility(View.GONE);
         }
@@ -869,10 +1008,12 @@ public class DatabaseQuery implements Serializable {
                                 String fullName = jsonObject.getString("name");
                                 String id = AndroidUtils.generateId();
                                 //We use the full name to store into DB, but we get first name to store into poeple because
-                                //This is our "object facing" object
-                                saveUserToFirebase(id, userId, fullName);
+                                //This is our "object facing" object. Token Id will be created on a separate API call when
+                                //onTokenRefresh() in NotificationInstanceService class
+                                String deviceId = FirebaseInstanceId.getInstance().getToken();
+                                saveUserToDatabaseReference(id, userId, fullName, deviceId);
                                 //I guess we don't really care when we save to the "people"
-                                saveUserToPeople(id, userId, name);
+                                saveUserToPeople(id, userId, name, deviceId);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -895,16 +1036,16 @@ public class DatabaseQuery implements Serializable {
     }
 
     public void removeUserCommentsListener(String posterUserId, ValueEventListener listener){
-        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "comments");
+        final DatabaseReference userCommentsRef = firebaseRef.child("users/" + posterUserId + "comments");
         userCommentsRef.removeEventListener(listener);
     }
     public void removeUserPostsListener(String posterUserId, ValueEventListener listener) {
-        final Firebase userPostsRef = firebaseRef.child("users/" + posterUserId + "posts");
+        final DatabaseReference userPostsRef = firebaseRef.child("users/" + posterUserId + "posts");
         userPostsRef.removeEventListener(listener);
     }
 
     public ValueEventListener getNumUserComments(String posterUserId) {
-        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "/comments");
+        final DatabaseReference userCommentsRef = firebaseRef.child("users/" + posterUserId + "/comments");
         ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -912,7 +1053,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -920,7 +1061,7 @@ public class DatabaseQuery implements Serializable {
     }
 
     public ValueEventListener getNumUserPosts(String posterUserId) {
-        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "/posts");
+        final DatabaseReference userCommentsRef = firebaseRef.child("users/" + posterUserId + "/posts");
         ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -928,7 +1069,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -936,7 +1077,7 @@ public class DatabaseQuery implements Serializable {
     }
 
     public ValueEventListener getNumUserFollowers(String posterUserId) {
-        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "/followers");
+        final DatabaseReference userCommentsRef = firebaseRef.child("users/" + posterUserId + "/followers");
         ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -950,7 +1091,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -958,7 +1099,7 @@ public class DatabaseQuery implements Serializable {
     }
 
     public ValueEventListener getNumUserFollowing(String posterUserId) {
-        final Firebase userCommentsRef = firebaseRef.child("users/" + posterUserId + "/following");
+        final DatabaseReference userCommentsRef = firebaseRef.child("users/" + posterUserId + "/following");
         ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -972,7 +1113,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -980,7 +1121,7 @@ public class DatabaseQuery implements Serializable {
     }
 
     public ValueEventListener getNumFollowers() {
-        final Firebase userCommentsRef = currentUserPath.child("/followers");
+        final DatabaseReference userCommentsRef = currentUserPath.child("/followers");
         ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -994,7 +1135,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -1002,7 +1143,7 @@ public class DatabaseQuery implements Serializable {
     }
 
     public ValueEventListener getNumFollowing() {
-        final Firebase userCommentsRef = currentUserPath.child("/following");
+        final DatabaseReference userCommentsRef = currentUserPath.child("/following");
         ValueEventListener listener = userCommentsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -1016,7 +1157,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -1024,10 +1165,8 @@ public class DatabaseQuery implements Serializable {
     }
 
     //Put the loading screen thing
-    public void getComments(final String postId, final Activity activity, final View fragmentView, final View progressOverlay) {
-        final List<Comment> commentItems = new ArrayList<>();
-        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(application, activity, new CommentsHeader(), commentItems));
-        final Firebase commentsRef = firebaseRef.child("/comments");
+    public void getComments(final Activity activity, final String posterName, final String postTitle, final String postTimeStamp, final String posterUserId, final String postStatus, final String postId, final View fragmentView, final ListView commentsRecyclerView, final View progressOverlay, final Context context) {
+        final DatabaseReference commentsRef = firebaseRef.child("/comments");
         commentsRef.orderByChild("postId").equalTo(postId).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -1050,7 +1189,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -1058,23 +1197,22 @@ public class DatabaseQuery implements Serializable {
         commentsRef.orderByChild("postId").equalTo(postId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Comments.setupCommentsAdapter(postId, activity);
+                Comment comment = dataSnapshot.getValue(Comment.class);
                 if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    progressOverlay.setVisibility(View.GONE);
-                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                    fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
+                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
                 }
+                TabsUtil.populateCommentsList(activity, posterName, postTitle, postTimeStamp, posterUserId, postStatus, fragmentView, commentsRecyclerView, context, application.getCommentsRecyclerViewAdapter());
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
     }
 
     public void getNumComments() {
-        final Firebase commentsRef = currentUserPath.child("/comments");
+        final DatabaseReference commentsRef = currentUserPath.child("/comments");
         commentsRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -1097,7 +1235,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -1105,8 +1243,8 @@ public class DatabaseQuery implements Serializable {
     }
 
     public void getMyTabsPosts(final Boolean loggedIn, final Activity activity) {
-        final Firebase postsRef = firebaseRef.child("/posts");
-        Firebase linkRef = currentUserPath.child("/posts");
+        final DatabaseReference postsRef = firebaseRef.child("/posts");
+        DatabaseReference linkRef = currentUserPath.child("/posts");
         linkRef.orderByPriority().addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -1120,7 +1258,7 @@ public class DatabaseQuery implements Serializable {
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -1142,7 +1280,7 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
@@ -1154,15 +1292,15 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
     }
 
     public void getUserPosts(String userId) {
-        final Firebase postsRef = firebaseRef.child("/posts");
-        Firebase linkRef = firebaseRef.child("/users/" + userId + "/posts");
+        final DatabaseReference postsRef = firebaseRef.child("/posts");
+        DatabaseReference linkRef = firebaseRef.child("/users/" + userId + "/posts");
         linkRef.orderByPriority().addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -1174,7 +1312,7 @@ public class DatabaseQuery implements Serializable {
                     }
 
                     @Override
-                    public void onCancelled(FirebaseError firebaseError) {
+                    public void onCancelled(DatabaseError firebaseError) {
 
                     }
                 });
@@ -1196,23 +1334,23 @@ public class DatabaseQuery implements Serializable {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
 
             }
         });
     }
 
 
-//    public void updateFollowingToFirebase(String userId, List<Follower> followers) {
-//        Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Users/" + userId + "/Following");
+//    public void updateFollowingToDatabaseReference(String userId, List<Follower> followers) {
+//        DatabaseReference reference = new DatabaseReference("https://tabsapp.firebaseio.com/Users/" + userId + "/Following");
 //        Map<String, Object> updatedFriends = new HashMap<String, Object>();
 //        for(Follower follower: followers) {
 //            updatedFriends.put(follower.getUser() + "/" + follower.getId() + "/isFollowing", follower.getIsAlsoFollowing());
 //        }
 //        application.setFromAnotherActivity(true);
-//        reference.updateChildren(updatedFriends, new Firebase.CompletionListener() {
+//        reference.updateChildren(updatedFriends, new DatabaseReference.CompletionListener() {
 //            @Override
-//            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+//            public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
 //                if (firebaseError != null) {
 //                    System.out.println("There was an error saving data. ");
 //                } else {
@@ -1225,16 +1363,16 @@ public class DatabaseQuery implements Serializable {
 //        }
 //    }
 //
-//    public void updateFollowersToFirebase(List<Follower> followers) {
-//        Firebase reference = new Firebase("https://tabsapp.firebaseio.com/Users");
+//    public void updateFollowersToDatabaseReference(List<Follower> followers) {
+//        DatabaseReference reference = new DatabaseReference("https://tabsapp.firebaseio.com/Users");
 //        Map<String, Object> updatedFriends = new HashMap<String, Object>();
 //        for(Follower follower: followers) {
 //            updatedFriends.put(follower.getUser() + "/" + follower.getId() + "/isFollowing", follower.getIsAlsoFollowing());
 //        }
 //        application.setFromAnotherActivity(true);
-//        reference.updateChildren(updatedFriends, new Firebase.CompletionListener() {
+//        reference.updateChildren(updatedFriends, new DatabaseReference.CompletionListener() {
 //            @Override
-//            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+//            public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
 //                if (firebaseError != null) {
 //                    System.out.println("There was an error saving data. ");
 //                } else {

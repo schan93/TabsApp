@@ -1,9 +1,13 @@
 package com.tabs.database.followers;
 
+import java.io.Serializable;
+
 /**
  * Created by schan on 5/14/16.
  */
-public class Follower {
+public class Follower implements Serializable{
+
+    private static final long serialVersionUID = -54221803423294898L;
 
     Follower(){
     }

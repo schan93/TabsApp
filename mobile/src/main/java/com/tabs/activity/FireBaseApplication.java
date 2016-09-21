@@ -7,7 +7,7 @@ import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.common.internal.Supplier;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
-import com.firebase.client.Firebase;
+import com.google.firebase.database.FirebaseDatabase;
 import com.schan.tabs.R;
 import com.tabs.database.comments.Comment;
 
@@ -23,15 +23,13 @@ import org.acra.annotation.ReportsCrashes;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
 /**
  * Created by KCKusumi on 2/1/2016.
  */
-@ReportsCrashes(mailTo = "stmchan8593@gmail.com",
-        mode = ReportingInteractionMode.TOAST,
-        resToastText = R.string.crash_toast_text)
 public class FireBaseApplication extends Application {
     //May be used in case
     private static boolean fromAnotherActivity = false;
@@ -90,15 +88,18 @@ public class FireBaseApplication extends Application {
 
     private static Integer followingNum;
 
+    private static List<String> deviceIdsToNotifyUsers;
+
+    private static String deviceId;
+
     @Override
     public void onCreate() {
         super.onCreate();
-        Firebase.setAndroidContext(this);
-        //Firebase apps automatically handle temporary network interruptions for you.
+        //DatabaseReference apps automatically handle temporary network interruptions for you.
         //Cached data will still be available while offline and your writes will be resent when network connectivity is recovered.
         // Enabling disk persistence allows our app to also keep all of its state even after an app restart.
         // We can enable disk persistence with just one line of code.
-        Firebase.getDefaultConfig().setPersistenceEnabled(true);
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         initializeAdapters();
         //Configure Fresco so that image loads quickly
@@ -210,6 +211,14 @@ public class FireBaseApplication extends Application {
         this.userInfoAdapter = userInfoAdapter;
     }
 
+    public static String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
     public static List<String> getUserInfoAdapter() {
         return userInfoAdapter;
     }
@@ -246,6 +255,14 @@ public class FireBaseApplication extends Application {
         return userFollowingAdapter;
     }
 
+    public void setDeviceIdsToNotifyUsers(List<String> deviceIdsToNotifyUsers) {
+        this.deviceIdsToNotifyUsers = deviceIdsToNotifyUsers;
+    }
+
+    public static List<String> getDeviceIdsToNotifyUsers() {
+        return deviceIdsToNotifyUsers;
+    }
+
     public void initializeAdapters() {
         List<User> followers = new ArrayList<User>();
         List<User> following = new ArrayList<User>();
@@ -258,7 +275,7 @@ public class FireBaseApplication extends Application {
         List<Post> commentPosts = new ArrayList<>();
         List<Post> userCommentPosts = new ArrayList<>();
         List<String> userInfoAdapter = new ArrayList<>();
-        setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(new CommentsHeader(), new ArrayList<Comment>()));
+        setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(this, new ArrayList<Comment>()));
         setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, TabEnum.Public));
         setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, TabEnum.MyTab));
         setFollowingPostAdapter(new PostRecyclerViewAdapter(followingPosts, this, TabEnum.Following));
@@ -272,6 +289,8 @@ public class FireBaseApplication extends Application {
         setUserInfoAdapter(userInfoAdapter);
         setCommentsCount(0);
         setPostCount(0);
+        setDeviceIdsToNotifyUsers(new ArrayList<String>());
+        setDeviceId("");
     }
 
     @Override
@@ -293,7 +312,7 @@ public class FireBaseApplication extends Application {
             }
         };
 
-        DiskCacheConfig diskCacheConfig = DiskCacheConfig.newBuilder()
+        DiskCacheConfig diskCacheConfig = DiskCacheConfig.newBuilder(getApplicationContext())
                 .setBaseDirectoryName("images")
                 .setBaseDirectoryPathSupplier(diskSupplier)
                 .build();

@@ -73,7 +73,7 @@ public class CommentsDataSource {
         return newComment;
     }
 
-    public Comment createCommentFromFirebase(String id, String postId, String commenter, String comment, String commenterUserId, String timeStamp) {
+    public Comment createCommentFromDatabaseReference(String id, String postId, String commenter, String comment, String commenterUserId, String timeStamp) {
         //Create a ContentValues object so we can put our column name key/value pairs into it.
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.KEY_ID, id);

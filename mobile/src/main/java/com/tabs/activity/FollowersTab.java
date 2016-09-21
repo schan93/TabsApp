@@ -2,9 +2,11 @@ package com.tabs.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
@@ -31,7 +33,6 @@ public class FollowersTab extends Fragment {
     private DatabaseQuery databaseQuery;
     private View progressOverlay;
     private String userId;
-
 
     /**
      * When activity is created, initialize the Application.
@@ -61,11 +62,13 @@ public class FollowersTab extends Fragment {
             userId = application.getUserId();
         }
         setupActivity(savedInstanceState);
-        TabsUtil.populateNewsFeedList(fragmentView, application.getFollowingPostAdapter(), getContext());
+        TabsUtil.populateNewsFeedList(fragmentView, application.getFollowingPostAdapter(), getContext(), 0);
         if (progressOverlay.getVisibility() == View.VISIBLE) {
-            progressOverlay.setVisibility(View.GONE);
-            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
+            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
+        }
+        if(application.getFollowingPostAdapter().getItemCount() == 0) {
+            TextView textView = (TextView) fragmentView.findViewById(R.id.no_posts_text);
+            textView.setText(R.string.noPostsFollowing);
         }
         return fragmentView;
     }
@@ -85,8 +88,7 @@ public class FollowersTab extends Fragment {
                     fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.GONE);
                 } else {
                     if (progressOverlay.getVisibility() == View.VISIBLE) {
-                        progressOverlay.setVisibility(View.GONE);
-                        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
                         fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
                     }
                 }

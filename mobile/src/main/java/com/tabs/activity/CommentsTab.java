@@ -4,13 +4,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
+import com.tabs.database.posts.PostRecyclerViewAdapter;
 
 /**
  * Created by schan on 7/11/16.
@@ -78,19 +81,20 @@ public class CommentsTab extends Fragment{
         setupActivity(savedInstanceState);
 
         databaseQuery = new DatabaseQuery(getActivity());
-        if(!userId.equals(application.getUserId())) {
-            TabsUtil.populateNewsFeedList(fragmentView, application.getPostsUserHasCommentedOnAdapter(), getContext());
+        if(!userId.equals(application.getUserId()) && TabsUtil.checkIfAdapterEmpty(application.getPostsUserHasCommentedOnAdapter())) {
+             TabsUtil.populateNewsFeedList(fragmentView, application.getPostsUserHasCommentedOnAdapter(), getContext(), 0);
             //TODO: Don't really know when this will be done but i guess I really need to fix this because I need
             //To only show the fragment view AFTER the posts are done loading but ill just keep this here for now
 //            if(progressOverlay.getVisibility() == View.VISIBLE) {
 //                progressOverlay.setVisibility(View.GONE);
 //                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
 //            }
+        } else if(userId.equals(application.getUserId()) && TabsUtil.checkIfAdapterEmpty(application.getPostsThatCurrentUserHasCommentedOnAdapter())) {
+            TabsUtil.populateNewsFeedList(fragmentView, application.getPostsThatCurrentUserHasCommentedOnAdapter(), getContext(), 0);
         } else {
-            TabsUtil.populateNewsFeedList(fragmentView, application.getPostsThatCurrentUserHasCommentedOnAdapter(), getContext());
+            TabsUtil.setupPostsCommentsView(fragmentView, R.string.noCommentsPosted);
         }
-        fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
-        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
         return fragmentView;
     }
 

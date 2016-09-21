@@ -1,11 +1,14 @@
 package com.tabs.database.comments;
 
+import java.io.Serializable;
+
 /**
  * Created by schan on 11/27/15.
  */
 
 //Just for ONE individual comment
-public class Comment {
+public class Comment implements Serializable{
+    private static final long serialVersionUID = -5194275075664836313L;
     private String id; //This is the ID of the coment
     private String postId; //ID of the post
     private String commenter; //Can be same as poster

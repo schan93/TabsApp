@@ -1,5 +1,6 @@
 package com.tabs.activity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Animatable;
@@ -11,19 +12,27 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
 import android.text.Html;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.facebook.common.logging.FLog;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.controller.BaseControllerListener;
 import com.facebook.drawee.controller.ControllerListener;
+import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.image.QualityInfo;
 import com.schan.tabs.R;
+import com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.tabs.database.followers.FollowerRecyclerViewAdapter;
 import com.tabs.database.posts.PostRecyclerViewAdapter;
+
+import java.util.List;
 
 /**
  * Created by schan on 5/26/16.
@@ -34,7 +43,7 @@ public class TabsUtil {
 
     public static final String ARGS_INSTANCE = "com.tabs.argInstance";
 
-    public static void populateNewsFeedList(View fragmentView, PostRecyclerViewAdapter adapter, Context context) {
+    public static RecyclerView populateNewsFeedList(View fragmentView, PostRecyclerViewAdapter adapter, Context context, Integer adapterSize) {
         RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_posts_feed);
         RecyclerView.ItemAnimator animator = rv.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
@@ -45,6 +54,20 @@ public class TabsUtil {
         LinearLayoutManager llm = new LinearLayoutManager(context);
         rv.setLayoutManager(llm);
         rv.setAdapter(adapter);
+        if(TabsUtil.checkPostsLength(rv) && adapterSize == 0) {
+            fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
+            fragmentView.findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
+            TextView textView = (TextView) fragmentView.findViewById(R.id.no_posts_text);
+            if(adapter.getTabType() == TabEnum.Public) {
+                textView.setText(R.string.noPostsPublic);
+            }
+            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.GONE);
+        } else {
+            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
+            fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.GONE);
+            fragmentView.findViewById(R.id.no_posts_text).setVisibility(View.GONE);
+        }
+        return rv;
     }
 
     public static void populateFollowList(Context context, RecyclerView recyclerView, FollowerRecyclerViewAdapter adapter) {
@@ -59,6 +82,64 @@ public class TabsUtil {
         recyclerView.setLayoutManager(llm);
         recyclerView.setAdapter(adapter);
     }
+
+    public static void populateCommentsList(Activity activity, String posterName, String postTitle, String postTimeStamp, String posterUserId, String postStatus, View fragmentView, ListView rv, Context context, CommentsRecyclerViewAdapter adapter) {
+        rv.setNestedScrollingEnabled(false);
+        //Assuming we refresh the followers list, we have to make sure that new followers are loaded
+        adapter.notifyDataSetChanged();
+        if(TabsUtil.checkCommentsLength(rv)) {
+//            fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
+//            fragmentView.findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
+            TextView textView = (TextView) fragmentView.findViewById(R.id.empty_list_item);
+            textView.setText(R.string.noComments);
+            textView.setVisibility(View.VISIBLE);
+//            fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
+        } else {
+            fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
+            rv.setAdapter(adapter);
+        }
+    }
+
+//    public static DraweeController getMoreCommentersImage(String numberCommenters) {
+//        ControllerListener controllerListener = new BaseControllerListener<ImageInfo>(){
+//            @Override
+//            public void onFinalImageSet(
+//                    String id,
+//                    @Nullable ImageInfo imageInfo,
+//                    @Nullable Animatable anim) {
+//                if(imageInfo == null)
+//                    return;
+//                QualityInfo qualityInfo = imageInfo.getQualityInfo();
+//                FLog.d("Final image received ! " + "Size %d x %d", "Quality level %d, good enough : %s, full quality: %s",
+//                        imageInfo.getWidth(),
+//                        imageInfo.getHeight(),
+//                        qualityInfo.getQuality(),
+//                        qualityInfo.isOfGoodEnoughQuality(),
+//                        qualityInfo.isOfFullQuality());
+//            }
+//
+//            @Override
+//            public void onIntermediateImageSet(String id, @Nullable ImageInfo imageInfo){
+//                FLog.d(getClass(), "Intermediate image received");
+//            }
+//
+//            @Override
+//            public void onFailure(String id, Throwable throwable){
+//                FLog.e(getClass(), throwable, "Error loading %s ", id);
+//            }
+//        };
+//        Uri uri = Uri.parse("http://graph.facebook.com/" + userId + "/picture?type=large");
+//        System.out.println("Uri: " + uri);
+//        DraweeController controller = Fresco.newDraweeControllerBuilder()
+//                .setControllerListener(controllerListener)
+//                .setUri(uri)
+//                .build();
+//        System.out.println("Controller: " + controller);
+//        return controller;
+//        controller.setT
+        //draweeView.setImageURI(uri);
+//    }
+
 
     public static DraweeController getImage(String userId){
         ControllerListener controllerListener = new BaseControllerListener<ImageInfo>(){
@@ -150,6 +231,38 @@ public class TabsUtil {
                 view.getContext().startActivity(intent);
             }
         });
+    }
+
+    public static boolean checkPostsLength(RecyclerView view) {
+        if(view.getAdapter().getItemCount() == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static boolean checkIfAdapterEmpty(PostRecyclerViewAdapter adapter) {
+        System.out.println("Adapter Item Count: " + adapter.getItemCount());
+        if(adapter.getItemCount() < 1) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public static void setupPostsCommentsView(View view, int id) {
+        view.findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
+        TextView textView = (TextView) view.findViewById(R.id.no_posts_text);
+        textView.setText(id);
+    }
+
+    public static boolean checkCommentsLength(ListView view) {
+        if(view.getAdapter().getCount() == 1) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

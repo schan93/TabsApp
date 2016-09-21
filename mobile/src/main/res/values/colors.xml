@@ -14,7 +14,7 @@
     <color name="transparent">#80000000</color>
     <color name="black">#000000</color>
     <color name="border_gray">#d3d3d3</color>
-
+    <color name="teal">#3DF0C8</color>
     <integer-array name="color_primary_theme">
         <item>@color/colorPrimary</item>
         <item>@color/black</item>

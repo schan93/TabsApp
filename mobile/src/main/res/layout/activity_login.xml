@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/login_activity"
     android:background="@drawable/background"
     android:layout_height="match_parent">
 
@@ -10,11 +11,10 @@
 
     <android.support.v7.widget.AppCompatImageView
         android:id="@+id/tabs_logo"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@drawable/ic_question_answer_white_48dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="200dp"/>
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="100dp"
+        android:src="@drawable/ic_tabs_logo_transparent" />
 
     <!--<TextView-->
         <!--android:fontFamily="sans-serif"-->
@@ -41,10 +41,10 @@
         android:layout_alignParentBottom="true" />
 
     <TextView
-        android:fontFamily="sans-serif"
+        android:fontFamily="sans-serif-medium"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
+        android:textSize="24sp"
         android:id="@+id/tabs_subtitle"
         android:textAlignment="center"
         android:textColor="@color/white"
@@ -52,10 +52,11 @@
         android:layout_centerVertical="true"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"
         android:layout_above="@id/login_button"
-        android:layout_marginBottom="20dp"
+        android:layout_below="@id/tabs_logo"
+        android:textAllCaps="true"
         android:text="Find out what's going on in your area. "/>
 
 </RelativeLayout>

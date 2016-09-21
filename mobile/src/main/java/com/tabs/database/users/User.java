@@ -1,24 +1,28 @@
 package com.tabs.database.users;
 
+import java.io.Serializable;
+
 /**
  * Created by schan on 2/9/16.
  */
-public class User {
+public class User implements Serializable{
+    private static final long serialVersionUID = 821053453833214133L;
     private String id;
     private String userId;
     private String name;
-
+    private String deviceId;
     /**
-     * Empty default constructor, necessary for Firebase to be able to deserialize Users
+     * Empty default constructor, necessary for DatabaseReference to be able to deserialize Users
      */
     public User(){
     }
 
-    public User(String id, String userId, String name) {
+    public User(String id, String userId, String name, String deviceId) {
         super();
         this.id = id;
         this.userId = userId;
         this.name = name;
+        this.deviceId = deviceId;
     }
 
     public String getId() { return id; }
@@ -34,5 +38,9 @@ public class User {
     public String getName() { return name; }
 
     public void setName(String name) { this.name = name; }
+
+    public String getDeviceId() { return deviceId; }
+
+    public void setDeviceId(String tokenId) { this.deviceId = tokenId; }
 
 }

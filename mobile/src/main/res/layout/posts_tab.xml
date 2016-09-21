@@ -6,12 +6,9 @@
     android:id="@+id/posts_tab"
     tools:showIn="@layout/app_bar_news_feed" tools:context=".news_feed">
 
-    <!--<android.support.v4.widget.NestedScrollView-->
-        <!--android:id="@+id/myScrollingContent"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent">-->
-
         <include layout="@layout/include_progress_overlay"/>
+
+        <include layout="@layout/no_posts"/>
 
         <android.support.v7.widget.RecyclerView
             android:layout_width="match_parent"

@@ -15,7 +15,8 @@ import android.widget.TextView;
 import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
-import com.firebase.client.Firebase;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 import com.tabs.database.users.User;
@@ -26,7 +27,7 @@ import java.util.List;
  * Created by schan on 6/28/16.
  */
 public class UserProfile extends AppCompatActivity implements PostsTab.onProfileSelectedListener{
-    private Firebase firebaseRef = new Firebase("https://tabsapp.firebaseio.com/");
+    private DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReferenceFromUrl("https://tabsapp.firebaseio.com/");
     private FireBaseApplication application;
     private DatabaseQuery databaseQuery;
 //    private View progressOverlay;
@@ -94,7 +95,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
                     newUser.setUserId(posterUserId);
                     newUser.setName(posterName);
                     newUser.setId(AndroidUtils.generateId());
-                    //No need to add this to the adapter database because it is already done for us in the Firebase getFollowing call
+                    //No need to add this to the adapter database because it is already done for us in the DatabaseReference getFollowing call
                     application.getFollowingRecyclerViewAdapter().getFollowers().add(newUser);
                     databaseQuery.addFollowing(posterUserId);
                     setButtonIsFollowing(button);
@@ -216,10 +217,12 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
     }
 
     private void setupPostsAndCommentsTabLayout() {
-        tabLayout = (TabLayout) findViewById(R.id.comments_post_tab_layout);
+//        tabLayout = (TabLayout) findViewById(R.id.comments_post_tab_layout);
+        tabLayout = (TabLayout) findViewById(R.id.profile_tab_layout);
         tabLayout.addTab(tabLayout.newTab().setText("Posts"));
         tabLayout.addTab(tabLayout.newTab().setText("Comments"));
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.comments_posts_pager);
+//        final ViewPager viewPager = (ViewPager) findViewById(R.id.comments_posts_pager);
+        final ViewPager viewPager = (ViewPager) findViewById(R.id.profile_view_pager);
         viewPager.setOffscreenPageLimit(2);
         final PostsCommentsAdapter adapter = new PostsCommentsAdapter
                 (getSupportFragmentManager(), tabLayout.getTabCount());

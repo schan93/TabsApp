@@ -54,7 +54,7 @@ public class UsersDataSource {
         database.insert(DatabaseHelper.TABLE_USERS, null,
                 values);
         //Return the created user so we can use it for future use.
-        User user = new User(id, userId, name);
+        User user = new User(id, userId, name, "");
         return user;
     }
 
@@ -87,7 +87,7 @@ public class UsersDataSource {
      * @return
      */
     private User cursorToUser(Cursor cursor) {
-        User user = new User(cursor.getString(0), cursor.getString(1), cursor.getString(2));
+        User user = new User(cursor.getString(0), cursor.getString(1), cursor.getString(2), "");
         return user;
     }
 
