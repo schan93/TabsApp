@@ -73,6 +73,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         TextView statusMsg;
         TextView numComments;
         TextView privacyStatus;
+        TextView circle;
         TextView postTitle;
         TextView numCommenters;
         SimpleDraweeView posterPhoto;
@@ -93,6 +94,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 //            numCommenters = (TextView) itemView.findViewById(R.id.num_commenters);
             posterPhoto = (SimpleDraweeView) itemView.findViewById(R.id.poster_profile_photo);
             privacyStatus = (TextView) itemView.findViewById(R.id.privacy_status);
+            circle = (TextView) itemView.findViewById(R.id.circle);
 //            firstCommenter = (SimpleDraweeView) itemView.findViewById(R.id.commenter_photo_one);
 //            secondCommenter = (ImageView) itemView.findViewById(R.id.commenter_photo_two);
 //            thirdCommenter = (SimpleDraweeView) itemView.findViewById(R.id.commenter_photo_three);
@@ -151,7 +153,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             postViewHolder.statusMsg.setText(post.getStatus());
             DraweeController controller = TabsUtil.getImage(post.getPosterUserId());
             RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
-            roundingParams.setBorder(ContextCompat.getColor(context, R.color.white), 7f);
+//            roundingParams.setBorder(ContextCompat.getColor(context, R.color.white), 7f);
             roundingParams.setRoundAsCircle(true);
             postViewHolder.posterPhoto.getHierarchy().setRoundingParams(roundingParams);
             postViewHolder.posterPhoto.setController(controller);
@@ -179,13 +181,14 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
             if (getTabType() == TabEnum.Public || getTabType() == TabEnum.Following) {
                 postViewHolder.privacyStatus.setVisibility(View.GONE);
+                postViewHolder.circle.setVisibility(View.GONE);
             } else {
                 if (PrivacyEnum.valueOf(post.getPrivacy()) == PrivacyEnum.Public) {
                     postViewHolder.privacyStatus.setText(PrivacyEnum.Public.toString());
                 } else if (PrivacyEnum.valueOf(post.getPrivacy()) == PrivacyEnum.Following) {
                     postViewHolder.privacyStatus.setText(PrivacyEnum.Following.toString());
                 }
-
+                postViewHolder.circle.setVisibility(View.VISIBLE);
             }
 
 

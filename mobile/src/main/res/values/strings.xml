@@ -17,7 +17,7 @@
     <string name="noComments">No Comments.</string>
     <string name="noFollowers">No Followers.</string>
     <string name="noFollowing">You are not following anyone.</string>
-    <string name="permission_location_rationale">Location permission is needed to allow the application to work properly.</string>
+    <string name="permission_location_rationale">Location permission is needed to allow the application to work properly. Public posts are not viewable until Location Services are enabled.</string>
     <string name="ok">OK</string>
     <string name="send">Send</string>
     <string name="commentBack">Comment back!</string>

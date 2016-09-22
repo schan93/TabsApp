@@ -22,76 +22,14 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/txt_post_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:maxLines="2"
-                android:paddingRight="80dp"
-                android:textColor="@color/black"
-                android:textSize="20sp"/>
-
-            <TextView
-                android:id="@+id/txt_timestamp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginLeft="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="4dp"
-                android:fontFamily="sans-serif"
-                android:textColor="@color/material_color_grey_400"
-                android:textSize="14sp"/>
-
-
-            <TextView
-                android:id="@+id/txt_statusMsg"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/txt_post_title"
-                android:layout_marginTop="8dp"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif"
-                android:maxLines="3"
-                android:textSize="16sp"/>
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="88dp">
-
-            <TextView
-                android:id="@+id/txt_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="74dp"
-                android:ellipsize="end"
-                android:layout_marginBottom="4dp"
-                android:maxLines="1"
-                android:maxWidth="125dp"
-                android:textColor="@color/colorPrimary"
-                android:textSize="16sp"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@id/txt_name"
-                android:background="@color/material_color_grey_100"/>
-
             <com.facebook.drawee.view.SimpleDraweeView
                 android:id="@+id/poster_profile_photo"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginRight="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginLeft="16dp"
-                android:layout_marginStart="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="32dp"
                 fresco:placeholderImage="@mipmap/blank_prof_pic"
                 fresco:placeholderImageScaleType="centerCrop"
                 fresco:actualImageScaleType="focusCrop"
@@ -107,16 +45,100 @@
                 />
 
             <TextView
+                android:id="@+id/txt_name"
+                android:layout_toRightOf="@id/poster_profile_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:fontFamily="sans-serif-medium"
+                android:maxWidth="125dp"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:layout_toRightOf="@id/poster_profile_photo"
+                android:layout_below="@id/txt_name"
+                android:id="@+id/txt_post_title"
+                android:layout_marginTop="4dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="2"
+                android:layout_marginBottom="8dp"
+                android:textColor="@color/black"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/txt_timestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/material_color_grey_400"
+                android:textSize="14sp"/>
+
+
+            <TextView
+                android:id="@+id/txt_statusMsg"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/txt_post_title"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif"
+                android:maxLines="3"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:layout_below="@id/txt_statusMsg"
+                android:id="@+id/num_comments"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/poster_profile_photo"
+                android:textSize="14sp"
+                android:textColor="@color/material_color_grey_400"
+                android:fontFamily="sans-serif" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/num_comments"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:visibility="gone"
+                android:layout_below="@id/txt_statusMsg"
+                android:text="•"
+                android:textColor="@color/material_color_grey_400"
+                android:textSize="14sp"
+                android:id="@+id/circle" />
+
+            <TextView
                 android:id="@+id/privacy_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/txt_name"
-                android:layout_toEndOf="@id/txt_name"
+                android:layout_below="@id/txt_statusMsg"
+                android:layout_toRightOf="@id/circle"
                 android:fontFamily="sans-serif"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:paddingTop="8dp"
+                android:textColor="@color/material_color_grey_400"
                 />
+
+
+        </RelativeLayout>
+
+        <!--<RelativeLayout-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="88dp">-->
+
+            <!--<View-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:layout_below="@id/txt_name"-->
+                <!--android:background="@color/material_color_grey_100"/>-->
+
 
             <!--<TextView-->
                 <!--android:id="@+id/num_commenters"-->
@@ -132,18 +154,18 @@
                 <!--android:layout_marginBottom="16dp"-->
                 <!--android:layout_marginRight="16dp" />-->
 
-            <TextView
-                android:id="@+id/num_comments"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentBottom="true"
-                android:layout_marginLeft="16dp"
-                android:textSize="14sp"
-                android:layout_marginRight="16dp"
-                android:textColor="@color/material_color_grey_400"
-                android:fontFamily="sans-serif"
-                android:layout_marginBottom="16dp" />
+            <!--<TextView-->
+                <!--android:id="@+id/num_comments"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_alignParentRight="true"-->
+                <!--android:layout_alignParentBottom="true"-->
+                <!--android:layout_marginLeft="16dp"-->
+                <!--android:textSize="14sp"-->
+                <!--android:layout_marginRight="16dp"-->
+                <!--android:textColor="@color/material_color_grey_400"-->
+                <!--android:fontFamily="sans-serif"-->
+                <!--android:layout_marginBottom="16dp" />-->
 
 
             <!--<com.facebook.drawee.view.SimpleDraweeView-->
@@ -214,14 +236,14 @@
                 <!--android:layout_marginBottom="8dp"-->
                 <!--/>-->
 
-        </RelativeLayout>
+        <!--</RelativeLayout>-->
 
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/material_color_grey_400" />
+        android:background="@color/material_color_grey_300" />
 
 </android.support.v7.widget.CardView>
 <!--<?xml version="1.0" encoding="utf-8"?>-->

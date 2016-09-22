@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -72,9 +73,11 @@ public class PublicTab extends Fragment {
     public static double lng = 0.0;
     private DatabaseQuery databaseQuery;
     private View progressOverlay;
+    private View noPostsView;
     private String userId;
     private String name;
     private RecyclerView recyclerView;
+    private Boolean noLocation = false;
     final static int REQUEST_LOCATION = 199;
     Location location;
     LocationRequest mLocationRequest;
@@ -114,12 +117,24 @@ public class PublicTab extends Fragment {
             fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
             databaseQuery = new DatabaseQuery(getActivity());
             progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
+            noPostsView = fragmentView.findViewById(R.id.no_posts_layout);
             setupActivity(savedInstanceState);
             setupLocation();
         }
 
         return fragmentView;
     }
+
+    private void setupNoPostsView() {
+        progressOverlay.setVisibility(View.GONE);
+        noPostsView.setVisibility(View.VISIBLE);
+        recyclerView = (RecyclerView) fragmentView.findViewById(R.id.rv_posts_feed);
+        recyclerView.setVisibility(View.GONE);
+        TextView noPosts = (TextView) noPostsView.findViewById(R.id.no_posts_text);
+        noPosts.setText(R.string.permission_location_rationale);
+    }
+
+
 
 
     @Override
@@ -136,9 +151,6 @@ public class PublicTab extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            if (getView() != null) {
-//                application.getPublicAdapter().notifyDataSetChanged();
-            }
         }
     }
 
@@ -195,6 +207,7 @@ public class PublicTab extends Fragment {
             @Override
             public void updateLocation(Location location) {
                 if (location != null) {
+                    noLocation = true;
                     databaseQuery.getPublicPosts(location, progressOverlay, fragmentView, getContext());
                 }
             }
@@ -229,6 +242,7 @@ public class PublicTab extends Fragment {
                     case LocationSettingsStatusCodes.SUCCESS:
                         // All location settings are satisfied. The client can initialize location
                         // requests here.
+                        System.out.println("Here?");
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         // Location settings are not satisfied. But could be fixed by showing the user
@@ -236,7 +250,7 @@ public class PublicTab extends Fragment {
                         try {
                             // Show the dialog by calling startResolutionForResult(),
                             // and check the result in onActivityResult().
-                            status.startResolutionForResult(getActivity(), REQUEST_CHECK_SETTINGS);
+                            status.startResolutionForResult(getActivity(), REQUEST_LOCATION);
                         } catch (IntentSender.SendIntentException e) {
                             // Ignore the error.
                         }
@@ -254,13 +268,16 @@ public class PublicTab extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             // Check for the integer request code originally supplied to startResolutionForResult().
-            case REQUEST_CHECK_SETTINGS:
+            case REQUEST_LOCATION:
                 switch (resultCode) {
                     case Activity.RESULT_OK:
-                        setupLocation();
+//                        setupLocation();
+                        noLocation = true;
+                        System.out.println("Location enabled.");
                         break;
                     case Activity.RESULT_CANCELED:
-                        createSettingsRequest();//keep asking if imp or do whatever
+//                        setupNoPostsView();
+                        System.out.println("Location is not enabled");
                         break;
                 }
                 break;

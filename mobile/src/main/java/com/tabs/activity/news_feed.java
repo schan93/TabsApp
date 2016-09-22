@@ -114,92 +114,91 @@ public class news_feed extends AppCompatActivity
             });
         }
 
-        List<Fragment> fragments = new ArrayList<>(3);
-
-        fragments.add(PublicTab.newInstance(0));
-        fragments.add(FollowersTab.newInstance(1));
-        fragments.add(ProfileTab.newInstance(2));
-
-        fragNavController = new FragNavController(getSupportFragmentManager(), R.id.container, fragments);
-
-        // Instead of attach(), use attachShy():
-
-        mBottomBar = BottomBar.attach(findViewById(R.id.activity_main), savedInstanceState);
-        mBottomBar.setItems(R.menu.bottombar_menu);
-        mBottomBar.setOnMenuTabClickListener(new OnMenuTabClickListener() {
-            @Override
-            public void onMenuTabSelected(@IdRes int menuItemId) {
-                if (menuItemId == R.id.bb_menu_nearby) {
-                    publicTab = PublicTab.newInstance(0);
-                    fragNavController.switchTab(FragNavController.TAB1);
-//                    startActivity(new Intent(getApplicationContext(), PublicTab.class));
-                    // The user selected item number one.
-                }
-                if (menuItemId == R.id.bb_menu_followers) {
-                    fragNavController.switchTab(FragNavController.TAB2);
-
-//                    startActivity(new Intent(getApplicationContext(), FollowersTab.class));
-                    // The user selected item number two.
-                }
-                if (menuItemId == R.id.bb_menu_profile) {
-                    fragNavController.switchTab(FragNavController.TAB3);
-                    //Try to set the navigation toolbar to gone?
-//                    toolbar.setVisibility(View.GONE);
-//                    startActivity(new Intent(getApplicationContext(), ProfileTab.class));
-                    // The user selected item number three.
-                }
-            }
-
-            @Override
-            public void onMenuTabReSelected(@IdRes int menuItemId) {
+//        List<Fragment> fragments = new ArrayList<>(3);
+//
+//        fragments.add(PublicTab.newInstance(0));
+//        fragments.add(FollowersTab.newInstance(1));
+//        fragments.add(ProfileTab.newInstance(2));
+//
+//        fragNavController = new FragNavController(getSupportFragmentManager(), R.id.container, fragments);
+//
+//        // Instead of attach(), use attachShy():
+//
+//        mBottomBar = BottomBar.attach(findViewById(R.id.activity_main), savedInstanceState);
+//        mBottomBar.setItems(R.menu.bottombar_menu);
+//        mBottomBar.setOnMenuTabClickListener(new OnMenuTabClickListener() {
+//            @Override
+//            public void onMenuTabSelected(@IdRes int menuItemId) {
 //                if (menuItemId == R.id.bb_menu_nearby) {
-//                    // The user reselected item number one, scroll your content to top.
+//                    publicTab = PublicTab.newInstance(0);
+//                    fragNavController.switchTab(FragNavController.TAB1);
+////                    startActivity(new Intent(getApplicationContext(), PublicTab.class));
+//                    // The user selected item number one.
 //                }
 //                if (menuItemId == R.id.bb_menu_followers) {
-//                    // The user reselected item number two, scroll your content to top.
+//                    fragNavController.switchTab(FragNavController.TAB2);
+//
+////                    startActivity(new Intent(getApplicationContext(), FollowersTab.class));
+//                    // The user selected item number two.
 //                }
 //                if (menuItemId == R.id.bb_menu_profile) {
-//                    // The user reselected item number three, scroll your content to top.
-//          tack();
-            }
-        });
+//                    fragNavController.switchTab(FragNavController.TAB3);
+//                    //Try to set the navigation toolbar to gone?
+////                    toolbar.setVisibility(View.GONE);
+////                    startActivity(new Intent(getApplicationContext(), ProfileTab.class));
+//                    // The user selected item number three.
+//                }
+//            }
+//
+//            @Override
+//            public void onMenuTabReSelected(@IdRes int menuItemId) {
+////                if (menuItemId == R.id.bb_menu_nearby) {
+////                    // The user reselected item number one, scroll your content to top.
+////                }
+////                if (menuItemId == R.id.bb_menu_followers) {
+////                    // The user reselected item number two, scroll your content to top.
+////                }
+////                if (menuItemId == R.id.bb_menu_profile) {
+////                    // The user reselected item number three, scroll your content to top.
+////          tack();
+//            }
+//        });
 
         // Set the color for the active tab. Ignored on mobile when there are more than three tabs.
-        mBottomBar.setActiveTabColor("#009688");
+//        mBottomBar.setActiveTabColor("#009688");
 
         // Disable the left bar on tablets and behave exactly the same on mobile and tablets instead.
 //        mBottomBar.noTabletGoodness();
 
-//        tabLayout = (TabLayout) layout.findViewById(R.id.tab_layout);
-//        tabLayout.addTab(tabLayout.newTab().setText("Public"));
-//        tabLayout.addTab(tabLayout.newTab().setText("Following"));
-//        tabLayout.addTab(tabLayout.newTab().setText("Profile"));
-//        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
-//
-//        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-//        viewPager.setOffscreenPageLimit(3);
-//        final PagerAdapter adapter = new PagerAdapter
-//                (getSupportFragmentManager(), tabLayout.getTabCount());
-//        viewPager.setAdapter(adapter);
-//        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-//        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-//            @Override
-//            public void onTabSelected(TabLayout.Tab tab) {
-//                viewPager.setCurrentItem(tab.getPosition());
-//            }
-//
-//            @Override
-//            public void onTabUnselected(TabLayout.Tab tab) {
-//
-//            }
-//
-//            @Override
-//            public void onTabReselected(TabLayout.Tab tab) {
-//
-//            }
-//        });
-//
-//        checkFromIntent(viewPager);
+        tabLayout = (TabLayout) layout.findViewById(R.id.tab_layout);
+        tabLayout.addTab(tabLayout.newTab().setText("Public"));
+        tabLayout.addTab(tabLayout.newTab().setText("Following"));
+        tabLayout.addTab(tabLayout.newTab().setText("Profile"));
+
+        final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setOffscreenPageLimit(3);
+        final PagerAdapter adapter = new PagerAdapter
+                (getSupportFragmentManager(), tabLayout.getTabCount());
+        viewPager.setAdapter(adapter);
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+
+        checkFromIntent(viewPager);
 
 
         //populateNewsFeedList();
@@ -339,7 +338,7 @@ public class news_feed extends AppCompatActivity
         super.onSaveInstanceState(savedInstanceState);
         // Necessary to restore the BottomBar's state, otherwise we would
         // lose the current tab on orientation change.
-        mBottomBar.onSaveInstanceState(savedInstanceState);
+//        mBottomBar.onSaveInstanceState(savedInstanceState);
 
     }
 

@@ -82,14 +82,13 @@ public class PostsTab extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
-        //Asynchronous call, call this and then hopefully the call will be done by the time we get to the UI so i can just load the ui
-        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
+
         application = ((FireBaseApplication) getActivity().getApplication());
         setupActivity(savedInstanceState);
 
         databaseQuery = new DatabaseQuery(getActivity());
         if(!userId.equals(application.getUserId()) && !TabsUtil.checkIfAdapterEmpty(application.getUserAdapter())) {
+            fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
             TabsUtil.populateNewsFeedList(fragmentView, application.getUserAdapter(), getContext(), 0);
             //TODO: Don't really know when this will be done but i guess I really need to fix this because I need
             //To only show the fragment view AFTER the posts are done loading but ill just keep this here for now
@@ -99,10 +98,14 @@ public class PostsTab extends Fragment {
 //            }
         }
         else if (userId.equals(application.getUserId()) && !TabsUtil.checkIfAdapterEmpty(application.getMyTabsAdapter())){
+            fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
             TabsUtil.populateNewsFeedList(fragmentView, application.getMyTabsAdapter(), getContext(), 0);
         } else {
+            fragmentView = inflater.inflate(R.layout.no_posts, container, false);
             TabsUtil.setupPostsCommentsView(fragmentView, R.string.noPostsPosted);
         }
+        fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
+        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
         //This still needs to be called in case our app hangs in background then is recreated
         return fragmentView;

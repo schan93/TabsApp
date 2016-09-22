@@ -35,9 +35,8 @@
         android:id="@+id/privacy_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="5dp"
         android:layout_alignParentTop="true"
-        android:background="@color/colorPrimary"
+        android:background="@color/white"
         android:gravity="center" >
         <include layout="@layout/privacy_toggle_layout"/>
 
@@ -55,9 +54,16 @@
         android:padding="10dp"
         android:maxLength="45"
         android:gravity="top"
+        android:textSize="20sp"
         android:background="@drawable/edittext_bg"
         android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-        android:hint="Create a Title!"/>
+        android:hint="Title"/>
+
+    <View
+        android:layout_above="@id/create_post_title"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/material_color_grey_200"/>
 
 
     <EditText
@@ -66,7 +72,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:textColorHint="#d3d3d3"
-        android:hint="Create a Status!"
+        android:textSize="20sp"
+        android:hint="What do you want to say?"
         android:padding="10dp"
         android:gravity="top"
         android:backgroundTint="#ffffff"

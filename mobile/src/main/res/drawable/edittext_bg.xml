@@ -4,7 +4,7 @@
         <shape android:shape="rectangle">
             <!-- Draw a 2dp width border around shape -->
             <stroke
-                android:color="@color/material_color_grey_400"
+                android:color="@color/material_color_grey_200"
                 android:width="1dp"
                 />
         </shape>
