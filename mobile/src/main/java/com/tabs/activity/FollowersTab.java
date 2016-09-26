@@ -66,10 +66,6 @@ public class FollowersTab extends Fragment {
         if (progressOverlay.getVisibility() == View.VISIBLE) {
             AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
         }
-        if(application.getFollowingPostAdapter().getItemCount() == 0) {
-            TextView textView = (TextView) fragmentView.findViewById(R.id.no_posts_text);
-            textView.setText(R.string.noPostsFollowing);
-        }
         return fragmentView;
     }
 

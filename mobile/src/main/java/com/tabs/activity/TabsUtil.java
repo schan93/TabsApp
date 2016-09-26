@@ -28,6 +28,7 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.image.QualityInfo;
 import com.schan.tabs.R;
+import com.tabs.database.Database.DatabaseQuery;
 import com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.tabs.database.followers.FollowerRecyclerViewAdapter;
 import com.tabs.database.posts.PostRecyclerViewAdapter;
@@ -54,14 +55,30 @@ public class TabsUtil {
         LinearLayoutManager llm = new LinearLayoutManager(context);
         rv.setLayoutManager(llm);
         rv.setAdapter(adapter);
+
         if(TabsUtil.checkPostsLength(rv) && adapterSize == 0) {
             fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
             fragmentView.findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
             TextView textView = (TextView) fragmentView.findViewById(R.id.no_posts_text);
-            if(adapter.getTabType() == TabEnum.Public) {
+            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.GONE);
+            if(adapter.getAdapterType() == AdapterEnum.Public) {
                 textView.setText(R.string.noPostsPublic);
             }
-            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.GONE);
+            if(adapter.getAdapterType() == AdapterEnum.Following) {
+                textView.setText(R.string.noPostsFollowing);
+            }
+            if(adapter.getAdapterType() == AdapterEnum.ProfileComments) {
+                textView.setText(R.string.noCommentsProfile);
+            }
+            if(adapter.getAdapterType() == AdapterEnum.ProfilePosts) {
+                textView.setText(R.string.noPostsProfile);
+            }
+            if(adapter.getAdapterType() == AdapterEnum.UserComments) {
+                textView.setText(R.string.noCommentsPostedUser);
+            }
+            if(adapter.getAdapterType() == AdapterEnum.UserPosts) {
+                textView.setText(R.string.noPostsPostedUser);
+            }
         } else {
             fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
             fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.GONE);
@@ -70,7 +87,8 @@ public class TabsUtil {
         return rv;
     }
 
-    public static void populateFollowList(Context context, RecyclerView recyclerView, FollowerRecyclerViewAdapter adapter) {
+    public static void populateFollowList(View fragmentView, Context context, FollowerRecyclerViewAdapter adapter) {
+        RecyclerView recyclerView = (RecyclerView) fragmentView.findViewById(R.id.follow_list);
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
@@ -81,6 +99,28 @@ public class TabsUtil {
         LinearLayoutManager llm = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(llm);
         recyclerView.setAdapter(adapter);
+        if(adapter.getItemCount() == 0) {
+            fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
+            fragmentView.findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
+            TextView textView = (TextView) fragmentView.findViewById(R.id.no_posts_text);
+            fragmentView.findViewById(R.id.follow_list).setVisibility(View.GONE);
+            if(adapter.getFollowerEnum() == FollowerEnum.UserFollower) {
+                textView.setText(R.string.noFollowersUser);
+            }
+            if(adapter.getFollowerEnum() == FollowerEnum.UserFollowing) {
+                textView.setText(R.string.noFollowingUser);
+            }
+            if(adapter.getFollowerEnum() == FollowerEnum.ProfileFollower) {
+                textView.setText(R.string.noFollowingProfile);
+            }
+            if(adapter.getFollowerEnum() == FollowerEnum.ProfileFollowing) {
+                textView.setText(R.string.noFollowersProfile);
+            }
+        } else {
+            fragmentView.findViewById(R.id.follow_list).setVisibility(View.VISIBLE);
+            fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.GONE);
+            fragmentView.findViewById(R.id.no_posts_text).setVisibility(View.GONE);
+        }
     }
 
     public static void populateCommentsList(Activity activity, String posterName, String postTitle, String postTimeStamp, String posterUserId, String postStatus, View fragmentView, ListView rv, Context context, CommentsRecyclerViewAdapter adapter) {
@@ -180,39 +220,28 @@ public class TabsUtil {
         //draweeView.setImageURI(uri);
     }
 
-    public static void setupProfileView(final View view, final String callingActivityName, FireBaseApplication fireBaseApplication,  String ... intentVariables) {
+    public static void setupProfileView(final View view, final String callingActivityName, FireBaseApplication fireBaseApplication, DatabaseQuery databaseQuery, String ... intentVariables) {
         application = fireBaseApplication;
         final Bundle bundle = new Bundle();
         if(intentVariables.length > 0) {
-            bundle.putString("posterUserId", intentVariables[0]);
+            bundle.putString("userProfileId", intentVariables[0]);
             bundle.putString("posterName", intentVariables[1]);
             if(intentVariables.length > 2) {
                 bundle.putString("postStatus", intentVariables[2]);
                 bundle.putString("postTimeStamp", intentVariables[3]);
                 bundle.putString("postTitle", intentVariables[4]);
+                bundle.putString("posterUserId", intentVariables[5]);
             }
         }
         bundle.putString("parentClass", callingActivityName);
 
         Button followersButton = (Button) view.findViewById(R.id.followers_button);
         Button followingButton = (Button) view.findViewById(R.id.following_button);
-        TextView totalNumPosts = (TextView) view.findViewById(R.id.total_num_posts);
-        TextView totalNumComments = (TextView) view.findViewById(R.id.total_num_comments);
-        
-        if(callingActivityName.equals("Profile")) {
-            totalNumPosts.setText(Html.fromHtml("<b>" + application.getMyTabsAdapter().getItemCount() + "</b>" + "\nPosts"));
-            //TODO: This wont work. this will only show the number of posts that a user has commented on but not necessarily the # comments
-            totalNumComments.setText(Html.fromHtml("<b>" + application.getCommentsCount() + "</b>" + "\nComments"));
-            followersButton.setText(Html.fromHtml("<b>" + application.getFollowerNum() + "</b>" + "\nFollowers"));
-            followingButton.setText(Html.fromHtml("<b>" + application.getFollowingNum() + "</b>" + "\nFollowing"));
-        } else {
-            //TODO: when we restart application for example on the user page we have to get all the posts first
-            totalNumPosts.setText(Html.fromHtml("<b>" + application.getUserPostNum() + "</b>" + "\nPosts"));
-            totalNumComments.setText(Html.fromHtml("<b>" + application.getUserCommentNum() + "</b>" + "\nComments"));
-            followersButton.setText(Html.fromHtml("<b>" + application.getUserFollowerNum() + "</b>" + "\nFollowers"));
-            followingButton.setText(Html.fromHtml("<b>" + application.getUserFollowingNum() + "</b>" + "\nFollowing"));
-            // correctly the posts and such of another user.
-        }
+
+        databaseQuery.getNumUserComments(intentVariables[0], view, callingActivityName);
+        databaseQuery.getNumUserPosts(intentVariables[0], view, callingActivityName);
+        databaseQuery.getNumUserFollowers(intentVariables[0], view, callingActivityName);
+        databaseQuery.getNumUserFollowing(intentVariables[0], view, callingActivityName);
 
         followersButton.setOnClickListener(new View.OnClickListener() {
             @Override

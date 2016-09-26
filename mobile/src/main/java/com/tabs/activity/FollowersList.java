@@ -26,17 +26,19 @@ public class FollowersList extends AppCompatActivity {
     FireBaseApplication application;
     DatabaseQuery databaseQuery;
     View progressOverlay;
-    String posterUserId;
-    String posterName;
-    String postStatus;
-    String postTimeStamp;
-    String postTitle;
-
+    private String posterUserId;
+    private String posterName;
+    private String postStatus;
+    private String postTimeStamp;
+    private String postTitle;
+    private String userProfileId;
+    View layoutView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.follow_list);
+        layoutView = findViewById(R.id.follow_list_layout_id);
         application = ((FireBaseApplication) getApplication());
         databaseQuery = new DatabaseQuery(this);
 
@@ -45,32 +47,18 @@ public class FollowersList extends AppCompatActivity {
         setupActivity(savedInstanceState);
         //Set up action bar
         setupActionBar();
+    }
 
-        //All we need to do is render the page now
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.follow_list);
-
-
-        Button followButton = (Button) findViewById(R.id.follower_button);
-        if(!posterUserId.equals(application.getUserId())) {
-            TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getUserFollowersAdapter());
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(!userProfileId.equals(application.getUserId())) {
             application.getUserFollowersAdapter().setupFollowersRecyclerView(databaseQuery, getApplicationContext());
+            databaseQuery.populateFollowList(userProfileId, layoutView, application.getUserFollowersAdapter(), getApplicationContext(), "followers");
         } else {
-            TabsUtil.populateFollowList(getApplicationContext(), recyclerView, application.getFollowersRecyclerViewAdapter());
             application.getFollowersRecyclerViewAdapter().setupFollowersRecyclerView(databaseQuery, getApplicationContext());
+            databaseQuery.populateFollowList(userProfileId, layoutView, application.getFollowersRecyclerViewAdapter(), getApplicationContext(), "followers");
         }
-
-        if(TabsUtil.checkPostsLength(recyclerView)) {
-            findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
-            findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
-            TextView textView = (TextView) findViewById(R.id.no_posts_text);
-            textView.setText(R.string.noFollowers);
-            findViewById(R.id.follow_list).setVisibility(View.GONE);
-        } else {
-            findViewById(R.id.follow_list).setVisibility(View.VISIBLE);
-            findViewById(R.id.no_posts_layout).setVisibility(View.GONE);
-            findViewById(R.id.no_posts_text).setVisibility(View.GONE);
-        }
-
     }
 
     private void setupActionBar(){
@@ -95,6 +83,7 @@ public class FollowersList extends AppCompatActivity {
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString("userProfileId", AndroidUtils.getIntentString(getIntent(), "userProfileId"));
         savedInstanceState.putString("posterUserId", AndroidUtils.getIntentString(getIntent(), "posterUserId"));
         savedInstanceState.putString("posterName", AndroidUtils.getIntentString(getIntent(), "posterName"));
         savedInstanceState.putString("postStatus", AndroidUtils.getIntentString(getIntent(), "postStatus"));
@@ -107,6 +96,9 @@ public class FollowersList extends AppCompatActivity {
     private void setupActivity(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             // Restore value of members from saved state
+            if(savedInstanceState.containsKey("userProfileId")) {
+                userProfileId = savedInstanceState.getString("userProfileId");
+            }
             if(savedInstanceState.containsKey("posterUserId")) {
                 posterUserId = savedInstanceState.getString("posterUserId");
             }
@@ -124,6 +116,7 @@ public class FollowersList extends AppCompatActivity {
             }
         } else {
             if(getIntent().getExtras() != null) {
+                userProfileId = AndroidUtils.getIntentString(getIntent(), "userProfileId");
                 posterUserId = AndroidUtils.getIntentString(getIntent(), "posterUserId");
                 posterName =  AndroidUtils.getIntentString(getIntent(), "posterName");
                 postStatus =  AndroidUtils.getIntentString(getIntent(), "postStatus");
@@ -145,6 +138,7 @@ public class FollowersList extends AppCompatActivity {
                 updateFollowing(changedFollowing, application.getFollowingRecyclerViewAdapter());
                 break;
             case "UserProfile":
+                bundle.putString("userProfileId", userProfileId);
                 bundle.putString("posterUserId", posterUserId);
                 bundle.putString("posterName", posterName);
                 bundle.putString("postStatus", postStatus);

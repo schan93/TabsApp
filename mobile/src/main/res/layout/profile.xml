@@ -1,307 +1,364 @@
-<android.support.design.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:fresco="http://schemas.android.com/tools"
-    android:id="@+id/profile_coordinator"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <android.support.design.widget.AppBarLayout
-        android:id="@+id/profile_app_bar_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/profile_collapsing_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|enterAlways">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:background="@color/material_color_grey_100"
-                    android:paddingBottom="16dp"
-                    android:id="@+id/profile_header">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="24sp"
-                        android:layout_gravity="center_horizontal"
-                        android:textColor="@color/black"
-                        android:layout_marginLeft="16dp"
-                        android:layout_marginRight="16dp"
-                        android:layout_marginTop="16dp"
-                        android:id="@+id/profile_name"/>
-
-                    <com.facebook.drawee.view.SimpleDraweeView
-                        android:layout_marginTop="16dp"
-                        android:id="@+id/profile_picture"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_gravity="center_horizontal"
-                        fresco:roundingBorderColor="@color/white"
-                        fresco:roundingBorderWidth="10dp"
-                        fresco:placeholderImageScaleType="centerCrop"
-                        fresco:placeholderImage="@mipmap/blank_prof_pic"
-                        fresco:roundAsCircle="true"
-                        />
-
-                    <Button
-                        android:id="@+id/follow_button"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="12sp"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:visibility="gone"
-                        android:background="@drawable/following_button_bg"
-                        android:textColor="@color/white" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_below="@+id/profile_header"
-                    android:id="@+id/button_row"
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:weightSum="4"
-                    android:background="@color/material_color_grey_100"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:layout_marginBottom="32dp"
-                        android:textColor="@color/black"
-                        android:layout_marginLeft="16dp"
-                        android:textAlignment="center"
-                        android:layout_weight="1"
-                        android:id="@+id/total_num_posts"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textAlignment="center"
-                        android:layout_marginBottom="32dp"
-                        android:textColor="@color/black"
-                        android:layout_marginLeft="16dp"
-                        android:layout_weight="1"
-                        android:id="@+id/total_num_comments"/>
-
-                    <Button
-                        android:stateListAnimator="@null"
-                        android:text="@string/followers"
-                        android:textSize="16sp"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:id="@+id/followers_button"
-                        android:layout_marginLeft="16dp"
-                        android:layout_weight="1"
-                        android:layout_width="wrap_content"
-                        android:textAllCaps="false"
-                        android:fontFamily="sans-serif"
-                        android:layout_height="wrap_content" />
-
-                    <Button
-                        android:stateListAnimator="@null"
-                        android:text="@string/following"
-                        android:layout_marginLeft="16dp"
-                        android:textSize="16sp"
-                        android:layout_weight="1"
-                        android:fontFamily="sans-serif"
-                        android:textAllCaps="false"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:id="@+id/following_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-
-            </RelativeLayout>
-
-        </android.support.design.widget.CollapsingToolbarLayout>
-
-
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|enterAlways">
-
-            <android.support.design.widget.TabLayout
-                android:id="@+id/profile_tab_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_collapseMode="pin"
-                app:tabBackground="@color/material_color_grey_100"
-                app:tabIndicatorColor="@color/colorPrimary"
-                app:tabSelectedTextColor="@color/colorPrimary"
-                app:tabTextColor="@color/colorPrimary" />
-        </android.support.design.widget.CollapsingToolbarLayout>
-
-    </android.support.design.widget.AppBarLayout>
-
-    <android.support.v4.view.ViewPager
-        android:id="@+id/profile_view_pager"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
-</android.support.design.widget.CoordinatorLayout>
-
-
-
-<!--<RelativeLayout-->
-    <!--android:orientation="vertical"-->
+<!--<android.support.design.widget.CoordinatorLayout-->
     <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
     <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
     <!--xmlns:fresco="http://schemas.android.com/tools"-->
-    <!--android:background="@color/material_color_grey_200"-->
+    <!--android:id="@+id/profile_coordinator"-->
     <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content">-->
+    <!--android:layout_height="match_parent">-->
 
-    <!--<LinearLayout-->
+    <!--<android.support.design.widget.AppBarLayout-->
+        <!--android:id="@+id/profile_app_bar_layout"-->
         <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:orientation="vertical"-->
-        <!--android:gravity="center_horizontal"-->
-        <!--android:id="@+id/profile_header">-->
-
-        <!--<TextView-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:textSize="24sp"-->
-            <!--android:textColor="@color/black"-->
-            <!--android:layout_marginLeft="16dp"-->
-            <!--android:layout_marginRight="16dp"-->
-            <!--android:layout_marginTop="16dp"-->
-            <!--android:id="@+id/profile_name"/>-->
-
-        <!--<com.facebook.drawee.view.SimpleDraweeView-->
-            <!--android:layout_marginTop="16dp"-->
-            <!--android:id="@+id/profile_picture"-->
-            <!--android:layout_width="100dp"-->
-            <!--android:layout_height="100dp"-->
-            <!--fresco:roundingBorderColor="@color/white"-->
-            <!--fresco:roundingBorderWidth="10dp"-->
-            <!--fresco:placeholderImageScaleType="centerCrop"-->
-            <!--fresco:placeholderImage="@mipmap/blank_prof_pic"-->
-            <!--fresco:roundAsCircle="true"-->
-            <!--/>-->
-
-        <!--<Button-->
-            <!--android:layout_marginTop="8dp"-->
-            <!--android:id="@+id/follow_button"-->
-            <!--android:fontFamily="sans-serif-medium"-->
-            <!--android:textSize="12sp"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="36dp"-->
-            <!--android:visibility="gone"-->
-            <!--android:background="@drawable/following_button_bg"-->
-            <!--android:textColor="@color/white" />-->
-
-    <!--</LinearLayout>-->
-
-    <!--<LinearLayout-->
-        <!--android:paddingTop="16dp"-->
-        <!--android:paddingBottom="16dp"-->
-        <!--android:id="@+id/button_row"-->
-        <!--android:orientation="horizontal"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:weightSum="4"-->
-        <!--android:layout_below="@id/profile_header"-->
-        <!--android:layout_marginTop="16dp"-->
         <!--android:layout_height="wrap_content">-->
 
-        <!--<TextView-->
-            <!--android:layout_width="wrap_content"-->
+        <!--<android.support.design.widget.CollapsingToolbarLayout-->
+            <!--android:id="@+id/profile_collapsing_toolbar"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--app:contentScrim="?attr/colorPrimary"-->
+            <!--app:layout_scrollFlags="scroll|enterAlways">-->
+
+            <!--<RelativeLayout-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content">-->
+
+                <!--<LinearLayout-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:orientation="vertical"-->
+                    <!--android:background="@color/material_color_grey_100"-->
+                    <!--android:paddingBottom="16dp"-->
+                    <!--android:id="@+id/profile_header">-->
+
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:textSize="24sp"-->
+                        <!--android:layout_gravity="center_horizontal"-->
+                        <!--android:textColor="@color/black"-->
+                        <!--android:layout_marginLeft="16dp"-->
+                        <!--android:layout_marginRight="16dp"-->
+                        <!--android:layout_marginTop="16dp"-->
+                        <!--android:id="@+id/profile_name"/>-->
+
+                    <!--<com.facebook.drawee.view.SimpleDraweeView-->
+                        <!--android:layout_marginTop="16dp"-->
+                        <!--android:id="@+id/profile_picture"-->
+                        <!--android:layout_width="100dp"-->
+                        <!--android:layout_height="100dp"-->
+                        <!--android:layout_gravity="center_horizontal"-->
+                        <!--fresco:roundingBorderColor="@color/white"-->
+                        <!--fresco:roundingBorderWidth="10dp"-->
+                        <!--fresco:placeholderImageScaleType="centerCrop"-->
+                        <!--fresco:placeholderImage="@mipmap/blank_prof_pic"-->
+                        <!--fresco:roundAsCircle="true"-->
+                        <!--/>-->
+
+                    <!--<Button-->
+                        <!--android:id="@+id/follow_button"-->
+                        <!--android:fontFamily="sans-serif-medium"-->
+                        <!--android:textSize="12sp"-->
+                        <!--android:layout_gravity="center_horizontal"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="36dp"-->
+                        <!--android:visibility="gone"-->
+                        <!--android:background="@drawable/following_button_bg"-->
+                        <!--android:textColor="@color/white" />-->
+
+                <!--</LinearLayout>-->
+
+                <!--<LinearLayout-->
+                    <!--android:layout_below="@+id/profile_header"-->
+                    <!--android:id="@+id/button_row"-->
+                    <!--android:orientation="horizontal"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:weightSum="4"-->
+                    <!--android:background="@color/material_color_grey_100"-->
+                    <!--android:layout_height="wrap_content">-->
+
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:textSize="16sp"-->
+                        <!--android:layout_marginBottom="32dp"-->
+                        <!--android:textColor="@color/black"-->
+                        <!--android:layout_marginLeft="16dp"-->
+                        <!--android:textAlignment="center"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:id="@+id/total_num_posts"/>-->
+
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:textSize="16sp"-->
+                        <!--android:textAlignment="center"-->
+                        <!--android:layout_marginBottom="32dp"-->
+                        <!--android:textColor="@color/black"-->
+                        <!--android:layout_marginLeft="16dp"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:id="@+id/total_num_comments"/>-->
+
+                    <!--<Button-->
+                        <!--android:stateListAnimator="@null"-->
+                        <!--android:text="@string/followers"-->
+                        <!--android:textSize="16sp"-->
+                        <!--android:background="?android:attr/selectableItemBackground"-->
+                        <!--android:id="@+id/followers_button"-->
+                        <!--android:layout_marginLeft="16dp"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:textAllCaps="false"-->
+                        <!--android:fontFamily="sans-serif"-->
+                        <!--android:layout_height="wrap_content" />-->
+
+                    <!--<Button-->
+                        <!--android:stateListAnimator="@null"-->
+                        <!--android:text="@string/following"-->
+                        <!--android:layout_marginLeft="16dp"-->
+                        <!--android:textSize="16sp"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:fontFamily="sans-serif"-->
+                        <!--android:textAllCaps="false"-->
+                        <!--android:background="?android:attr/selectableItemBackground"-->
+                        <!--android:id="@+id/following_button"-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content" />-->
+
+                <!--</LinearLayout>-->
+
+
+            <!--</RelativeLayout>-->
+
+        <!--</android.support.design.widget.CollapsingToolbarLayout>-->
+
+
+        <!--<android.support.design.widget.CollapsingToolbarLayout-->
+            <!--android:layout_width="match_parent"-->
             <!--android:layout_height="wrap_content"-->
-            <!--android:textSize="16sp"-->
-            <!--android:layout_marginBottom="32dp"-->
-            <!--android:textColor="@color/black"-->
-            <!--android:layout_marginLeft="16dp"-->
-            <!--android:textAlignment="center"-->
-            <!--android:layout_weight="1"-->
-            <!--android:id="@+id/total_num_posts"/>-->
+            <!--app:layout_scrollFlags="scroll|enterAlways">-->
 
-        <!--<TextView-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:textSize="16sp"-->
-            <!--android:textAlignment="center"-->
-            <!--android:layout_marginBottom="32dp"-->
-            <!--android:textColor="@color/black"-->
-            <!--android:layout_marginLeft="16dp"-->
-            <!--android:layout_weight="1"-->
-            <!--android:id="@+id/total_num_comments"/>-->
+            <!--<android.support.design.widget.TabLayout-->
+                <!--android:id="@+id/profile_tab_layout"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--app:layout_collapseMode="pin"-->
+                <!--app:tabBackground="@color/material_color_grey_100"-->
+                <!--app:tabIndicatorColor="@color/colorPrimary"-->
+                <!--app:tabSelectedTextColor="@color/colorPrimary"-->
+                <!--app:tabTextColor="@color/colorPrimary" />-->
+        <!--</android.support.design.widget.CollapsingToolbarLayout>-->
 
-        <!--<Button-->
-            <!--android:stateListAnimator="@null"-->
-            <!--android:text="@string/followers"-->
-            <!--android:textSize="16sp"-->
-            <!--android:background="?android:attr/selectableItemBackground"-->
-            <!--android:id="@+id/followers_button"-->
-            <!--android:layout_marginLeft="16dp"-->
-            <!--android:layout_weight="1"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:textAllCaps="false"-->
-            <!--android:fontFamily="sans-serif"-->
-            <!--android:layout_height="wrap_content" />-->
+    <!--</android.support.design.widget.AppBarLayout>-->
 
-        <!--<Button-->
-            <!--android:stateListAnimator="@null"-->
-            <!--android:text="@string/following"-->
-            <!--android:layout_marginLeft="16dp"-->
-            <!--android:textSize="16sp"-->
-            <!--android:layout_weight="1"-->
-            <!--android:fontFamily="sans-serif"-->
-            <!--android:textAllCaps="false"-->
-            <!--android:background="?android:attr/selectableItemBackground"-->
-            <!--android:id="@+id/following_button"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content" />-->
-
-    <!--</LinearLayout>-->
-
-    <!--<LinearLayout-->
+    <!--<android.support.v4.view.ViewPager-->
+        <!--android:id="@+id/profile_view_pager"-->
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="wrap_content"-->
-        <!--android:layout_below="@id/button_row"-->
-        <!--android:orientation="vertical">-->
+        <!--app:layout_behavior="@string/appbar_scrolling_view_behavior" />-->
 
-        <!--<android.support.design.widget.TabLayout-->
-            <!--android:id="@+id/comments_post_tab_layout"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:background="@color/material_color_grey_100"-->
-            <!--app:layout_collapseMode="pin"-->
-            <!--app:tabIndicatorColor="@color/colorPrimary"-->
-            <!--app:tabSelectedTextColor="@color/black"-->
-            <!--app:tabTextColor="@color/black" />-->
+<!--</android.support.design.widget.CoordinatorLayout>-->
 
 
-        <!--<include layout="@layout/no_posts"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:layout_width="match_parent"/>-->
+<android.support.v4.widget.NestedScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fresco="http://schemas.android.com/tools"
+    android:fillViewport="true"
+    android:scrollbars="none"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:descendantFocusability="beforeDescendants"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!--<android.support.v4.view.ViewPager-->
-            <!--android:id="@+id/comments_posts_pager"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content" />-->
 
-    <!--</LinearLayout>-->
+<RelativeLayout
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:focusableInTouchMode="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
 
-<!--</RelativeLayout>-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:id="@+id/profile_header">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="@color/black"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="16dp"
+            android:id="@+id/profile_name"/>
+
+        <com.facebook.drawee.view.SimpleDraweeView
+            android:layout_marginTop="16dp"
+            android:id="@+id/profile_picture"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            fresco:roundingBorderColor="@color/white"
+            fresco:roundingBorderWidth="10dp"
+            fresco:placeholderImageScaleType="centerCrop"
+            fresco:placeholderImage="@mipmap/blank_prof_pic"
+            fresco:roundAsCircle="true"
+            />
+
+        <Button
+            android:layout_marginTop="16dp"
+            android:id="@+id/follow_button"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="12sp"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:visibility="gone"
+            android:background="@drawable/following_button_bg"
+            android:textColor="@color/white" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/button_row"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:weightSum="4"
+        android:layout_below="@id/profile_header"
+        android:layout_marginTop="12dp"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ProgressBar
+                android:id="@+id/profile_progress_num_posts"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_marginBottom="32dp"
+                android:textColor="@color/black"
+                android:layout_marginLeft="16dp"
+                android:textAlignment="center"
+                android:visibility="gone"
+                android:id="@+id/total_num_posts"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ProgressBar
+                android:id="@+id/profile_progress_num_comments"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_marginBottom="32dp"
+                android:textColor="@color/black"
+                android:layout_marginLeft="16dp"
+                android:textAlignment="center"
+                android:visibility="gone"
+                android:id="@+id/total_num_comments"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ProgressBar
+                android:id="@+id/profile_progress_num_followers"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="true"/>
+
+            <Button
+                android:stateListAnimator="@null"
+                android:text="@string/followers"
+                android:textSize="16sp"
+                android:background="?android:attr/selectableItemBackground"
+                android:id="@+id/followers_button"
+                android:layout_marginLeft="16dp"
+                android:layout_width="wrap_content"
+                android:textAllCaps="false"
+                android:fontFamily="sans-serif"
+                android:visibility="gone"
+                android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+        <ProgressBar
+            android:id="@+id/profile_progress_num_following"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"/>
+
+
+            <Button
+                android:stateListAnimator="@null"
+                android:text="@string/following"
+                android:layout_marginLeft="16dp"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif"
+                android:textAllCaps="false"
+                android:visibility="gone"
+                android:background="?android:attr/selectableItemBackground"
+                android:id="@+id/following_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <include
+        android:id="@+id/profile_toggle"
+        android:layout_margin="16dp"
+        android:layout_below="@id/button_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/privacy_toggle_layout"/>
+
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/profile_toggle"
+        layout="@layout/posts_tab"/>
+
+</RelativeLayout>
+    </android.support.v4.widget.NestedScrollView>
 
 
 

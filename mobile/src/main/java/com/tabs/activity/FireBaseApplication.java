@@ -134,7 +134,9 @@ public class FireBaseApplication extends Application {
 
     public static Integer getUserCommentNum() { return userCommentNum; };
 
-    public void setUserCommentNum(Integer userCommentNum) { this.userCommentNum = userCommentNum; }
+    public void setUserCommentNum(Integer userCommentNum) {
+        this.userCommentNum = userCommentNum;
+    }
 
     public static Integer getPostCount() { return postCount; };
 
@@ -244,7 +246,7 @@ public class FireBaseApplication extends Application {
     }
 
     public static FollowerRecyclerViewAdapter getUserFollowingAdapter() {
-        return userFollowersAdapter;
+        return userFollowingAdapter;
     }
 
     public void setUserFollowingAdapter(FollowerRecyclerViewAdapter userFollowingAdapter) {
@@ -252,7 +254,7 @@ public class FireBaseApplication extends Application {
     }
 
     public static FollowerRecyclerViewAdapter getUserFollowersAdapter() {
-        return userFollowingAdapter;
+        return userFollowersAdapter;
     }
 
     public void setDeviceIdsToNotifyUsers(List<String> deviceIdsToNotifyUsers) {
@@ -276,16 +278,16 @@ public class FireBaseApplication extends Application {
         List<Post> userCommentPosts = new ArrayList<>();
         List<String> userInfoAdapter = new ArrayList<>();
         setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(this, new ArrayList<Comment>()));
-        setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, TabEnum.Public));
-        setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, TabEnum.MyTab));
-        setFollowingPostAdapter(new PostRecyclerViewAdapter(followingPosts, this, TabEnum.Following));
-        setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(followers, this));
-        setFollowingRecyclerViewAdapter(new FollowerRecyclerViewAdapter(following, this));
-        setUserFollowersAdapter(new FollowerRecyclerViewAdapter(userFollowers, this));
-        setUserFollowingAdapter(new FollowerRecyclerViewAdapter(userFollowing, this));
-        setUserAdapter(new PostRecyclerViewAdapter(userPosts, this, null));
-        setPostsThatCurrentUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(commentPosts, this, null));
-        setPostsUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(userCommentPosts, this, null));
+        setPublicAdapter(new PostRecyclerViewAdapter(publicPosts, this, AdapterEnum.Public));
+        setMyTabsAdapter(new PostRecyclerViewAdapter(myTabsPosts, this, AdapterEnum.ProfilePosts));
+        setFollowingPostAdapter(new PostRecyclerViewAdapter(followingPosts, this, AdapterEnum.Following));
+        setFollowerRecyclerViewAdapter(new FollowerRecyclerViewAdapter(followers, this, FollowerEnum.ProfileFollower));
+        setFollowingRecyclerViewAdapter(new FollowerRecyclerViewAdapter(following, this, FollowerEnum.ProfileFollowing));
+        setUserFollowersAdapter(new FollowerRecyclerViewAdapter(userFollowers, this, FollowerEnum.UserFollower));
+        setUserFollowingAdapter(new FollowerRecyclerViewAdapter(userFollowing, this, FollowerEnum.UserFollowing));
+        setUserAdapter(new PostRecyclerViewAdapter(userPosts, this, AdapterEnum.UserPosts));
+        setPostsThatCurrentUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(commentPosts, this, AdapterEnum.ProfileComments));
+        setPostsUserHasCommentedOnAdapter(new PostRecyclerViewAdapter(userCommentPosts, this, AdapterEnum.UserComments));
         setUserInfoAdapter(userInfoAdapter);
         setCommentsCount(0);
         setPostCount(0);

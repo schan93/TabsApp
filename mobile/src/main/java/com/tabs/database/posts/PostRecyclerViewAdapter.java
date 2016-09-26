@@ -39,7 +39,7 @@ import com.tabs.activity.AndroidUtils;
 import com.tabs.activity.Comments;
 import com.tabs.activity.FireBaseApplication;
 import com.tabs.activity.PrivacyEnum;
-import com.tabs.activity.TabEnum;
+import com.tabs.activity.AdapterEnum;
 import com.tabs.activity.TabsUtil;
 
 /**
@@ -48,7 +48,7 @@ import com.tabs.activity.TabsUtil;
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostViewHolder> {
     List<Post> posts;
     Context context;
-    TabEnum tabType;
+    AdapterEnum tabType;
     String userId;
     FireBaseApplication application;
 
@@ -60,7 +60,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         this.posts = posts;
     }
 
-    public TabEnum getTabType() { return tabType; }
+    public AdapterEnum getAdapterType() { return tabType; }
 
     public String getUserId() { return userId; }
 
@@ -109,6 +109,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                     Intent intent = new Intent(v.getContext(), Comments.class);
                     Bundle bundle = new Bundle();
                     bundle.putString("postId", posts.get(getAdapterPosition()).getId());
+                    bundle.putString("userProfileId", posts.get(getAdapterPosition()).getPosterUserId());
                     bundle.putString("posterUserId", posts.get(getAdapterPosition()).getPosterUserId());
                     bundle.putString("posterName", posts.get(getAdapterPosition()).getName());
                     bundle.putString("postTimeStamp", posts.get(getAdapterPosition()).getTimeStamp());
@@ -179,7 +180,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 //                }
 //            }
 
-            if (getTabType() == TabEnum.Public || getTabType() == TabEnum.Following) {
+            if (getAdapterType() == AdapterEnum.Public || getAdapterType() == AdapterEnum.Following) {
                 postViewHolder.privacyStatus.setVisibility(View.GONE);
                 postViewHolder.circle.setVisibility(View.GONE);
             } else {
@@ -243,7 +244,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         return bmp;
     }
 
-    public PostRecyclerViewAdapter(List<Post> posts, Context context, TabEnum tab) {
+    public PostRecyclerViewAdapter(List<Post> posts, Context context, AdapterEnum tab) {
         this.posts = posts;
         this.context = context;
         this.tabType = tab;

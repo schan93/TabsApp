@@ -16,6 +16,7 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.schan.tabs.R;
 import com.tabs.activity.AndroidUtils;
 import com.tabs.activity.FireBaseApplication;
+import com.tabs.activity.FollowerEnum;
 import com.tabs.activity.TabsUtil;
 import com.tabs.database.Database.DatabaseQuery;
 import com.tabs.database.users.User;
@@ -35,15 +36,19 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
     Context context;
     private Map<String, Boolean> changedFollowing;
     private Boolean isSetup;
+    private FollowerEnum followerEnum;
 
     public Map<String, Boolean> getChangedFollowing() {
         return this.changedFollowing;
     }
 
     public void initializeChangedFollowing() {
-        this.changedFollowing = new HashMap<String, Boolean>();
+        this.changedFollowing = new HashMap<>();
     }
 
+    public FollowerEnum getFollowerEnum() {
+        return this.followerEnum;
+    }
 
     public void setFollowers(List<User> followers) {
         this.followers = followers;
@@ -62,11 +67,12 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         this.followers = followers;
     }
 
-    public FollowerRecyclerViewAdapter(List<User> followers, Context context) {
+    public FollowerRecyclerViewAdapter(List<User> followers, Context context, FollowerEnum followerEnum) {
         this.followers = followers;
         this.context = context;
         this.changedFollowing = new HashMap<String, Boolean>();
         this.isSetup = true;
+        this.followerEnum = followerEnum;
     }
 
     public void setupFollowersRecyclerView(DatabaseQuery databaseQuery, Context context) {

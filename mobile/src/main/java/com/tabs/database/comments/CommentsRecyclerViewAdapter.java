@@ -35,11 +35,26 @@ public class CommentsRecyclerViewAdapter extends ArrayAdapter<Comment> {
 
     private final Context context;
     private List<Comment> comments;
+    private String postStatus;
+    private String postTimeStamp;
+    private String posterUserId;
+    private String postTitle;
+    private FireBaseApplication application;
 
     public CommentsRecyclerViewAdapter(Context context, List<Comment> comments) {
         super(context, R.layout.comment_item, comments);
         this.context = context;
         this.comments = comments;
+    }
+
+    public CommentsRecyclerViewAdapter(Context context, List<Comment> comments, String postStatus, String postTimeStamp, String posterUserId, String postTitle) {
+        super(context, R.layout.comment_item, comments);
+        this.context = context;
+        this.comments = comments;
+        this.postStatus = postStatus;
+        this.postTimeStamp = postTimeStamp;
+        this.posterUserId = posterUserId;
+        this.postTitle = postTitle;
     }
 
     public List<Comment> getCommentsList(){
@@ -57,6 +72,7 @@ public class CommentsRecyclerViewAdapter extends ArrayAdapter<Comment> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        application = ((FireBaseApplication) context.getApplicationContext());
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View itemView = inflater.inflate(R.layout.comment_item, parent, false);
@@ -72,18 +88,46 @@ public class CommentsRecyclerViewAdapter extends ArrayAdapter<Comment> {
         roundingParams.setRoundAsCircle(true);
         photo.getHierarchy().setRoundingParams(roundingParams);
         photo.setController(controller);
+        final Comment comment = comments.get(position);
+        if(comment.getCommenterUserId().equals(application.getUserId())) {
+            return itemView;
+        }
+        photo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setupOnClickListener(v, comment);
+            }
+        });
+
+        name.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setupOnClickListener(v, comment);
+            }
+        });
         return itemView;
+    }
+
+    private void setupOnClickListener(View view, Comment comment) {
+        Intent intent = new Intent(view.getContext(), UserProfile.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Bundle bundle = new Bundle();
+        bundle.putString("postId", comment.getPostId());
+        bundle.putString("userProfileId", comment.getCommenterUserId());
+        bundle.putString("posterUserId", posterUserId);
+        bundle.putString("posterName", comment.getCommenter());
+        bundle.putString("postStatus", postStatus);
+        bundle.putString("postTimeStamp", postTimeStamp);
+        bundle.putString("postTitle", postTitle);
+        intent.putExtras(bundle);
+        view.getContext().startActivity(intent, bundle);
     }
 
     public void add(Comment item, CommentsRecyclerViewAdapter adapter){
         if(adapter.containsId(item.getId()) == null) {
             comments.add(item);
             adapter.notifyDataSetChanged();
-//            adapter.not
-//            adapter.notifyItemInserted(comments.size() - 1);
-//            notifyItemRangeChanged(comments.size() - 1, comments.size());
         }
-        //Also need to update the post that you are updating
     }
 
     public void remove(Comment item) {

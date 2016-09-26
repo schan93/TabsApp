@@ -89,7 +89,7 @@ public class CreatePost extends AppCompatActivity {
         setupKeyBoard();
 
         setupPrivacyToggle();
-        //First posts are always private
+        //First posts are always Public
         privacy = PrivacyEnum.Public;
     }
 
@@ -167,6 +167,8 @@ public class CreatePost extends AppCompatActivity {
         final RadioButton publicToggle = (RadioButton) findViewById(R.id.public_toggle);
         final RadioButton followersToggle = (RadioButton) findViewById(R.id.followers_toggle);
 
+        privacyToggle.check(R.id.public_toggle);
+
         //Set listener for clicking on toggle
         privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -174,9 +176,15 @@ public class CreatePost extends AppCompatActivity {
                 if (checkedId == R.id.public_toggle) {
                     privacy = PrivacyEnum.Public;
                     publicToggle.setTypeface(Typeface.DEFAULT_BOLD);
+                    if(followersToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
+                        followersToggle.setTypeface(Typeface.SANS_SERIF);
+                    }
                 } else {
                     privacy = PrivacyEnum.Following;
                     followersToggle.setTypeface(Typeface.DEFAULT_BOLD);
+                    if(publicToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
+                        publicToggle.setTypeface(Typeface.SANS_SERIF);
+                    }
                 }
             }
         });

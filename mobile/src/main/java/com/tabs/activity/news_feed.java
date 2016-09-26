@@ -52,6 +52,7 @@ public class news_feed extends AppCompatActivity
     private static TabLayout tabLayout;
     private Toolbar toolbar;
     Location location;
+
     public news_feed(){
 
     }

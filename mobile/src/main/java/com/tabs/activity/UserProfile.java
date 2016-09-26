@@ -1,15 +1,19 @@
 package com.tabs.activity;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.facebook.drawee.generic.RoundingParams;
@@ -19,14 +23,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
+import com.tabs.database.followers.FollowerRecyclerViewAdapter;
+import com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.tabs.database.users.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by schan on 6/28/16.
  */
-public class UserProfile extends AppCompatActivity implements PostsTab.onProfileSelectedListener{
+public class UserProfile extends AppCompatActivity {
     private DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReferenceFromUrl("https://tabsapp.firebaseio.com/");
     private FireBaseApplication application;
     private DatabaseQuery databaseQuery;
@@ -43,45 +50,76 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
     private Button followButton;
     private List<User> following;
     private TabLayout tabLayout;
-    SimpleDraweeView profilePhoto;
+    private View progressOverlay;
+    private View layoutView;
+    private SimpleDraweeView profilePhoto;
+    private String userProfileId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.user_profile);
+        layoutView = findViewById(R.id.user_profile_coordinator_layout);
         application = ((FireBaseApplication) getApplication());
         databaseQuery = new DatabaseQuery(this);
 //        progressOverlay = findViewById(R.id.progress_overlay);
-        following = application.getFollowingRecyclerViewAdapter().getFollowers();
-        setupPostsAndCommentsTabLayout();
+//        setupPostsAndCommentsTabLayout();
 //        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         setupActivity(savedInstanceState);
-        profilePictureSetup(posterUserId, posterName);
+        profilePictureSetup(userProfileId, posterName);
         setupActionBar();
 
         followButton = (Button) findViewById(R.id.follow_button);
+        progressOverlay = findViewById(R.id.progress_overlay);
         //Cannot be our own user
-        if(!posterUserId.equals(application.getUserId())) {
+        if (!userProfileId.equals(application.getUserId())) {
             followButton.setVisibility(View.VISIBLE);
-        }
-        //This part is for sure used but not sure about the bottom
-        String [] intentStrings = {posterUserId, posterName, postStatus, postTimeStamp, postTitle};
-        TabsUtil.setupProfileView(findViewById(R.id.user_profile_coordinator_layout), "UserProfile", application, intentStrings);
-        setupFollowButton(followButton, following);
-        if(!application.getUserId().equals(posterUserId)) {
-            application.getUserAdapter().setUserId(posterUserId);
-            application.getPostsUserHasCommentedOnAdapter().setUserId(posterUserId);
-            application.getUserFollowersAdapter().initializeChangedFollowing();
-            application.getUserFollowingAdapter().initializeChangedFollowing();
-            databaseQuery.getUserPosts(posterUserId);
-            databaseQuery.getPostsUserCommentedOn(posterUserId);
-            databaseQuery.getUserFollowers(posterUserId);
-            databaseQuery.getUserFollowing(posterUserId);
         }
     }
 
-    private void setupFollowButton(final Button button, final List<User> following) {
-        if(application.getFollowingRecyclerViewAdapter().containsUserId(posterUserId) != null) {
+    private void setupPrivacyToggle() {
+        final RadioGroup privacyToggle = (RadioGroup) findViewById(R.id.profile_toggle);
+        final RadioButton publicToggle = (RadioButton) findViewById(R.id.public_toggle);
+        final RadioButton followersToggle = (RadioButton) findViewById(R.id.followers_toggle);
+
+        publicToggle.setText(R.string.posts);
+        followersToggle.setText(R.string.comments);
+        publicToggle.setChecked(true);
+        //Set listener for clicking on toggle
+        privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId == R.id.public_toggle) {
+                    publicToggle.setTypeface(Typeface.DEFAULT_BOLD);
+                    if(followersToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
+                        followersToggle.setTypeface(Typeface.SANS_SERIF);
+                    }
+                    databaseQuery.getUserPosts(userProfileId, layoutView, application.getUserAdapter(), getApplicationContext(), "posts");
+                } else {
+                    followersToggle.setTypeface(Typeface.DEFAULT_BOLD);
+                    if(publicToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
+                        publicToggle.setTypeface(Typeface.SANS_SERIF);
+                    }
+                    databaseQuery.getUserPosts(userProfileId, layoutView, application.getPostsUserHasCommentedOnAdapter(), getApplicationContext(), "commented_posts");
+                }
+            }
+        });
+    }
+
+    private void populateNoPostsView(PostRecyclerViewAdapter adapter, int stringId) {
+        View noPostsLayout = layoutView.findViewById(R.id.no_posts_layout);
+        noPostsLayout.setVisibility(View.VISIBLE);
+        TextView noPostsText = (TextView) layoutView.findViewById(R.id.no_posts_text);
+        noPostsText.setText(stringId);
+    }
+
+    private void populatePostsView(PostRecyclerViewAdapter adapter) {
+        RecyclerView recyclerView = TabsUtil.populateNewsFeedList(layoutView, adapter, getApplicationContext(), adapter.getItemCount());
+        recyclerView.setNestedScrollingEnabled(false);
+    }
+
+    private void setupFollowButton(final Button button) {
+        if(application.getFollowingRecyclerViewAdapter().containsUserId(userProfileId) != null) {
             setButtonIsFollowing(button);
         } else {
             setButtonIsNotFollowing(button);
@@ -89,10 +127,10 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                User user = application.getFollowingRecyclerViewAdapter().containsUserId(posterUserId);
+                User user = application.getFollowingRecyclerViewAdapter().containsUserId(userProfileId);
                 if(user == null) {
                     User newUser = new User();
-                    newUser.setUserId(posterUserId);
+                    newUser.setUserId(userProfileId);
                     newUser.setName(posterName);
                     newUser.setId(AndroidUtils.generateId());
                     //No need to add this to the adapter database because it is already done for us in the DatabaseReference getFollowing call
@@ -143,6 +181,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString("userProfileId", userProfileId);
         savedInstanceState.putString("posterUserId", posterUserId);
         savedInstanceState.putString("posterName", posterName);
         savedInstanceState.putString("postStatus", postStatus);
@@ -156,6 +195,9 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
     private void setupActivity(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             // Restore value of members from saved state
+            if(savedInstanceState.containsKey("userProfileId")) {
+                userProfileId = savedInstanceState.getString("userProfileId");
+            }
             if(savedInstanceState.containsKey("posterUserId")) {
                 posterUserId = savedInstanceState.getString("posterUserId");
             }
@@ -177,6 +219,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         } else {
             if(getIntent().getExtras() != null) {
                 postId = AndroidUtils.getIntentString(getIntent(), "postId");
+                userProfileId = AndroidUtils.getIntentString(getIntent(), "userProfileId");
                 posterUserId = AndroidUtils.getIntentString(getIntent(), "posterUserId");
                 posterName =  AndroidUtils.getIntentString(getIntent(), "posterName");
                 postStatus =  AndroidUtils.getIntentString(getIntent(), "postStatus");
@@ -206,6 +249,7 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         Intent intent = new Intent(UserProfile.this, Comments.class);
         Bundle bundle = new Bundle();
         bundle.putString("postId", postId);
+        bundle.putString("userProfileId", userProfileId);
         bundle.putString("posterUserId", posterUserId);
         bundle.putString("posterName", posterName);
         bundle.putString("postStatus", postStatus);
@@ -216,41 +260,42 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         finish();
     }
 
-    private void setupPostsAndCommentsTabLayout() {
-//        tabLayout = (TabLayout) findViewById(R.id.comments_post_tab_layout);
-        tabLayout = (TabLayout) findViewById(R.id.profile_tab_layout);
-        tabLayout.addTab(tabLayout.newTab().setText("Posts"));
-        tabLayout.addTab(tabLayout.newTab().setText("Comments"));
-//        final ViewPager viewPager = (ViewPager) findViewById(R.id.comments_posts_pager);
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.profile_view_pager);
-        viewPager.setOffscreenPageLimit(2);
-        final PostsCommentsAdapter adapter = new PostsCommentsAdapter
-                (getSupportFragmentManager(), tabLayout.getTabCount());
-        viewPager.setAdapter(adapter);
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
-    }
+//    private void setupPostsAndCommentsTabLayout() {
+////        tabLayout = (TabLayout) findViewById(R.id.comments_post_tab_layout);
+//        tabLayout = (TabLayout) findViewById(R.id.profile_tab_layout);
+//        tabLayout.addTab(tabLayout.newTab().setText("Posts"));
+//        tabLayout.addTab(tabLayout.newTab().setText("Comments"));
+////        final ViewPager viewPager = (ViewPager) findViewById(R.id.comments_posts_pager);
+//        final ViewPager viewPager = (ViewPager) findViewById(R.id.profile_view_pager);
+//        viewPager.setOffscreenPageLimit(2);
+//        final PostsCommentsAdapter adapter = new PostsCommentsAdapter
+//                (getSupportFragmentManager(), tabLayout.getTabCount());
+//        viewPager.setAdapter(adapter);
+//        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+//        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+//            @Override
+//            public void onTabSelected(TabLayout.Tab tab) {
+//                viewPager.setCurrentItem(tab.getPosition());
+//            }
+//
+//            @Override
+//            public void onTabUnselected(TabLayout.Tab tab) {
+//
+//            }
+//
+//            @Override
+//            public void onTabReselected(TabLayout.Tab tab) {
+//
+//            }
+//        });
+//    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if(resultCode == RESULT_OK){
+                userProfileId = AndroidUtils.getIntentString(data, "userProfileId");
                 posterUserId = AndroidUtils.getIntentString(data, "posterUserId");
                 posterName = AndroidUtils.getIntentString(data, "posterName");
                 postStatus = AndroidUtils.getIntentString(data, "postStatus");
@@ -260,24 +305,32 @@ public class UserProfile extends AppCompatActivity implements PostsTab.onProfile
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        //This part is for sure used but not sure about the bottom
+        String[] intentStrings = {userProfileId, posterName, postStatus, postTimeStamp, postTitle, posterUserId};
+        TabsUtil.setupProfileView(layoutView, "UserProfile", application, databaseQuery, intentStrings);
+        setupFollowButton(followButton);
+        if (!application.getUserId().equals(userProfileId)) {
+            application.getUserAdapter().setUserId(userProfileId);
+            application.getPostsUserHasCommentedOnAdapter().setUserId(userProfileId);
+            application.getUserFollowersAdapter().initializeChangedFollowing();
+            application.getUserFollowingAdapter().initializeChangedFollowing();
+            //Need to clear out the user following array
+            databaseQuery.getUserPosts(userProfileId, layoutView, application.getUserAdapter(), getApplicationContext(), "posts");
+            setupPrivacyToggle();
+            if (progressOverlay.getVisibility() == View.VISIBLE) {
+                progressOverlay.setVisibility(View.GONE);
+                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+                findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-    }
-
-
-    //TODO: check if i even need this...
-    @Override
-    public void onProfileSelected(int position) {
-        // The user selected the headline of an article from the HeadlinesFragment
-        // Do something here to display that article
-
-        PostsTab postsTab = (PostsTab)
-                getSupportFragmentManager().findFragmentById(R.id.posts_tab);
-        if (postsTab != null) {
-            String [] intentStrings = {posterUserId, posterName, postStatus, postTimeStamp, postTitle};
-            TabsUtil.setupProfileView(postsTab.getView(), "UserProfile", application, intentStrings);
-        }
     }
 }

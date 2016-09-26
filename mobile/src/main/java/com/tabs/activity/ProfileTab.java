@@ -1,14 +1,18 @@
 package com.tabs.activity;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.facebook.drawee.generic.RoundingParams;
@@ -18,6 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
+import com.tabs.database.posts.PostRecyclerViewAdapter;
 
 /**
  * Created by schan on 12/30/15.
@@ -39,13 +44,16 @@ public class ProfileTab extends Fragment {
     private View fragmentView;
     private FireBaseApplication application;
     private DatabaseQuery databaseQuery;
-//    private View progressOverlay;
+    private View progressOverlay;
     private String userId;
     private String name;
     private Button followersButton;
     private Button followingButton;
     private TabLayout tabLayout;
     SimpleDraweeView profilePhoto;
+    private View postsView;
+    private View privacyToggleView;
+    private RecyclerView postsRecyclerView;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -62,10 +70,11 @@ public class ProfileTab extends Fragment {
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        application = ((FireBaseApplication) getActivity().getApplication());
         fragmentView = inflater.inflate(R.layout.profile, container, false);
         databaseQuery = new DatabaseQuery(getActivity());
         setNameAndId();
-        setupPostsAndCommentsTabLayout(fragmentView);
+//        setupPostsAndCommentsTabLayout(fragmentView);
         profilePictureSetup(userId, name, fragmentView);
 //        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
 //        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
@@ -75,15 +84,54 @@ public class ProfileTab extends Fragment {
         String [] intentStrings = {userId, name};
 
         //TODO: Only call this after u get all the posts!
-        TabsUtil.setupProfileView(fragmentView, "Profile", application, intentStrings);
-//        TabsUtil.populateNewsFeedList(fragmentView, application.getMyTabsAdapter(), getContext());
-//        if (progressOverlay.getVisibility() == View.VISIBLE) {
-//            progressOverlay.setVisibility(View.GONE);
-//            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-//            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
-//        }
+        TabsUtil.setupProfileView(fragmentView, "Profile", application, databaseQuery, intentStrings);
+        postsView = fragmentView.findViewById(R.id.posts_tab);
+        progressOverlay = postsView.findViewById(R.id.progress_overlay);
+        setupPrivacyToggle(fragmentView);
+        populatePostsView(application.getMyTabsAdapter());
+        if (progressOverlay.getVisibility() == View.VISIBLE) {
+            progressOverlay.setVisibility(View.GONE);
+            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
+        }
         return fragmentView;
     }
+
+    private void setupPrivacyToggle(View fragmentView) {
+        View profileToggle = fragmentView.findViewById(R.id.profile_toggle);
+        final RadioGroup privacyToggle = (RadioGroup) fragmentView.findViewById(R.id.profile_toggle);
+        final RadioButton publicToggle = (RadioButton) fragmentView.findViewById(R.id.public_toggle);
+        final RadioButton followersToggle = (RadioButton) fragmentView.findViewById(R.id.followers_toggle);
+
+        publicToggle.setText(R.string.posts);
+        followersToggle.setText(R.string.comments);
+        publicToggle.setChecked(true);
+        //Set listener for clicking on toggle
+        privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId == R.id.public_toggle) {
+                    publicToggle.setTypeface(Typeface.DEFAULT_BOLD);
+                    if(followersToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
+                        followersToggle.setTypeface(Typeface.SANS_SERIF);
+                    }
+                    populatePostsView(application.getMyTabsAdapter());
+                } else {
+                    followersToggle.setTypeface(Typeface.DEFAULT_BOLD);
+                    if(publicToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
+                        publicToggle.setTypeface(Typeface.SANS_SERIF);
+                    }
+                    populatePostsView(application.getPostsThatCurrentUserHasCommentedOnAdapter());
+                }
+            }
+        });
+    }
+
+    private void populatePostsView(PostRecyclerViewAdapter adapter) {
+        postsRecyclerView = TabsUtil.populateNewsFeedList(fragmentView, adapter, getContext(), adapter.getItemCount());
+        postsRecyclerView.setNestedScrollingEnabled(false);
+    }
+
 
     private void setupButtonOnClick() {
         followersButton.setOnClickListener(new View.OnClickListener() {
@@ -145,36 +193,36 @@ public class ProfileTab extends Fragment {
         }
     }
 
-    private void setupPostsAndCommentsTabLayout(View fragmentView) {
-//        tabLayout = (TabLayout) fragmentView.findViewById(R.id.comments_post_tab_layout);
-        tabLayout = (TabLayout) fragmentView.findViewById(R.id.profile_tab_layout);
-        tabLayout.addTab(tabLayout.newTab().setText("Posts"));
-        tabLayout.addTab(tabLayout.newTab().setText("Comments"));
-
-//        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.comments_posts_pager);
-        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.profile_view_pager);
-        viewPager.setOffscreenPageLimit(2);
-        final PostsCommentsAdapter adapter = new PostsCommentsAdapter
-                (getChildFragmentManager(), tabLayout.getTabCount());
-        viewPager.setAdapter(adapter);
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
-        });
-    }
+//    private void setupPostsAndCommentsTabLayout(View fragmentView) {
+////        tabLayout = (TabLayout) fragmentView.findViewById(R.id.comments_post_tab_layout);
+//        tabLayout = (TabLayout) fragmentView.findViewById(R.id.profile_tab_layout);
+//        tabLayout.addTab(tabLayout.newTab().setText("Posts"));
+//        tabLayout.addTab(tabLayout.newTab().setText("Comments"));
+//
+////        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.comments_posts_pager);
+//        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.profile_view_pager);
+//        viewPager.setOffscreenPageLimit(2);
+//        final PostsCommentsAdapter adapter = new PostsCommentsAdapter
+//                (getChildFragmentManager(), tabLayout.getTabCount());
+//        viewPager.setAdapter(adapter);
+//        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+//        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+//            @Override
+//            public void onTabSelected(TabLayout.Tab tab) {
+//                viewPager.setCurrentItem(tab.getPosition());
+//            }
+//
+//            @Override
+//            public void onTabUnselected(TabLayout.Tab tab) {
+//
+//            }
+//
+//            @Override
+//            public void onTabReselected(TabLayout.Tab tab) {
+//
+//            }
+//        });
+//    }
 
     @Override
     public void onResume() {

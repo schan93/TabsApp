@@ -105,9 +105,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="16sp"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/colorPrimaryDark"
                 android:text="@string/send"
                 android:gravity="center|center_vertical"
+                android:layout_alignParentRight="true"
                 android:background="?android:attr/selectableItemBackground"
                 android:layout_below="@id/write_comment"
                 android:textAllCaps="false" />

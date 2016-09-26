@@ -76,6 +76,7 @@ public class Comments extends AppCompatActivity {
     private String postId;
     private String userId;
     private String postTitle;
+    private String userProfileId;
     //Progress overlay
     View progressOverlay;
     View noPostsView;
@@ -122,18 +123,18 @@ public class Comments extends AppCompatActivity {
             application.getPostsUserHasCommentedOnAdapter().getPosts().clear();
             application.getPostsUserHasCommentedOnAdapter().notifyDataSetChanged();
 
-            databaseQuery.getNumUserComments(posterUserId);
-            databaseQuery.getNumUserPosts(posterUserId);
-            databaseQuery.getNumUserFollowers(posterUserId);
-            databaseQuery.getNumUserFollowing(posterUserId);
+//            databaseQuery.getNumUserComments(posterUserId);
+//            databaseQuery.getNumUserPosts(posterUserId);
+//            databaseQuery.getNumUserFollowers(posterUserId);
+//            databaseQuery.getNumUserFollowing(posterUserId);
         }
-        if(application.getUserAdapter().getUserId() == null) {
-            application.getUserAdapter().setUserId(posterUserId);
-            databaseQuery.getNumUserComments(posterUserId);
-            databaseQuery.getNumUserPosts(posterUserId);
-            databaseQuery.getNumUserFollowers(posterUserId);
-            databaseQuery.getNumUserFollowing(posterUserId);
-        }
+//        if(application.getUserAdapter().getUserId() == null) {
+//            application.getUserAdapter().setUserId(posterUserId);
+//            databaseQuery.getNumUserComments(posterUserId);
+//            databaseQuery.getNumUserPosts(posterUserId);
+//            databaseQuery.getNumUserFollowers(posterUserId);
+//            databaseQuery.getNumUserFollowing(posterUserId);
+//        }
     }
 
     private void createComment() {
@@ -299,7 +300,7 @@ public class Comments extends AppCompatActivity {
 
     public void setupCommentsAdapter() {
         List<Comment> commentItems = application.getCommentsRecyclerViewAdapter().getCommentsList();
-        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(getApplicationContext(), commentItems));
+        application.setCommentsRecyclerViewAdapter(new CommentsRecyclerViewAdapter(getApplicationContext(), commentItems, postStatus, postTimeStamp, posterUserId, postTitle));
         application.getCommentsRecyclerViewAdapter().registerDataSetObserver(new DataSetObserver() {
             @Override
             public void onChanged() {
@@ -326,24 +327,36 @@ public class Comments extends AppCompatActivity {
         roundingParams.setRoundAsCircle(true);
         photo.getHierarchy().setRoundingParams(roundingParams);
         photo.setController(controller);
-        photo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), UserProfile.class);
-                Bundle bundle = new Bundle();
-                bundle.putString("postId", postId);
-                bundle.putString("posterUserId", posterUserId);
-                bundle.putString("posterName", posterName);
-                bundle.putString("postStatus", postStatus);
-                bundle.putString("postTimeStamp", postTimeStamp);
-                bundle.putString("postTitle", postTitle);
-                intent.putExtras(bundle);
-                if (intent != null) {
-                    startActivity(intent, bundle);
+        if(!posterUserId.equals(application.getUserId())) {
+            photo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setupOnClickListener();
                 }
-            }
-        });
+            });
+
+            name.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setupOnClickListener();
+                }
+            });
+        }
         commentsView.addHeaderView(header, null, false);
+    }
+
+    private void setupOnClickListener() {
+        Intent intent = new Intent(getApplicationContext(), UserProfile.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("postId", postId);
+        bundle.putString("posterUserId", posterUserId);
+        bundle.putString("userProfileId", userProfileId);
+        bundle.putString("posterName", posterName);
+        bundle.putString("postStatus", postStatus);
+        bundle.putString("postTimeStamp", postTimeStamp);
+        bundle.putString("postTitle", postTitle);
+        intent.putExtras(bundle);
+        startActivity(intent, bundle);
     }
 
     private void updatePostDetails(Comment comment){
@@ -440,6 +453,7 @@ public class Comments extends AppCompatActivity {
         savedInstanceState.putString("userId", userId);
         savedInstanceState.putString("name", name);
         savedInstanceState.putString("posterUserId", posterUserId);
+        savedInstanceState.putString("userProfileId", userProfileId);
         savedInstanceState.putString("posterName", posterName);
         savedInstanceState.putString("postTimeStamp", postTimeStamp);
         savedInstanceState.putString("postStatus", postStatus);
@@ -499,12 +513,16 @@ public class Comments extends AppCompatActivity {
             if(savedInstanceState.containsKey("isFollowingPoster")) {
                 isFollowingPoster = savedInstanceState.getBoolean("isFollowingPoster");
             }
+            if(savedInstanceState.containsKey("userProfileId")) {
+                userProfileId = savedInstanceState.getString("userProfileId");
+            }
         } else {
             //You get all these from the post view adapter
             postId = AndroidUtils.getIntentString(getIntent(), "postId");
             userId = AndroidUtils.getIntentString(getIntent(), "userId");
             postTitle = AndroidUtils.getIntentString(getIntent(), "postTitle");
             posterUserId = AndroidUtils.getIntentString(getIntent(), "posterUserId");
+            userProfileId = AndroidUtils.getIntentString(getIntent(), "userProfileId");
             posterName = AndroidUtils.getIntentString(getIntent(), "posterName");
             postTimeStamp = AndroidUtils.getIntentString(getIntent(), "postTimeStamp");
             postStatus = AndroidUtils.getIntentString(getIntent(), "postStatus");
@@ -524,6 +542,7 @@ public class Comments extends AppCompatActivity {
             if(resultCode == RESULT_OK){
                 postId = AndroidUtils.getIntentString(data, "postId");
                 posterUserId = AndroidUtils.getIntentString(data, "posterUserId");
+                userProfileId = AndroidUtils.getIntentString(data, "userProfileId");
                 posterName = AndroidUtils.getIntentString(data, "posterName");
                 postStatus = AndroidUtils.getIntentString(data, "postStatus");
                 postTimeStamp = AndroidUtils.getIntentString(data, "postTimeStamp");

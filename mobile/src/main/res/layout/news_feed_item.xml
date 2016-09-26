@@ -68,7 +68,7 @@
                 android:maxLines="2"
                 android:layout_marginBottom="8dp"
                 android:textColor="@color/black"
-                android:textSize="20sp"/>
+                android:textSize="18sp"/>
 
             <TextView
                 android:id="@+id/txt_timestamp"
