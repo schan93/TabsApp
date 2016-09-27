@@ -112,7 +112,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                     bundle.putString("userProfileId", posts.get(getAdapterPosition()).getPosterUserId());
                     bundle.putString("posterUserId", posts.get(getAdapterPosition()).getPosterUserId());
                     bundle.putString("posterName", posts.get(getAdapterPosition()).getName());
-                    bundle.putString("postTimeStamp", posts.get(getAdapterPosition()).getTimeStamp());
+                    bundle.putLong("postTimeStamp", posts.get(getAdapterPosition()).getTimeStamp());
 
                     bundle.putString("postStatus", posts.get(getAdapterPosition()).getStatus());
                     bundle.putString("postTitle", posts.get(getAdapterPosition()).getTitle());
@@ -253,7 +253,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
     public void add(Post item, PostRecyclerViewAdapter adapter){
         if(adapter.containsId(item.getId()) == null) {
-            posts.add(item);
+            posts.add(0, item);
             notifyItemInserted(posts.size() - 1);
             notifyItemRangeChanged(posts.size() - 1, posts.size());
         }

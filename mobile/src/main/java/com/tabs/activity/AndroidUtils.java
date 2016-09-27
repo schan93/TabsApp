@@ -8,6 +8,7 @@ import android.view.View;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -45,19 +46,11 @@ public class AndroidUtils {
 
     /**
      * Convert the string date to the 1h, 1m, 0s etc. format
-     * @param timestamp
+     * @param time
      * @return
      */
-    public static String convertDate(String timestamp) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
-        Date date = null;
-        try {
-            date = dateFormat.parse(timestamp);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return getRelativeTime(date.getTime());
+    public static String convertDate(Long time) {
+        return getRelativeTime(-1 * time);
     }
     public static final List<Long> times = Arrays.asList(
             DAYS.toMillis(365),
@@ -132,11 +125,11 @@ public class AndroidUtils {
         return result;
     }
 
-    public static Boolean getIntentBoolean(Intent intent, String value){
+    public static Long getIntentLong(Intent intent, String value){
         Bundle extras = intent.getExtras();
-        Boolean result = false;
+        Long result = 123456789L;
         if (extras != null) {
-            result = extras.getBoolean(value);
+            result = extras.getLong(value);
         }
         return result;
     }

@@ -144,7 +144,7 @@ public class CreatePost extends AppCompatActivity {
                     Toast.makeText(CreatePost.this, "Please enter a status.", Toast.LENGTH_SHORT).show();
                     return true;
                 }
-                if(latitude == null && latitude != 0 && longitude == null && longitude != 0) {
+                if(latitude == null && latitude != 0.0 && longitude == null && longitude != 0.0) {
                     //We cannot get location for whatever reason so we have to throw some sort of error and exit
                     Toast.makeText(CreatePost.this, "There was an error retriving location information for this post. Please check your location services before trying again.", Toast.LENGTH_SHORT).show();
                     return false;
@@ -190,11 +190,12 @@ public class CreatePost extends AppCompatActivity {
         });
     }
 
-    private String getDateTime() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(
-                "MM/dd/yyyy hh:mm:ss a", Locale.getDefault());
+    private Long getDateTime() {
+//        SimpleDateFormat dateFormat = new SimpleDateFormat(
+//                "MM/dd/yyyy hh:mm:ss a", Locale.getDefault());
         Date date = new Date();
-        return dateFormat.format(date);
+//        return dateFormat.format(date);
+        return -1 * date.getTime();
     }
 
     private void setupActivity(Bundle savedInstanceState) {

@@ -101,6 +101,10 @@ public class LocationService {
         public void onLocationChanged(Location location) {
             if (location.hasAccuracy()) {
                 locationUpdateListener.updateLocation(location);
+                Intent broadcastIntent = new Intent(LocationService.ACTION_LOCATION);
+                broadcastIntent.putExtra("latitude", location.getLatitude());
+                broadcastIntent.putExtra("longitude", location.getLongitude());
+                activity.sendBroadcast(broadcastIntent);
             }
         }
     }

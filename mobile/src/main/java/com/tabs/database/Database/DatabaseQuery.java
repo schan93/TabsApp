@@ -319,7 +319,7 @@ public class DatabaseQuery implements Serializable {
         final DatabaseReference currentUserFeed = currentUserPath.child("feed");
 
         //Now for every of that new follower's post, set them to be true in your own feed so you see their posts
-        gainedFollower.child("/posts").orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+        gainedFollower.child("/posts").orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot data: dataSnapshot.getChildren()) {
@@ -353,7 +353,7 @@ public class DatabaseQuery implements Serializable {
         final DatabaseReference currentUserFeed = currentUserPath.child("feed");
 
         //Now for every of that new follower's post, set them to be true in your own feed so you see their posts
-        gainedFollower.child("/posts").orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+        gainedFollower.child("/posts").orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot data: dataSnapshot.getChildren()) {
@@ -380,11 +380,11 @@ public class DatabaseQuery implements Serializable {
         final DatabaseReference postsRef = firebaseRef.child("posts").push();
         String postId = postsRef.getKey();
         post.setId(postId);
-        Date date = new Date();
-        postsRef.setValue(post, 0 - date.getTime());
+        final Date date = new Date();
+        postsRef.setValue(post);
 
         //Notify users that the post is completed and can be sent
-       getUsersToSendPostNotificationTo(userId, post, " has posted: ", application.getFollowersRecyclerViewAdapter().getFollowers());
+        getUsersToSendPostNotificationTo(userId, post, " has posted: ", application.getFollowersRecyclerViewAdapter().getFollowers());
 
 
 //        postsRef.setPriority(date.getTime());
@@ -405,8 +405,7 @@ public class DatabaseQuery implements Serializable {
                     //firebaseRef.child("users/" + userId + "/feed/" + postsRef.getKey()).setValue(true);
 
                     //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
-                    long time = new Date().getTime();
-                    firebaseRef.child("recent-users").child(userId).setPriority(time, new DatabaseReference.CompletionListener() {
+                    firebaseRef.child("recent-users").child(userId).setPriority(-1 * date.getTime(), new DatabaseReference.CompletionListener() {
                         @Override
                         public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
                             if (firebaseError != null) {
@@ -418,7 +417,7 @@ public class DatabaseQuery implements Serializable {
                     });
 
                     //Display the post in a list that shows the most recent posts (what we would want by design)
-                    firebaseRef.child("recent-posts").child(postsRef.getKey()).setPriority(time, new DatabaseReference.CompletionListener() {
+                    firebaseRef.child("recent-posts").child(postsRef.getKey()).setPriority(-1 * date.getTime(), new DatabaseReference.CompletionListener() {
                         @Override
                         public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
                             if (firebaseError != null) {
@@ -464,7 +463,7 @@ public class DatabaseQuery implements Serializable {
         //Create a listener to listen for the content from the master post's feed
         //this is the only feed that contains references in terms of the post id
         feed.keepSynced(true);
-        feed.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+        feed.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 getMyTabsPosts(loggedIn, activity);
@@ -475,13 +474,13 @@ public class DatabaseQuery implements Serializable {
 
             }
         });
-        feed.orderByPriority().addChildEventListener(new ChildEventListener() {
+        feed.orderByChild("timeStamp").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String postId = dataSnapshot.getKey();
                 if(dataSnapshot.getValue().equals(true)) {
                     DatabaseReference path = firebaseRef.child("posts/" + postId);
-                    path.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+                    path.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             Post post = dataSnapshot.getValue(Post.class);
@@ -501,7 +500,7 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onChildChanged(final DataSnapshot initalSnapshot, String s) {
                     DatabaseReference path = firebaseRef.child("posts/" + initalSnapshot.getKey());
-                    path.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+                    path.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             Post post = dataSnapshot.getValue(Post.class);
@@ -555,10 +554,13 @@ public class DatabaseQuery implements Serializable {
                 //Now that we entered into a query that has the public location, we have to add it to our adapter
                 System.out.println("Keyu: " + key);
                 publicPostsCount[0]++;
-                postsRef.child(key).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(key).orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);
+                        if(post.getTitle().equals("Test Post")) {
+                            System.out.println("Test owrked");
+                        }
                         if(post != null) {
                             //If we have walked into a location with the key of that post, then we add it to the public adapter
                             Post existingPost = application.getPublicAdapter().containsId(post.getId());
@@ -718,7 +720,7 @@ public class DatabaseQuery implements Serializable {
     public void getPostsCurrentUserCommentedOn(final Boolean loggedIn, final Activity activity) {
         DatabaseReference commentedPostsRef = currentUserPath.child("/commented_posts");
         final DatabaseReference postsRef = firebaseRef.child("/posts");
-        commentedPostsRef.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+        commentedPostsRef.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (application.getFromAnotherActivity() == false) {
@@ -734,7 +736,7 @@ public class DatabaseQuery implements Serializable {
         commentedPostsRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(dataSnapshot.getKey()).orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapShot) {
                         Post post = snapShot.getValue(Post.class);
@@ -1079,7 +1081,7 @@ public class DatabaseQuery implements Serializable {
     }
 
     //Put the loading screen thing
-    public void getComments(final Activity activity, final String posterName, final String postTitle, final String postTimeStamp, final String posterUserId, final String postStatus, final String postId, final View fragmentView, final ListView commentsRecyclerView, final View progressOverlay, final Context context) {
+    public void getComments(final Activity activity, final String posterName, final String postTitle, final Long postTimeStamp, final String posterUserId, final String postStatus, final String postId, final View fragmentView, final ListView commentsRecyclerView, final View progressOverlay, final Context context) {
         final DatabaseReference commentsRef = firebaseRef.child("/comments");
         commentsRef.orderByChild("postId").equalTo(postId).addChildEventListener(new ChildEventListener() {
             @Override
@@ -1129,10 +1131,10 @@ public class DatabaseQuery implements Serializable {
     public void getMyTabsPosts(final Boolean loggedIn, final Activity activity) {
         final DatabaseReference postsRef = firebaseRef.child("/posts");
         DatabaseReference linkRef = currentUserPath.child("/posts");
-        linkRef.orderByPriority().addChildEventListener(new ChildEventListener() {
+        linkRef.orderByChild("timeStamp").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(dataSnapshot.getKey()).orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);
@@ -1169,7 +1171,7 @@ public class DatabaseQuery implements Serializable {
             }
         });
 
-        linkRef.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+        linkRef.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 getPostsCurrentUserCommentedOn(loggedIn, activity);
@@ -1186,7 +1188,7 @@ public class DatabaseQuery implements Serializable {
         adapter.setPosts(new ArrayList<Post>());
         final DatabaseReference postsRef = firebaseRef.child("/posts");
         DatabaseReference linkRef = firebaseRef.child("/users/" + userId + "/" + firebaseEndpoint);
-        linkRef.orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+        linkRef.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final Integer[] count = {0};
@@ -1198,7 +1200,7 @@ public class DatabaseQuery implements Serializable {
                     recyclerView.setNestedScrollingEnabled(false);
                 }
                 for(DataSnapshot child: dataSnapshot.getChildren()) {
-                    postsRef.child(child.getKey()).orderByPriority().addListenerForSingleValueEvent(new ValueEventListener() {
+                    postsRef.child(child.getKey()).orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
                             Post post = snapshot.getValue(Post.class);

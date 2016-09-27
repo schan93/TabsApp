@@ -36,7 +36,7 @@ public class CommentsRecyclerViewAdapter extends ArrayAdapter<Comment> {
     private final Context context;
     private List<Comment> comments;
     private String postStatus;
-    private String postTimeStamp;
+    private Long postTimeStamp;
     private String posterUserId;
     private String postTitle;
     private FireBaseApplication application;
@@ -47,7 +47,7 @@ public class CommentsRecyclerViewAdapter extends ArrayAdapter<Comment> {
         this.comments = comments;
     }
 
-    public CommentsRecyclerViewAdapter(Context context, List<Comment> comments, String postStatus, String postTimeStamp, String posterUserId, String postTitle) {
+    public CommentsRecyclerViewAdapter(Context context, List<Comment> comments, String postStatus, Long postTimeStamp, String posterUserId, String postTitle) {
         super(context, R.layout.comment_item, comments);
         this.context = context;
         this.comments = comments;
@@ -117,7 +117,7 @@ public class CommentsRecyclerViewAdapter extends ArrayAdapter<Comment> {
         bundle.putString("posterUserId", posterUserId);
         bundle.putString("posterName", comment.getCommenter());
         bundle.putString("postStatus", postStatus);
-        bundle.putString("postTimeStamp", postTimeStamp);
+        bundle.putLong("postTimeStamp", postTimeStamp);
         bundle.putString("postTitle", postTitle);
         intent.putExtras(bundle);
         view.getContext().startActivity(intent, bundle);

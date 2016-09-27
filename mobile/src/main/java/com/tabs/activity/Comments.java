@@ -67,7 +67,7 @@ public class Comments extends AppCompatActivity {
     private ListView commentsView;
     private String posterUserId;
     private String posterName;
-    private String postTimeStamp;
+    private Long postTimeStamp;
     private String postStatus;
     private Boolean isFollowingPoster;
     private Toolbar toolbar;
@@ -353,7 +353,7 @@ public class Comments extends AppCompatActivity {
         bundle.putString("userProfileId", userProfileId);
         bundle.putString("posterName", posterName);
         bundle.putString("postStatus", postStatus);
-        bundle.putString("postTimeStamp", postTimeStamp);
+        bundle.putLong("postTimeStamp", postTimeStamp);
         bundle.putString("postTitle", postTitle);
         intent.putExtras(bundle);
         startActivity(intent, bundle);
@@ -439,11 +439,9 @@ public class Comments extends AppCompatActivity {
         }
     }
 
-    private String getDateTime() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(
-                "MM/dd/yyyy hh:mm:ss a", Locale.getDefault());
+    private Long getDateTime() {
         Date date = new Date();
-        return dateFormat.format(date);
+        return date.getTime();
     }
 
     @Override
@@ -455,7 +453,7 @@ public class Comments extends AppCompatActivity {
         savedInstanceState.putString("posterUserId", posterUserId);
         savedInstanceState.putString("userProfileId", userProfileId);
         savedInstanceState.putString("posterName", posterName);
-        savedInstanceState.putString("postTimeStamp", postTimeStamp);
+        savedInstanceState.putLong("postTimeStamp", postTimeStamp);
         savedInstanceState.putString("postStatus", postStatus);
         savedInstanceState.putString("postTitle", postTitle);
         savedInstanceState.putBoolean("isFollowingPoster", isFollowingPoster);
@@ -505,7 +503,7 @@ public class Comments extends AppCompatActivity {
                 posterName = savedInstanceState.getString("posterName");
             }
             if(savedInstanceState.containsKey("postTimeStamp")) {
-                postTimeStamp = savedInstanceState.getString("postTimeStamp");
+                postTimeStamp = savedInstanceState.getLong("postTimeStamp");
             }
             if(savedInstanceState.containsKey("postStatus")) {
                 postStatus = savedInstanceState.getString("postStatus");
@@ -524,7 +522,7 @@ public class Comments extends AppCompatActivity {
             posterUserId = AndroidUtils.getIntentString(getIntent(), "posterUserId");
             userProfileId = AndroidUtils.getIntentString(getIntent(), "userProfileId");
             posterName = AndroidUtils.getIntentString(getIntent(), "posterName");
-            postTimeStamp = AndroidUtils.getIntentString(getIntent(), "postTimeStamp");
+            postTimeStamp = AndroidUtils.getIntentLong(getIntent(), "postTimeStamp");
             postStatus = AndroidUtils.getIntentString(getIntent(), "postStatus");
             User user = application.getFollowersRecyclerViewAdapter().containsUserId(posterUserId);
             if (user != null) {
@@ -545,7 +543,7 @@ public class Comments extends AppCompatActivity {
                 userProfileId = AndroidUtils.getIntentString(data, "userProfileId");
                 posterName = AndroidUtils.getIntentString(data, "posterName");
                 postStatus = AndroidUtils.getIntentString(data, "postStatus");
-                postTimeStamp = AndroidUtils.getIntentString(data, "postTimeStamp");
+                postTimeStamp = AndroidUtils.getIntentLong(data, "postTimeStamp");
                 postTitle = AndroidUtils.getIntentString(data, "postTitle");
             }
         }

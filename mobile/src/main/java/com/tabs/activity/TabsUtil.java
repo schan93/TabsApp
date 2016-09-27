@@ -123,7 +123,7 @@ public class TabsUtil {
         }
     }
 
-    public static void populateCommentsList(Activity activity, String posterName, String postTitle, String postTimeStamp, String posterUserId, String postStatus, View fragmentView, ListView rv, Context context, CommentsRecyclerViewAdapter adapter) {
+    public static void populateCommentsList(Activity activity, String posterName, String postTitle, Long postTimeStamp, String posterUserId, String postStatus, View fragmentView, ListView rv, Context context, CommentsRecyclerViewAdapter adapter) {
         rv.setNestedScrollingEnabled(false);
         //Assuming we refresh the followers list, we have to make sure that new followers are loaded
         adapter.notifyDataSetChanged();

@@ -73,27 +73,7 @@ public class ProfileTab extends Fragment {
         application = ((FireBaseApplication) getActivity().getApplication());
         fragmentView = inflater.inflate(R.layout.profile, container, false);
         databaseQuery = new DatabaseQuery(getActivity());
-        setNameAndId();
-//        setupPostsAndCommentsTabLayout(fragmentView);
-        profilePictureSetup(userId, name, fragmentView);
-//        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
-//        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         setupActivity(savedInstanceState);
-//        databaseQuery.getMyTabsPosts(progressOverlay, fragmentView, getContext());
-
-        String [] intentStrings = {userId, name};
-
-        //TODO: Only call this after u get all the posts!
-        TabsUtil.setupProfileView(fragmentView, "Profile", application, databaseQuery, intentStrings);
-        postsView = fragmentView.findViewById(R.id.posts_tab);
-        progressOverlay = postsView.findViewById(R.id.progress_overlay);
-        setupPrivacyToggle(fragmentView);
-        populatePostsView(application.getMyTabsAdapter());
-        if (progressOverlay.getVisibility() == View.VISIBLE) {
-            progressOverlay.setVisibility(View.GONE);
-            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
-        }
         return fragmentView;
     }
 
@@ -227,5 +207,25 @@ public class ProfileTab extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        setNameAndId();
+//        setupPostsAndCommentsTabLayout(fragmentView);
+        profilePictureSetup(userId, name, fragmentView);
+//        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
+//        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
+//        databaseQuery.getMyTabsPosts(progressOverlay, fragmentView, getContext());
+
+        String [] intentStrings = {userId, name};
+
+        //TODO: Only call this after u get all the posts!
+        TabsUtil.setupProfileView(fragmentView, "Profile", application, databaseQuery, intentStrings);
+        postsView = fragmentView.findViewById(R.id.posts_tab);
+        progressOverlay = postsView.findViewById(R.id.progress_overlay);
+        setupPrivacyToggle(fragmentView);
+        populatePostsView(application.getMyTabsAdapter());
+        if (progressOverlay.getVisibility() == View.VISIBLE) {
+            progressOverlay.setVisibility(View.GONE);
+            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
+            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
+        }
     }
 }

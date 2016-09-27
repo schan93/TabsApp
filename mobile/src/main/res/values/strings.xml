@@ -13,7 +13,7 @@
     <string name="followers">Followers</string>
     <string name="publicString">Public</string>
     <string name="noPostsPublic">No posts in your area. Be the first one to help others discover what\'s going on in your area!</string>
-    <string name="noPostsFollowing">No posts by your followers. Follow someone to keep up with him or her!</string>
+    <string name="noPostsFollowing">No posts have been made by those you are following. Follow more people to find out what they are up to!</string>
     <string name="noPostsPosted">No posts.</string>
     <string name="noPostsPostedUser">This user has not made any posts.</string>
     <string name="noCommentsPostedUser">This user has not made any comments.</string>

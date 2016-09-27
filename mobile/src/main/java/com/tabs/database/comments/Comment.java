@@ -14,12 +14,12 @@ public class Comment implements Serializable{
     private String commenter; //Can be same as poster
     private String comment; //Message that is written
     private String commenterUserId; //Commtenter id from facebook
-    private String timeStamp; //When he wrote it
+    private Long timeStamp; //When he wrote it
 
     Comment(){
     }
 
-    public Comment(String uniqueId, String postId, String commenter, String comment, String commenterUserId, String timeStamp){
+    public Comment(String uniqueId, String postId, String commenter, String comment, String commenterUserId, Long timeStamp){
         this.id = uniqueId;
         this.postId = postId;
         this.commenter = commenter;
@@ -67,11 +67,11 @@ public class Comment implements Serializable{
         this.commenterUserId = commenterUserId;
     }
 
-    public String getTimeStamp() {
+    public Long getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(String timeStamp) {
+    public void setTimeStamp(Long timeStamp) {
         this.timeStamp = timeStamp;
     }
 }

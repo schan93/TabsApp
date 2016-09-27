@@ -18,7 +18,7 @@ public class Post implements Serializable {
     private String name;
     private String status;
     private String posterUserId;
-    private String timeStamp;
+    private Long timeStamp;
     private PrivacyEnum privacy;
     private Integer numComments;
     private Map<String, Object> commenters;
@@ -29,7 +29,7 @@ public class Post implements Serializable {
     public Post(){
     }
 
-    public Post(String id, String title, String name, String status, String posterUserId, String timeStamp, String privacy, Integer numComments) {
+    public Post(String id, String title, String name, String status, String posterUserId, Long timeStamp, String privacy, Integer numComments) {
         super();
         this.id = id;
         this.title = title;
@@ -90,11 +90,11 @@ public class Post implements Serializable {
         this.posterUserId = posterUserId;
     }
 
-    public String getTimeStamp() {
+    public Long getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(String timeStamp) {
+    public void setTimeStamp(Long timeStamp) {
         this.timeStamp = timeStamp;
     }
 
