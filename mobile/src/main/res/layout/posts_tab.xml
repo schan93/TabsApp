@@ -10,12 +10,20 @@
 
         <include layout="@layout/no_posts"/>
 
+
+
+
         <android.support.v7.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/rv_posts_feed"
             android:visibility="gone"
             />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/material_color_grey_300" />
 
     <!--</android.support.v4.widget.NestedScrollView>-->
     </FrameLayout>
