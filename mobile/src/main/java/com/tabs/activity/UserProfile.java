@@ -24,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 import com.tabs.database.followers.FollowerRecyclerViewAdapter;
+import com.tabs.database.posts.Post;
 import com.tabs.database.posts.PostRecyclerViewAdapter;
 import com.tabs.database.users.User;
 
@@ -312,6 +313,14 @@ public class UserProfile extends AppCompatActivity {
         String[] intentStrings = {userProfileId, posterName, postStatus, postTimeStamp, postTitle, posterUserId};
         TabsUtil.setupProfileView(layoutView, "UserProfile", application, databaseQuery, intentStrings);
         setupFollowButton(followButton);
+        if(application.getUserAdapter().getUserId() != null && !application.getUserAdapter().getUserId().equals(userProfileId)) {
+            //We know here that there is a new user profile id so we need to reset the recycler view
+            application.getUserAdapter().setPosts(new ArrayList<Post>());
+        }
+        if(application.getPostsUserHasCommentedOnAdapter().getUserId() != null && !application.getPostsUserHasCommentedOnAdapter().getUserId().equals(userProfileId)) {
+            //We know here that there is a new user profile id so we need to reset the recycler view
+            application.getPostsUserHasCommentedOnAdapter().setPosts(new ArrayList<Post>());
+        }
         if (!application.getUserId().equals(userProfileId)) {
             application.getUserAdapter().setUserId(userProfileId);
             application.getPostsUserHasCommentedOnAdapter().setUserId(userProfileId);

@@ -72,13 +72,11 @@ public class ProfileTab extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         application = ((FireBaseApplication) getActivity().getApplication());
         fragmentView = inflater.inflate(R.layout.profile, container, false);
-        databaseQuery = new DatabaseQuery(getActivity());
         setupActivity(savedInstanceState);
         return fragmentView;
     }
 
-    private void setupPrivacyToggle(View fragmentView) {
-        View profileToggle = fragmentView.findViewById(R.id.profile_toggle);
+    private void setupPrivacyToggle(final View fragmentView) {
         final RadioGroup privacyToggle = (RadioGroup) fragmentView.findViewById(R.id.profile_toggle);
         final RadioButton publicToggle = (RadioButton) fragmentView.findViewById(R.id.public_toggle);
         final RadioButton followersToggle = (RadioButton) fragmentView.findViewById(R.id.followers_toggle);
@@ -95,13 +93,13 @@ public class ProfileTab extends Fragment {
                     if(followersToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
                         followersToggle.setTypeface(Typeface.SANS_SERIF);
                     }
-                    populatePostsView(application.getMyTabsAdapter());
+                    databaseQuery.getUserPosts(userId, fragmentView, application.getMyTabsAdapter(), getContext(), "posts");
                 } else {
                     followersToggle.setTypeface(Typeface.DEFAULT_BOLD);
                     if(publicToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
                         publicToggle.setTypeface(Typeface.SANS_SERIF);
                     }
-                    populatePostsView(application.getPostsThatCurrentUserHasCommentedOnAdapter());
+                    databaseQuery.getUserPosts(userId, fragmentView, application.getPostsThatCurrentUserHasCommentedOnAdapter(), getContext(), "commented_posts");
                 }
             }
         });
@@ -207,6 +205,7 @@ public class ProfileTab extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        databaseQuery = new DatabaseQuery(getActivity());
         setNameAndId();
 //        setupPostsAndCommentsTabLayout(fragmentView);
         profilePictureSetup(userId, name, fragmentView);
@@ -221,11 +220,6 @@ public class ProfileTab extends Fragment {
         postsView = fragmentView.findViewById(R.id.posts_tab);
         progressOverlay = postsView.findViewById(R.id.progress_overlay);
         setupPrivacyToggle(fragmentView);
-        populatePostsView(application.getMyTabsAdapter());
-        if (progressOverlay.getVisibility() == View.VISIBLE) {
-            progressOverlay.setVisibility(View.GONE);
-            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-            fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
-        }
+        databaseQuery.getUserPosts(userId, fragmentView, application.getMyTabsAdapter(), getContext(), "posts");
     }
 }

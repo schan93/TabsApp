@@ -149,7 +149,7 @@ public class CreatePost extends AppCompatActivity {
                     Toast.makeText(CreatePost.this, "There was an error retriving location information for this post. Please check your location services before trying again.", Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                Post createdPost = new Post("", postTitle.getText().toString(), name, post.getText().toString(), userId, getDateTime(), privacy.toString(), 0);
+                Post createdPost = new Post("", postTitle.getText().toString(), name, post.getText().toString(), userId, AndroidUtils.getDateTime(), privacy.toString(), 0);
                 Toast.makeText(CreatePost.this, "Successfully posted.", Toast.LENGTH_SHORT).show();
                 databaseQuery.savePostToDatabaseReference(createdPost, latitude, longitude);
                 Intent intent = new Intent(CreatePost.this, news_feed.class);
@@ -188,14 +188,6 @@ public class CreatePost extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    private Long getDateTime() {
-//        SimpleDateFormat dateFormat = new SimpleDateFormat(
-//                "MM/dd/yyyy hh:mm:ss a", Locale.getDefault());
-        Date date = new Date();
-//        return dateFormat.format(date);
-        return -1 * date.getTime();
     }
 
     private void setupActivity(Bundle savedInstanceState) {

@@ -141,7 +141,7 @@ public class Comments extends AppCompatActivity {
         //Set the text of the comment to be empty
         String text = comment.getText().toString();
 
-        Comment createdComment = new Comment("", postId, name, text, userId, getDateTime());
+        Comment createdComment = new Comment("", postId, name, text, userId, AndroidUtils.getDateTime());
         updatePost();
 
         databaseQuery.saveCommentToDatabaseReference(getApplicationContext(), createdComment);
@@ -437,11 +437,6 @@ public class Comments extends AppCompatActivity {
             post.setNumComments(Integer.valueOf(dataSnapshot.getValue().toString()));
             adapter.notifyDataSetChanged();
         }
-    }
-
-    private Long getDateTime() {
-        Date date = new Date();
-        return date.getTime();
     }
 
     @Override

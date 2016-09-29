@@ -52,6 +52,12 @@ public class AndroidUtils {
     public static String convertDate(Long time) {
         return getRelativeTime(-1 * time);
     }
+
+    public static Long getDateTime() {
+        Date date = new Date();
+        return -1 * date.getTime();
+    }
+
     public static final List<Long> times = Arrays.asList(
             DAYS.toMillis(365),
             DAYS.toMillis(30),

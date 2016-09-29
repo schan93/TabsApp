@@ -134,8 +134,7 @@ public class DatabaseQuery implements Serializable {
         final DatabaseReference commentsRef = firebaseRef.child("comments").push();
         String commentId = commentsRef.getKey();
         comment.setId(commentId);
-        Date date = new Date();
-        commentsRef.setPriority(0 - date.getTime());
+        final Date date = new Date();
         commentsRef.setValue(comment);
 
         //Next, we need to set that comment in your own comment's path to be true
@@ -148,8 +147,7 @@ public class DatabaseQuery implements Serializable {
 //        firebaseRef.child("users/" + userId + "/feed/" + postsRef.getKey()).setValue(true);
 
         //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
-        long time = new Date().getTime();
-        firebaseRef.child("recent-users").child(userId).setPriority(time, new DatabaseReference.CompletionListener() {
+        firebaseRef.child("recent-users").child(userId).setPriority(-1 * date.getTime(), new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError != null) {
@@ -161,7 +159,7 @@ public class DatabaseQuery implements Serializable {
         });
 
         //Display the comment in a list that shows the most recent comments (what we would want by design)
-        firebaseRef.child("recent-comments").child(commentsRef.getKey()).setPriority(time, new DatabaseReference.CompletionListener() {
+        firebaseRef.child("recent-comments").child(commentsRef.getKey()).setPriority(-1 * date.getTime(), new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError != null) {
@@ -453,20 +451,19 @@ public class DatabaseQuery implements Serializable {
     }
 
     //THIS IS NEW!!!
-    public void getLatestPosts(Boolean loggedIn, Activity activity) {
-        DatabaseReference feed = currentUserPath.child("feed");
-        onNewPostForFeed(loggedIn, activity, feed);
-    }
-
-    //THIS IS NEW!!!
-    public void onNewPostForFeed(final Boolean loggedIn, final Activity activity, DatabaseReference feed) {
+    public void getFollowingPosts(final View fragmentView, final Context context, final View progressOverlay) {
         //Create a listener to listen for the content from the master post's feed
         //this is the only feed that contains references in terms of the post id
+        DatabaseReference feed = currentUserPath.child("feed");
         feed.keepSynced(true);
         feed.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                getMyTabsPosts(loggedIn, activity);
+                TabsUtil.populateNewsFeedList(fragmentView, application.getFollowingPostAdapter(), context, application.getFollowingPostAdapter().getItemCount());
+                if (progressOverlay.getVisibility() == View.VISIBLE) {
+                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
+                }
+//                getMyTabsPosts(loggedIn, activity);
             }
 
             @Override
@@ -717,181 +714,6 @@ public class DatabaseQuery implements Serializable {
         });
     }
 
-    public void getPostsCurrentUserCommentedOn(final Boolean loggedIn, final Activity activity) {
-        DatabaseReference commentedPostsRef = currentUserPath.child("/commented_posts");
-        final DatabaseReference postsRef = firebaseRef.child("/posts");
-        commentedPostsRef.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (application.getFromAnotherActivity() == false) {
-                    setupNextActivity(loggedIn, activity);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-
-            }
-        });
-        commentedPostsRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapShot) {
-                        Post post = snapShot.getValue(Post.class);
-                        if(post != null) {
-                            application.getPostsThatCurrentUserHasCommentedOnAdapter().add(post, application.getPostsThatCurrentUserHasCommentedOnAdapter());
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError firebaseError) {
-
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-
-            }
-        });
-
-    }
-
-    //THIS IS NEW!!!
-    public void getFollowers(final String userId, final Boolean loggedIn, final Activity activity) {
-        DatabaseReference followersRef = currentUserPath.child("/followers");
-//        DatabaseReference followersRef = firebaseRef.child("Users/" + userId + "/Followers");
-        followersRef.keepSynced(true);
-        followersRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                getLatestPosts(loggedIn, activity);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-
-            }
-        });
-
-        followersRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(final DataSnapshot dataSnapshot, String s) {
-//                I think this would mainly be for a profile kind of section or deal so that you don't always have to requery for the
-                //user information about an individual
-                firebaseRef.child("people/" + dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if(dataSnapshot.getValue() != null) {
-                            User user = snapshot.getValue(User.class);
-                            user.setUserId(dataSnapshot.getKey());
-                            application.getFollowersRecyclerViewAdapter().add(user, application.getFollowersRecyclerViewAdapter());
-                        }
-                        //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
-//                        application.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError firebaseError) {
-
-                    }
-                });
-            }
-
-
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                //We need to get the number of posts that that changed friend has and update the private adapters post
-                //The data snap shot here will just be they user id of the follower and if they are actaully a follower or not
-//                if(dataSnapshot.getValue() == false) {
-//                } else {
-//
-//                }
-                //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
-                //TODO: Update hte UI because the follower has now changed to also being a follower. Need to update their button color
-                application.getFollowersRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Follower removedFollower = dataSnapshot.getValue(Follower.class);
-                int length = application.getFollowersRecyclerViewAdapter().getItemCount();
-                for (int i = 0; i < length; i++) {
-                    if (application.getFollowersRecyclerViewAdapter().getFollowers().get(i).getId().equals(removedFollower.getId())) {
-                        application.getFollowersRecyclerViewAdapter().getFollowers().remove(i);
-                    }
-                }
-                application.getFollowersRecyclerViewAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                //Not sure if used
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-
-            }
-        });
-    }
-
-    //THIS IS NEW!!!
-    public void getFollowing(final String userId, final boolean loggedIn, final Activity activity) {
-        DatabaseReference followingRef = currentUserPath.child("/following");
-
-        followingRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(final DataSnapshot child: dataSnapshot.getChildren()) {
-                    firebaseRef.child("people/" + child.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot snapshot) {
-                            Boolean isFriend = (Boolean) child.getValue();
-                            Log.d("IsFriend:",isFriend.toString());
-                            if(isFriend) {
-                                User user = snapshot.getValue(User.class);
-                                user.setUserId(child.getKey());
-                                application.getFollowingRecyclerViewAdapter().add(user, application.getFollowingRecyclerViewAdapter());
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError firebaseError) {
-
-                        }
-                    });
-                }
-                Log.d("IsFriend:", userId);
-                getFollowers(userId, loggedIn, activity);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-
-            }
-        });
-    }
-
     /**
      * This method is designed to move the user to the next activity after getting all the details from DatabaseReference and storing information
      * into the local database is performed. This is because doing so will make our application function a lot faster
@@ -945,7 +767,9 @@ public class DatabaseQuery implements Serializable {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    getFollowing(userId, loggedIn, activity);
+                                    if (application.getFromAnotherActivity() == false) {
+                                        setupNextActivity(loggedIn, activity);
+                                    }
                                 }
                             });
                         }
@@ -1128,64 +952,7 @@ public class DatabaseQuery implements Serializable {
     }
 
 
-    public void getMyTabsPosts(final Boolean loggedIn, final Activity activity) {
-        final DatabaseReference postsRef = firebaseRef.child("/posts");
-        DatabaseReference linkRef = currentUserPath.child("/posts");
-        linkRef.orderByChild("timeStamp").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                postsRef.child(dataSnapshot.getKey()).orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Post post = dataSnapshot.getValue(Post.class);
-                        System.out.println("Snapshot With Priority: " + dataSnapshot.getValue(true));
-                        application.getMyTabsAdapter().add(post, application.getMyTabsAdapter());
-                        application.setPostCount(application.getPostCount() + 1);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError firebaseError) {
-
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-
-            }
-        });
-
-        linkRef.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                getPostsCurrentUserCommentedOn(loggedIn, activity);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-
-            }
-        });
-    }
-
     public void getUserPosts(final String userId, final View layoutView, final PostRecyclerViewAdapter adapter, final Context context, String firebaseEndpoint) {
-        adapter.setPosts(new ArrayList<Post>());
         final DatabaseReference postsRef = firebaseRef.child("/posts");
         DatabaseReference linkRef = firebaseRef.child("/users/" + userId + "/" + firebaseEndpoint);
         linkRef.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -1209,7 +976,7 @@ public class DatabaseQuery implements Serializable {
                             if(count[0] == childrenCount) {
                                 //we know that we have to populate the user posts at this point
                                 RecyclerView recyclerView = TabsUtil.populateNewsFeedList(layoutView, adapter, context, adapter.getItemCount());
-                                recyclerView.setNestedScrollingEnabled(false);
+//                                recyclerView.setNestedScrollingEnabled(false);
                             }
                         }
 

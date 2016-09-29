@@ -1,5 +1,6 @@
 package com.tabs.activity;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
@@ -41,7 +42,7 @@ public class FollowersTab extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        application = ((FireBaseApplication) getActivity().getApplication());
+        setupActivity(savedInstanceState);
     }
 
     /**
@@ -54,18 +55,6 @@ public class FollowersTab extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
-        application = ((FireBaseApplication) getActivity().getApplication());
-        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
-        databaseQuery = new DatabaseQuery(getActivity());
-        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-        if(application.getUserId() != null && application.getUserId() != "") {
-            userId = application.getUserId();
-        }
-        setupActivity(savedInstanceState);
-        TabsUtil.populateNewsFeedList(fragmentView, application.getFollowingPostAdapter(), getContext(), 0);
-        if (progressOverlay.getVisibility() == View.VISIBLE) {
-            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
-        }
         return fragmentView;
     }
 
@@ -106,5 +95,18 @@ public class FollowersTab extends Fragment {
                 userId = savedInstanceState.getString("userId");
             }
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        application = ((FireBaseApplication) getActivity().getApplication());
+        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
+        databaseQuery = new DatabaseQuery(getActivity());
+        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
+        if(application.getUserId() != null && application.getUserId() != "") {
+            userId = application.getUserId();
+        }
+        databaseQuery.getFollowingPosts(fragmentView, getContext(), progressOverlay);
     }
 }

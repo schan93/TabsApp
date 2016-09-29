@@ -115,13 +115,8 @@ public class PublicTab extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (fragmentView == null) {
             fragmentView = inflater.inflate(R.layout.posts_tab, container, false);
-            databaseQuery = new DatabaseQuery(getActivity());
-            progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
-            noPostsView = fragmentView.findViewById(R.id.no_posts_layout);
             setupActivity(savedInstanceState);
-            setupLocation();
         }
-
         return fragmentView;
     }
 
@@ -145,6 +140,10 @@ public class PublicTab extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        databaseQuery = new DatabaseQuery(getActivity());
+        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
+        noPostsView = fragmentView.findViewById(R.id.no_posts_layout);
+        setupLocation();
     }
 
     @Override
