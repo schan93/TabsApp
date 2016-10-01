@@ -93,29 +93,14 @@ public class ProfileTab extends Fragment {
                     if(followersToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
                         followersToggle.setTypeface(Typeface.SANS_SERIF);
                     }
-                    databaseQuery.getUserPosts(userId, fragmentView, application.getMyTabsAdapter(), getContext(), "posts");
+                    databaseQuery.getUserPosts(userId, fragmentView, application.getMyTabsAdapter(), getContext(), "posts", progressOverlay);
                 } else {
                     followersToggle.setTypeface(Typeface.DEFAULT_BOLD);
                     if(publicToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
                         publicToggle.setTypeface(Typeface.SANS_SERIF);
                     }
-                    databaseQuery.getUserPosts(userId, fragmentView, application.getPostsThatCurrentUserHasCommentedOnAdapter(), getContext(), "commented_posts");
+                    databaseQuery.getUserPosts(userId, fragmentView, application.getPostsThatCurrentUserHasCommentedOnAdapter(), getContext(), "commented_posts", progressOverlay);
                 }
-            }
-        });
-    }
-
-    private void populatePostsView(PostRecyclerViewAdapter adapter) {
-        postsRecyclerView = TabsUtil.populateNewsFeedList(fragmentView, adapter, getContext(), adapter.getItemCount());
-        postsRecyclerView.setNestedScrollingEnabled(false);
-    }
-
-
-    private void setupButtonOnClick() {
-        followersButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
             }
         });
     }
@@ -171,36 +156,11 @@ public class ProfileTab extends Fragment {
         }
     }
 
-//    private void setupPostsAndCommentsTabLayout(View fragmentView) {
-////        tabLayout = (TabLayout) fragmentView.findViewById(R.id.comments_post_tab_layout);
-//        tabLayout = (TabLayout) fragmentView.findViewById(R.id.profile_tab_layout);
-//        tabLayout.addTab(tabLayout.newTab().setText("Posts"));
-//        tabLayout.addTab(tabLayout.newTab().setText("Comments"));
-//
-////        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.comments_posts_pager);
-//        final ViewPager viewPager = (ViewPager) fragmentView.findViewById(R.id.profile_view_pager);
-//        viewPager.setOffscreenPageLimit(2);
-//        final PostsCommentsAdapter adapter = new PostsCommentsAdapter
-//                (getChildFragmentManager(), tabLayout.getTabCount());
-//        viewPager.setAdapter(adapter);
-//        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-//        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-//            @Override
-//            public void onTabSelected(TabLayout.Tab tab) {
-//                viewPager.setCurrentItem(tab.getPosition());
-//            }
-//
-//            @Override
-//            public void onTabUnselected(TabLayout.Tab tab) {
-//
-//            }
-//
-//            @Override
-//            public void onTabReselected(TabLayout.Tab tab) {
-//
-//            }
-//        });
-//    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 
     @Override
     public void onResume() {
@@ -220,6 +180,6 @@ public class ProfileTab extends Fragment {
         postsView = fragmentView.findViewById(R.id.posts_tab);
         progressOverlay = postsView.findViewById(R.id.progress_overlay);
         setupPrivacyToggle(fragmentView);
-        databaseQuery.getUserPosts(userId, fragmentView, application.getMyTabsAdapter(), getContext(), "posts");
+        databaseQuery.getUserPosts(userId, fragmentView, application.getMyTabsAdapter(), getContext(), "posts", progressOverlay);
     }
 }

@@ -249,7 +249,6 @@ public class Comments extends AppCompatActivity {
 
     public void populateCommentView(String postId) {
         //Set up loading page first
-        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         databaseQuery.getComments(this, posterName, postTitle, postTimeStamp, posterUserId, postStatus, postId, findViewById(R.id.comments_layout), commentsView, progressOverlay, getApplicationContext());
         setupCommentsAdapter();
     }
@@ -327,14 +326,13 @@ public class Comments extends AppCompatActivity {
         roundingParams.setRoundAsCircle(true);
         photo.getHierarchy().setRoundingParams(roundingParams);
         photo.setController(controller);
-        if(!posterUserId.equals(application.getUserId())) {
+        if(!userProfileId.equals(application.getUserId())) {
             photo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     setupOnClickListener();
                 }
             });
-
             name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

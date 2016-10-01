@@ -65,20 +65,6 @@ public class FollowersTab extends Fragment {
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) {
-            if (getView() != null) {
-                if(application.getFromAnotherActivity() == true) {
-                    System.out.println("Followers Tab setUserVisible: VISIBLE");
-                    AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
-                    fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.GONE);
-                } else {
-                    if (progressOverlay.getVisibility() == View.VISIBLE) {
-                        AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
-                        fragmentView.findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -103,7 +89,6 @@ public class FollowersTab extends Fragment {
         application = ((FireBaseApplication) getActivity().getApplication());
         progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
         databaseQuery = new DatabaseQuery(getActivity());
-        AndroidUtils.animateView(progressOverlay, View.VISIBLE, 0.9f, 200);
         if(application.getUserId() != null && application.getUserId() != "") {
             userId = application.getUserId();
         }

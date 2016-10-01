@@ -2,11 +2,13 @@ package com.tabs.activity;
 
 import android.app.Application;
 import android.content.Context;
+import android.support.multidex.MultiDex;
 
 import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.common.internal.Supplier;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.FirebaseDatabase;
 import com.schan.tabs.R;
 import com.tabs.database.comments.Comment;
@@ -99,6 +101,8 @@ public class FireBaseApplication extends Application {
         //Cached data will still be available while offline and your writes will be resent when network connectivity is recovered.
         // Enabling disk persistence allows our app to also keep all of its state even after an app restart.
         // We can enable disk persistence with just one line of code.
+        MultiDex.install(this);
+        FirebaseApp.initializeApp(this);
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         initializeAdapters();

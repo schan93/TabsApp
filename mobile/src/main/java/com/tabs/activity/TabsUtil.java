@@ -111,10 +111,10 @@ public class TabsUtil {
                 textView.setText(R.string.noFollowingUser);
             }
             if(adapter.getFollowerEnum() == FollowerEnum.ProfileFollower) {
-                textView.setText(R.string.noFollowingProfile);
+                textView.setText(R.string.noFollowersProfile);
             }
             if(adapter.getFollowerEnum() == FollowerEnum.ProfileFollowing) {
-                textView.setText(R.string.noFollowersProfile);
+                textView.setText(R.string.noFollowingProfile);
             }
         } else {
             fragmentView.findViewById(R.id.follow_list).setVisibility(View.VISIBLE);

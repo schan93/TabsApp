@@ -39,6 +39,7 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.firebase.crash.FirebaseCrash;
 import com.schan.tabs.R;
 import com.tabs.database.Database.DatabaseQuery;
 
@@ -251,7 +252,7 @@ public class PublicTab extends Fragment {
                             // and check the result in onActivityResult().
                             status.startResolutionForResult(getActivity(), REQUEST_LOCATION);
                         } catch (IntentSender.SendIntentException e) {
-                            // Ignore the error.
+                            FirebaseCrash.report(e);
                         }
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:

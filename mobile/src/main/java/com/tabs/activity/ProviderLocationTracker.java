@@ -18,6 +18,7 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 
+import com.google.firebase.crash.FirebaseCrash;
 import com.schan.tabs.R;
 
 public class ProviderLocationTracker implements LocationListener, LocationTracker {
@@ -111,8 +112,8 @@ public class ProviderLocationTracker implements LocationListener, LocationTracke
         try {
             gpsEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
             networkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch(Exception ex) {
-            //TODO: Log!
+        } catch(Exception e) {
+            FirebaseCrash.report(e);
         }
         if(!gpsEnabled && !networkEnabled) {
             showLocationServicesDialog(context);

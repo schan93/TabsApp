@@ -30,6 +30,7 @@ import android.widget.Toast;
 
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.schan.tabs.R;
@@ -161,8 +162,8 @@ public class NotificationService extends FirebaseMessagingService {
                     String result = postToFCM(root.toString());
                     Log.d(TAG, "Result: " + result);
                     return result;
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                } catch (Exception e) {
+                    FirebaseCrash.report(e);
                 }
                 return null;
             }
@@ -175,13 +176,9 @@ public class NotificationService extends FirebaseMessagingService {
                     success = resultJson.getInt("success");
                     failure = resultJson.getInt("failure");
                     System.out.println("Success: " + success);
-                    //TODO: Log Exception
-//                    Toast.makeText(getCurrentActivity(), "Message Success: " + success + "Message Failed: " + failure, Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
-                    e.printStackTrace();
-                    //TODO: Log Exception
-//                    Toast.makeText(getCurrentActivity(), "Message Failed, Unknown error occurred.", Toast.LENGTH_LONG).show();
-                }
+                    FirebaseCrash.report(e);
+                 }
             }
         }.execute();
     }
@@ -212,8 +209,8 @@ public class NotificationService extends FirebaseMessagingService {
                     String result = postToFCM(root.toString());
                     Log.d(TAG, "Result: " + result);
                     return result;
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                } catch (Exception e) {
+                    FirebaseCrash.report(e);
                 }
                 return null;
             }
@@ -229,9 +226,7 @@ public class NotificationService extends FirebaseMessagingService {
                     //TODO: Log Exception
 //                    Toast.makeText(getCurrentActivity(), "Message Success: " + success + "Message Failed: " + failure, Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
-                    e.printStackTrace();
-                    //TODO: Log Exception
-//                    Toast.makeText(getCurrentActivity(), "Message Failed, Unknown error occurred.", Toast.LENGTH_LONG).show();
+                    FirebaseCrash.report(e);
                 }
             }
         }.execute();
@@ -285,7 +280,7 @@ public class NotificationService extends FirebaseMessagingService {
             canvas.drawBitmap(bitmap, srcRect, rect, paint);
             return output;
         } catch (IOException e) {
-            //TODO: Log Exception
+            FirebaseCrash.report(e);
             return null;
         }
     }

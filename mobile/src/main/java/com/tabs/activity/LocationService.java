@@ -27,6 +27,7 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.firebase.crash.FirebaseCrash;
 
 /**
  * Created by schan on 9/19/16.
@@ -114,8 +115,8 @@ public class LocationService {
         LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         try {
             gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            FirebaseCrash.report(e);
         }
         return gps_enabled;
     }
@@ -130,7 +131,7 @@ public class LocationService {
             pm.getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);
             return true;
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            FirebaseCrash.report(e);
             return false;
         }
     }

@@ -25,6 +25,7 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -72,6 +73,7 @@ public class DatabaseQuery implements Serializable {
     private String name;
     private DatabaseReference currentUserPath;
     private GeoFire geoFire;
+    private String TAG = "DatabaseQuery";
 
     public DatabaseQuery() {
         userId = application.getUserId();
@@ -123,7 +125,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
 
@@ -189,7 +191,7 @@ public class DatabaseQuery implements Serializable {
                 for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
                     User user = snapshot.getValue(User.class);
                     //If the user is in the userIds array, then we have to send the notification to this user
-                    if (users.get(user.getUserId()) != null && !deviceIds.contains(user.getDeviceId())) {
+                    if (users.get(user.getUserId()) != null && !deviceIds.contains(user.getDeviceId()) && !user.getUserId().equals(application.getUserId())) {
                         //Get their device Ids
                         deviceIds.add(user.getDeviceId());
                     }
@@ -200,13 +202,13 @@ public class DatabaseQuery implements Serializable {
                 try {
                     notificationService.sendCommentNotificationToServer(userId, comment, hasAction, deviceIds);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    FirebaseCrash.report(e);
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
     }
@@ -221,7 +223,7 @@ public class DatabaseQuery implements Serializable {
                 for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
                     User user = snapshot.getValue(User.class);
                     //If the user is in the userIds array, then we have to send the notification to this user
-                    if (users.contains(user) && !deviceIds.contains(user.getDeviceId())) {
+                    if (users.contains(user) && !deviceIds.contains(user.getDeviceId()) && !user.getUserId().equals(application.getUserId())) {
                         //Get their device Ids
                         deviceIds.add(user.getDeviceId());
                     }
@@ -232,13 +234,13 @@ public class DatabaseQuery implements Serializable {
                 try {
                     notificationService.sendPostNotificationToServer(userId, post, hasAction, deviceIds);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    FirebaseCrash.report(e);
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
     }
@@ -266,7 +268,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
     }
@@ -294,7 +296,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
     }
@@ -327,7 +329,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
 
@@ -361,7 +363,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
 
@@ -440,7 +442,7 @@ public class DatabaseQuery implements Serializable {
 
                         @Override
                         public void onCancelled(DatabaseError firebaseError) {
-
+                            FirebaseCrash.report(firebaseError.toException());
                         }
                     });
                 }
@@ -460,15 +462,13 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 TabsUtil.populateNewsFeedList(fragmentView, application.getFollowingPostAdapter(), context, application.getFollowingPostAdapter().getItemCount());
-                if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
-                }
+                stopProgressOverlay(progressOverlay);
 //                getMyTabsPosts(loggedIn, activity);
             }
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
         feed.orderByChild("timeStamp").addChildEventListener(new ChildEventListener() {
@@ -488,7 +488,7 @@ public class DatabaseQuery implements Serializable {
 
                         @Override
                         public void onCancelled(DatabaseError firebaseError) {
-
+                            FirebaseCrash.report(firebaseError.toException());
                         }
                     });
                 }
@@ -510,7 +510,7 @@ public class DatabaseQuery implements Serializable {
 
                         @Override
                         public void onCancelled(DatabaseError firebaseError) {
-
+                            FirebaseCrash.report(firebaseError.toException());
                         }
                     });
             }
@@ -527,7 +527,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
 
@@ -569,7 +569,7 @@ public class DatabaseQuery implements Serializable {
 
                     @Override
                     public void onCancelled(DatabaseError firebaseError) {
-
+                        FirebaseCrash.report(firebaseError.toException());
                     }
                 });
             }
@@ -605,11 +605,8 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onGeoQueryReady() {
                 //Now we can load all the posts and listen for posts that are incoming
-                System.out.println("Test size: " + publicPostsCount[0]);
                 TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context, publicPostsCount[0]);
-                if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
-                }
+                stopProgressOverlay(progressOverlay);
             }
 
             @Override
@@ -645,13 +642,13 @@ public class DatabaseQuery implements Serializable {
                                 user.setUserId(child.getKey());
                                 adapter.add(user, adapter);
                                 count[0]++;
-                                if(count[0] == childrenCount) {
-                                    //we know that we have to populate the user posts at this point
-                                    TabsUtil.populateFollowList(layoutView, context, adapter);
-                                }
                             }
                             if(child.getValue() == Boolean.FALSE) {
                                 count[0]++;
+                            }
+                            if(count[0] == childrenCount) {
+                                //we know that we have to populate the user posts at this point
+                                TabsUtil.populateFollowList(layoutView, context, adapter);
                             }
                             //Add the follower to the followers array and update the ui. for now i will updateNotifydatasetchange here
 //                        application.getFollowerRecyclerViewAdapter().notifyDataSetChanged();
@@ -659,15 +656,15 @@ public class DatabaseQuery implements Serializable {
 
                         @Override
                         public void onCancelled(DatabaseError firebaseError) {
-
+                            FirebaseCrash.report(firebaseError.toException());
                         }
                     });
                 }
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+            public void onCancelled(DatabaseError firebaseError) {
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
         userFollowingRef.addChildEventListener(new ChildEventListener() {
@@ -709,7 +706,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
     }
@@ -761,7 +758,7 @@ public class DatabaseQuery implements Serializable {
                                 saveUserToPeople(id, userId, name, deviceId);
                             }
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            FirebaseCrash.report(e);
                         } finally {
                             //This is after getting the user has completed
                             handler.post(new Runnable() {
@@ -808,7 +805,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
         return listener;
@@ -834,7 +831,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
         return listener;
@@ -866,7 +863,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
         return listener;
@@ -898,7 +895,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
         return listener;
@@ -930,7 +927,7 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
 
@@ -938,21 +935,19 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Comment comment = dataSnapshot.getValue(Comment.class);
-                if (progressOverlay.getVisibility() == View.VISIBLE) {
-                    AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
-                }
+                stopProgressOverlay(progressOverlay);
                 TabsUtil.populateCommentsList(activity, posterName, postTitle, postTimeStamp, posterUserId, postStatus, fragmentView, commentsRecyclerView, context, application.getCommentsRecyclerViewAdapter());
             }
 
             @Override
             public void onCancelled(DatabaseError firebaseError) {
-
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
     }
 
 
-    public void getUserPosts(final String userId, final View layoutView, final PostRecyclerViewAdapter adapter, final Context context, String firebaseEndpoint) {
+    public void getUserPosts(final String userId, final View layoutView, final PostRecyclerViewAdapter adapter, final Context context, String firebaseEndpoint, final View progressOverlay) {
         final DatabaseReference postsRef = firebaseRef.child("/posts");
         DatabaseReference linkRef = firebaseRef.child("/users/" + userId + "/" + firebaseEndpoint);
         linkRef.orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -962,6 +957,7 @@ public class DatabaseQuery implements Serializable {
                 final Integer childrenCount = Long.valueOf(dataSnapshot.getChildrenCount()).intValue();
                 System.out.println("After it all children count: " + dataSnapshot.getChildrenCount());
                 if(!dataSnapshot.exists()) {
+                    stopProgressOverlay(progressOverlay);
                     RecyclerView recyclerView = TabsUtil.populateNewsFeedList(layoutView, adapter, context, adapter.getItemCount());
 //                    getUserPosts(userId, layoutView, application.getUserAdapter(), context, "posts");
                     recyclerView.setNestedScrollingEnabled(false);
@@ -975,67 +971,31 @@ public class DatabaseQuery implements Serializable {
                             count[0]++;
                             if(count[0] == childrenCount) {
                                 //we know that we have to populate the user posts at this point
+                                stopProgressOverlay(progressOverlay);
                                 RecyclerView recyclerView = TabsUtil.populateNewsFeedList(layoutView, adapter, context, adapter.getItemCount());
 //                                recyclerView.setNestedScrollingEnabled(false);
                             }
                         }
 
                         @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
+                        public void onCancelled(DatabaseError firebaseError) {
+                            FirebaseCrash.report(firebaseError.toException());
                         }
                     });
                 }
             }
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+            public void onCancelled(DatabaseError firebaseError) {
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
     }
 
+    private void stopProgressOverlay(View progressOverlay) {
+        if (progressOverlay.getVisibility() == View.VISIBLE) {
+            progressOverlay.setVisibility(View.GONE);
+            AndroidUtils.animateView(progressOverlay, View.GONE, 0, 0);
+        }
+    }
 
-//    public void updateFollowingToDatabaseReference(String userId, List<Follower> followers) {
-//        DatabaseReference reference = new DatabaseReference("https://tabsapp.firebaseio.com/Users/" + userId + "/Following");
-//        Map<String, Object> updatedFriends = new HashMap<String, Object>();
-//        for(Follower follower: followers) {
-//            updatedFriends.put(follower.getUser() + "/" + follower.getId() + "/isFollowing", follower.getIsAlsoFollowing());
-//        }
-//        application.setFromAnotherActivity(true);
-//        reference.updateChildren(updatedFriends, new DatabaseReference.CompletionListener() {
-//            @Override
-//            public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
-//                if (firebaseError != null) {
-//                    System.out.println("There was an error saving data. ");
-//                } else {
-//                    if(application.getFromAnotherActivity() == true) {
-//                        application.setFromAnotherActivity(false);
-//                    }
-//                }
-//                application.getPrivateAdapter().notifyDataSetChanged();
-//            }
-//        }
-//    }
-//
-//    public void updateFollowersToDatabaseReference(List<Follower> followers) {
-//        DatabaseReference reference = new DatabaseReference("https://tabsapp.firebaseio.com/Users");
-//        Map<String, Object> updatedFriends = new HashMap<String, Object>();
-//        for(Follower follower: followers) {
-//            updatedFriends.put(follower.getUser() + "/" + follower.getId() + "/isFollowing", follower.getIsAlsoFollowing());
-//        }
-//        application.setFromAnotherActivity(true);
-//        reference.updateChildren(updatedFriends, new DatabaseReference.CompletionListener() {
-//            @Override
-//            public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
-//                if (firebaseError != null) {
-//                    System.out.println("There was an error saving data. ");
-//                } else {
-//                    if(application.getFromAnotherActivity() == true) {
-//                        application.setFromAnotherActivity(false);
-//                    }
-//                }
-//                application.getPrivateAdapter().notifyDataSetChanged();
-//            }
-//        });
-//    }
 }

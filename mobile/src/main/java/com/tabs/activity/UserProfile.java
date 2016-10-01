@@ -95,13 +95,13 @@ public class UserProfile extends AppCompatActivity {
                     if(followersToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
                         followersToggle.setTypeface(Typeface.SANS_SERIF);
                     }
-                    databaseQuery.getUserPosts(userProfileId, layoutView, application.getUserAdapter(), getApplicationContext(), "posts");
+                    databaseQuery.getUserPosts(userProfileId, layoutView, application.getUserAdapter(), getApplicationContext(), "posts", progressOverlay);
                 } else {
                     followersToggle.setTypeface(Typeface.DEFAULT_BOLD);
                     if(publicToggle.getTypeface() == Typeface.DEFAULT_BOLD) {
                         publicToggle.setTypeface(Typeface.SANS_SERIF);
                     }
-                    databaseQuery.getUserPosts(userProfileId, layoutView, application.getPostsUserHasCommentedOnAdapter(), getApplicationContext(), "commented_posts");
+                    databaseQuery.getUserPosts(userProfileId, layoutView, application.getPostsUserHasCommentedOnAdapter(), getApplicationContext(), "commented_posts", progressOverlay);
                 }
             }
         });
@@ -327,13 +327,9 @@ public class UserProfile extends AppCompatActivity {
             application.getUserFollowersAdapter().initializeChangedFollowing();
             application.getUserFollowingAdapter().initializeChangedFollowing();
             //Need to clear out the user following array
-            databaseQuery.getUserPosts(userProfileId, layoutView, application.getUserAdapter(), getApplicationContext(), "posts");
+            databaseQuery.getUserPosts(userProfileId, layoutView, application.getUserAdapter(), getApplicationContext(), "posts", progressOverlay);
             setupPrivacyToggle();
-            if (progressOverlay.getVisibility() == View.VISIBLE) {
-                progressOverlay.setVisibility(View.GONE);
-                AndroidUtils.animateView(progressOverlay, View.GONE, 0, 200);
-                findViewById(R.id.rv_posts_feed).setVisibility(View.VISIBLE);
-            }
+
         }
     }
 

@@ -31,6 +31,7 @@ import android.widget.RelativeLayout;
 
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
+import com.google.firebase.crash.FirebaseCrash;
 import com.ncapdevi.fragnav.FragNavController;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnMenuTabClickListener;
@@ -67,7 +68,7 @@ public class news_feed extends AppCompatActivity
                 location.setLatitude(intent.getDoubleExtra("latitude", 0.0));
                 location.setLongitude(intent.getDoubleExtra("longitude", 0.0));
             } catch (Exception e) {
-                e.printStackTrace();
+                FirebaseCrash.report(e);
             }
 
         }
