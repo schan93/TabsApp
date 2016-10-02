@@ -86,6 +86,7 @@ public class UserProfile extends AppCompatActivity {
         publicToggle.setText(R.string.posts);
         followersToggle.setText(R.string.comments);
         publicToggle.setChecked(true);
+        publicToggle.setTypeface(Typeface.DEFAULT_BOLD);
         //Set listener for clicking on toggle
         privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override

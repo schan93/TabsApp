@@ -204,7 +204,7 @@ public class NotificationService extends FirebaseMessagingService {
                     data.put("userId", userId);
                     root.put("notification", notification);
                     root.put("data", data);
-                    root.put("registration_ids", recipients);
+                    root.put("to", (Object) recipients);
 
                     String result = postToFCM(root.toString());
                     Log.d(TAG, "Result: " + result);
