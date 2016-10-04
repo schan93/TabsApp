@@ -44,7 +44,7 @@ public class TabsUtil {
 
     public static final String ARGS_INSTANCE = "com.tabs.argInstance";
 
-    public static RecyclerView populateNewsFeedList(View fragmentView, PostRecyclerViewAdapter adapter, Context context, Integer adapterSize) {
+    public static RecyclerView populateNewsFeedList(View fragmentView, PostRecyclerViewAdapter adapter, Context context) {
         RecyclerView rv = (RecyclerView) fragmentView.findViewById(R.id.rv_posts_feed);
         RecyclerView.ItemAnimator animator = rv.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
@@ -56,7 +56,7 @@ public class TabsUtil {
         rv.setLayoutManager(llm);
         rv.setAdapter(adapter);
 
-        if(TabsUtil.checkPostsLength(rv) && adapterSize == 0) {
+        if(TabsUtil.checkPostsLength(rv)) {
             fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
             fragmentView.findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
             TextView textView = (TextView) fragmentView.findViewById(R.id.no_posts_text);
@@ -128,58 +128,14 @@ public class TabsUtil {
         //Assuming we refresh the followers list, we have to make sure that new followers are loaded
         adapter.notifyDataSetChanged();
         if(TabsUtil.checkCommentsLength(rv)) {
-//            fragmentView.findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
-//            fragmentView.findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
             TextView textView = (TextView) fragmentView.findViewById(R.id.empty_list_item);
             textView.setText(R.string.noComments);
             textView.setVisibility(View.VISIBLE);
-//            fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
         } else {
             fragmentView.findViewById(R.id.rv_view_comments).setVisibility(View.VISIBLE);
             rv.setAdapter(adapter);
         }
     }
-
-//    public static DraweeController getMoreCommentersImage(String numberCommenters) {
-//        ControllerListener controllerListener = new BaseControllerListener<ImageInfo>(){
-//            @Override
-//            public void onFinalImageSet(
-//                    String id,
-//                    @Nullable ImageInfo imageInfo,
-//                    @Nullable Animatable anim) {
-//                if(imageInfo == null)
-//                    return;
-//                QualityInfo qualityInfo = imageInfo.getQualityInfo();
-//                FLog.d("Final image received ! " + "Size %d x %d", "Quality level %d, good enough : %s, full quality: %s",
-//                        imageInfo.getWidth(),
-//                        imageInfo.getHeight(),
-//                        qualityInfo.getQuality(),
-//                        qualityInfo.isOfGoodEnoughQuality(),
-//                        qualityInfo.isOfFullQuality());
-//            }
-//
-//            @Override
-//            public void onIntermediateImageSet(String id, @Nullable ImageInfo imageInfo){
-//                FLog.d(getClass(), "Intermediate image received");
-//            }
-//
-//            @Override
-//            public void onFailure(String id, Throwable throwable){
-//                FLog.e(getClass(), throwable, "Error loading %s ", id);
-//            }
-//        };
-//        Uri uri = Uri.parse("http://graph.facebook.com/" + userId + "/picture?type=large");
-//        System.out.println("Uri: " + uri);
-//        DraweeController controller = Fresco.newDraweeControllerBuilder()
-//                .setControllerListener(controllerListener)
-//                .setUri(uri)
-//                .build();
-//        System.out.println("Controller: " + controller);
-//        return controller;
-//        controller.setT
-        //draweeView.setImageURI(uri);
-//    }
-
 
     public static DraweeController getImage(String userId){
         ControllerListener controllerListener = new BaseControllerListener<ImageInfo>(){
@@ -217,7 +173,6 @@ public class TabsUtil {
                 .build();
         System.out.println("Controller: " + controller);
         return controller;
-        //draweeView.setImageURI(uri);
     }
 
     public static void setupProfileView(final View view, final String callingActivityName, FireBaseApplication fireBaseApplication, DatabaseQuery databaseQuery, String ... intentVariables) {
@@ -268,22 +223,6 @@ public class TabsUtil {
         } else {
             return false;
         }
-    }
-
-    public static boolean checkIfAdapterEmpty(PostRecyclerViewAdapter adapter) {
-        System.out.println("Adapter Item Count: " + adapter.getItemCount());
-        if(adapter.getItemCount() < 1) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    public static void setupPostsCommentsView(View view, int id) {
-        view.findViewById(R.id.no_posts_layout).setVisibility(View.VISIBLE);
-        view.findViewById(R.id.no_posts_text).setVisibility(View.VISIBLE);
-        TextView textView = (TextView) view.findViewById(R.id.no_posts_text);
-        textView.setText(id);
     }
 
     public static boolean checkCommentsLength(ListView view) {

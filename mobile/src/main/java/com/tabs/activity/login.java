@@ -121,8 +121,6 @@ public class login extends Activity implements Serializable, LocationListener {
         databaseQuery = new DatabaseQuery(this);
         databaseQuery.getUserFromFacebook(name, currentUserId, loggedIn, login.this);
 
-        //Subscribe to DatabaseReference notification test
-        FirebaseMessaging.getInstance().subscribeToTopic("test");
         FirebaseInstanceId.getInstance().getToken();
     }
 

@@ -116,16 +116,12 @@ public class UserProfile extends AppCompatActivity {
     }
 
     private void populatePostsView(PostRecyclerViewAdapter adapter) {
-        RecyclerView recyclerView = TabsUtil.populateNewsFeedList(layoutView, adapter, getApplicationContext(), adapter.getItemCount());
+        RecyclerView recyclerView = TabsUtil.populateNewsFeedList(layoutView, adapter, getApplicationContext());
         recyclerView.setNestedScrollingEnabled(false);
     }
 
     private void setupFollowButton(final Button button) {
-        if(application.getFollowingRecyclerViewAdapter().containsUserId(userProfileId) != null) {
-            setButtonIsFollowing(button);
-        } else {
-            setButtonIsNotFollowing(button);
-        }
+        databaseQuery.getIsFollowing(userProfileId, button, getApplicationContext());
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

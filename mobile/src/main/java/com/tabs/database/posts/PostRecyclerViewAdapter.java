@@ -252,7 +252,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
 
     public void add(Post item, PostRecyclerViewAdapter adapter){
-        if(adapter.containsId(item.getId()) == null) {
+        if(item != null && adapter.containsId(item.getId()) == null) {
             posts.add(0, item);
             notifyItemInserted(0);
             notifyItemRangeChanged(posts.size() - 1, posts.size());

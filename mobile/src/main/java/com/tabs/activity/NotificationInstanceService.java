@@ -1,9 +1,12 @@
 package com.tabs.activity;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.tabs.database.Database.DatabaseQuery;
 
 import org.json.JSONObject;
@@ -28,6 +31,9 @@ public class NotificationInstanceService extends FirebaseInstanceIdService {
     private DatabaseQuery databaseQuery;
     private FireBaseApplication application;
 
+    private final String tokenPreferenceKey = "fcm_token";
+
+    public final static String infoTopicName = "test";
 
     @Override
     public void onTokenRefresh() {
@@ -36,6 +42,10 @@ public class NotificationInstanceService extends FirebaseInstanceIdService {
         String deviceId = FirebaseInstanceId.getInstance().getToken();
         //Send the registration token to DatabaseReference database stored in User
         saveDeviceId(deviceId);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.edit().putString(tokenPreferenceKey, FirebaseInstanceId.getInstance().getToken()).apply();
+//        FirebaseMessaging.getInstance().subscribeToTopic(infoTopicName);
 
     }
 

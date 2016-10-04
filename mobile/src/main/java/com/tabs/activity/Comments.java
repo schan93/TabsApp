@@ -359,7 +359,10 @@ public class Comments extends AppCompatActivity {
 
     private void updatePostDetails(Comment comment){
         updatePostComments(comment.getPostId());
-        updatePostCommenters(comment);
+//        updatePostCommenters(comment);
+        final String hasCommented = " has commented: ";
+        String message = comment.getCommenter() + hasCommented + comment.getComment();
+        databaseQuery.sendCommentNotifications(comment, message);
     }
 
     private void updatePostCommenters(final Comment comment) {
@@ -385,8 +388,6 @@ public class Comments extends AppCompatActivity {
                 } else {
                     //Send a notification to these users who commented & wheover posted the comment
 
-                    //TODO: Fix this becuase we can just subscribe them to a topic of the posts instead of finding out who to send the posts to
-                    databaseQuery.getUsersToSendCommentNotificationTo(userId, comment, " has commented: ", (HashMap<String, String>)dataSnapshot.getValue());
 //        notificationService.showNotification(getApplicationContext(), R.id.commenter_profile_photo, name + " commented: " + text, name);
 //                    updatePostAdapters(application.getUserAdapter(), dataSnapshot);
 //                    updatePostAdapters(application.getMyTabsAdapter(), dataSnapshot);
@@ -460,15 +461,6 @@ public class Comments extends AppCompatActivity {
         application = ((com.tabs.activity.FireBaseApplication) getApplication());
         progressOverlay = findViewById(R.id.progress_overlay);
         noPostsView = findViewById(R.id.no_posts_layout);
-        if(application.getName() != null && application.getName() != "") {
-            name = application.getName();
-        } else {
-            if(savedInstanceState != null) {
-                if(savedInstanceState.containsKey("name")) {
-                    name = savedInstanceState.getString("name");
-                }
-            }
-        }
         toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -507,16 +499,23 @@ public class Comments extends AppCompatActivity {
             if(savedInstanceState.containsKey("userProfileId")) {
                 userProfileId = savedInstanceState.getString("userProfileId");
             }
+            if(savedInstanceState.containsKey("name")) {
+                name = savedInstanceState.getString("name");
+            }
+            if(savedInstanceState.containsKey("userId")) {
+                userId = savedInstanceState.getString("userId");
+            }
         } else {
             //You get all these from the post view adapter
             postId = AndroidUtils.getIntentString(getIntent(), "postId");
-            userId = AndroidUtils.getIntentString(getIntent(), "userId");
             postTitle = AndroidUtils.getIntentString(getIntent(), "postTitle");
             posterUserId = AndroidUtils.getIntentString(getIntent(), "posterUserId");
             userProfileId = AndroidUtils.getIntentString(getIntent(), "userProfileId");
             posterName = AndroidUtils.getIntentString(getIntent(), "posterName");
             postTimeStamp = AndroidUtils.getIntentLong(getIntent(), "postTimeStamp");
             postStatus = AndroidUtils.getIntentString(getIntent(), "postStatus");
+            userId = application.getUserId();
+            name = application.getName();
             User user = application.getFollowersRecyclerViewAdapter().containsUserId(posterUserId);
             if (user != null) {
                 isFollowingPoster = true;

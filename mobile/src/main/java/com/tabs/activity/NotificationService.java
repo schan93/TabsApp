@@ -31,6 +31,7 @@ import android.widget.Toast;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.firebase.crash.FirebaseCrash;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.schan.tabs.R;
@@ -74,6 +75,8 @@ public class NotificationService extends FirebaseMessagingService {
     public static final String SERVER_KEY = "AIzaSyBjemu0n27nWyhgLzojS7ICSDOiTLawwEs";   // You FCM AUTH key
     OkHttpClient mClient = new OkHttpClient();
 
+    FireBaseApplication application;
+
     /**
      * Called when message is received.
      *
@@ -94,11 +97,10 @@ public class NotificationService extends FirebaseMessagingService {
 
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
-        Log.d(TAG, "From: " + remoteMessage.getNotification());
+        Log.d(TAG, "From: " + remoteMessage.getData().get("postId"));
 
-        // Check if message contains a data payload.
-        if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+        if(remoteMessage.getData().size() > 0) {
+            Log.d(TAG, "From: " + remoteMessage.getData().size());
         }
 
         // Check if message contains a notification payload.
@@ -115,6 +117,7 @@ public class NotificationService extends FirebaseMessagingService {
     }
 
     public void showNotification(Context context, RemoteMessage remoteMessage){
+        application = ((FireBaseApplication) getApplication());
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(remoteMessage.getNotification().getBody())
@@ -127,120 +130,19 @@ public class NotificationService extends FirebaseMessagingService {
 
         Intent resultIntent = new Intent(context, Comments.class);
         if(remoteMessage.getData().containsKey("postId") && remoteMessage.getData().containsKey("userId")) {
-            setupPostDetails(notificationBuilder, resultIntent, remoteMessage.getData().get("postId"), remoteMessage.getData().get("userId"), context);
+            String postId = remoteMessage.getData().get("postId");
+            String userId = remoteMessage.getData().get("userId");
+            if(userId.equals(application.getUserId())) {
+                //Can't send the comment to yourself, but you can to everyone else that is subscribed to the topic
+                return;
+            }
+            setupPostDetails(notificationBuilder, resultIntent, postId, userId, context);
         }
     }
 
     private void setupPostDetails(NotificationCompat.Builder notificationBuilder, Intent resultIntent, String postId, String userId, Context context) {
         DatabaseQuery databaseQuery = new DatabaseQuery();
         databaseQuery.getPost(notificationBuilder, resultIntent, postId, userId, context);
-    }
-
-    public void sendCommentNotificationToServer(final String userId, final Comment comment, final String hasAction, final List<String> deviceIds) {
-
-        // final JSONArray recipients, final String title, final String body, final String icon, final String message
-
-        new AsyncTask<String, String, String>() {
-            @Override
-            protected String doInBackground(String... params) {
-                try {
-                    JSONArray recipients = new JSONArray(deviceIds);
-                    JSONObject root = new JSONObject();
-                    JSONObject notification = new JSONObject();
-                    notification.put("body", comment.getCommenter() + hasAction + comment.getComment());
-                    notification.put("title", String.valueOf(R.string.app_name));
-                    notification.put("icon", comment.getCommenterUserId());
-//                    notification.put("icon", icon);
-
-                    JSONObject data = new JSONObject();
-                    data.put("postId", comment.getPostId());
-                    data.put("userId", userId);
-                    root.put("notification", notification);
-                    root.put("data", data);
-                    root.put("registration_ids", recipients);
-
-                    String result = postToFCM(root.toString());
-                    Log.d(TAG, "Result: " + result);
-                    return result;
-                } catch (Exception e) {
-                    FirebaseCrash.report(e);
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(String result) {
-                try {
-                    JSONObject resultJson = new JSONObject(result);
-                    int success, failure;
-                    success = resultJson.getInt("success");
-                    failure = resultJson.getInt("failure");
-                    System.out.println("Success: " + success);
-                } catch (JSONException e) {
-                    FirebaseCrash.report(e);
-                 }
-            }
-        }.execute();
-    }
-
-    public void sendPostNotificationToServer(final String userId, final Post post, final String hasAction, final List<String> deviceIds) {
-
-        // final JSONArray recipients, final String title, final String body, final String icon, final String message
-
-        new AsyncTask<String, String, String>() {
-            @Override
-            protected String doInBackground(String... params) {
-                try {
-                    JSONArray recipients = new JSONArray(deviceIds);
-                    JSONObject root = new JSONObject();
-                    JSONObject notification = new JSONObject();
-                    notification.put("body", post.getName() + hasAction + post.getStatus());
-                    notification.put("title", String.valueOf(R.string.app_name));
-                    notification.put("icon", post.getPosterUserId());
-//                    notification.put("icon", icon);
-
-                    JSONObject data = new JSONObject();
-                    data.put("postId", post.getId());
-                    data.put("userId", userId);
-                    root.put("notification", notification);
-                    root.put("data", data);
-                    root.put("to", (Object) recipients);
-
-                    String result = postToFCM(root.toString());
-                    Log.d(TAG, "Result: " + result);
-                    return result;
-                } catch (Exception e) {
-                    FirebaseCrash.report(e);
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(String result) {
-                try {
-                    JSONObject resultJson = new JSONObject(result);
-                    int success, failure;
-                    success = resultJson.getInt("success");
-                    failure = resultJson.getInt("failure");
-                    System.out.println("Success: " + success);
-                    //TODO: Log Exception
-//                    Toast.makeText(getCurrentActivity(), "Message Success: " + success + "Message Failed: " + failure, Toast.LENGTH_LONG).show();
-                } catch (JSONException e) {
-                    FirebaseCrash.report(e);
-                }
-            }
-        }.execute();
-    }
-
-    String postToFCM(String bodyString) throws IOException {
-        RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), bodyString);
-        Request request = new Request.Builder()
-                .url(FCM_MESSAGE_URL)
-                .post(body)
-                .addHeader("Authorization", "key=" + SERVER_KEY)
-                .build();
-        Response response = mClient.newCall(request).execute();
-        return response.body().string();
     }
 
     public Bitmap getBitmapFromURL(String userId) {
