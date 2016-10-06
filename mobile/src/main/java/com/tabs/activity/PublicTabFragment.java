@@ -233,7 +233,8 @@ public class PublicTabFragment extends Fragment {
 //                        noLocation = true;
                         break;
                     case Activity.RESULT_CANCELED:
-//                        setupNoPostsView();
+                        setupNoPostsView();
+//                        System.out.println("Cancelled");
                         break;
                 }
                 break;

@@ -190,6 +190,7 @@ public class MainActivity extends AppCompatActivity
         super.onPause();
         // Logs 'app deactivate' App Event.
         AppEventsLogger.deactivateApp(this);
+        unregisterReceiver(locationReceiver);
     }
 
     private void setupActivity(Bundle savedInstanceState) {

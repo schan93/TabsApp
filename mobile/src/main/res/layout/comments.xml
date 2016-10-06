@@ -81,7 +81,14 @@
             android:background="@color/white"
             android:layout_alignParentBottom="true">
 
+            <View
+                android:id="@+id/line_above_comment"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/material_color_grey_300"/>
+
             <EditText
+                android:layout_below="@id/line_above_comment"
                 android:fontFamily="sans-serif"
                 android:id="@+id/write_comment"
                 android:layout_width="match_parent"
@@ -91,7 +98,7 @@
                 android:textSize="16sp"
                 android:textColor="@color/black"
                 android:cursorVisible="false"
-                android:textColorHint="@color/material_color_grey_300"
+                android:textColorHint="@color/material_color_grey_400"
                 android:hint="@string/commentBack"
                 android:background="@drawable/edittext_bg"
                 android:inputType="textMultiLine"

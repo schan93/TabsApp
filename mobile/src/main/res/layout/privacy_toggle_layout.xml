@@ -18,7 +18,6 @@
             android:button="@null"
             android:gravity="center"
             android:text="@string/publicString"
-            android:textAllCaps="true"
             android:textSize="18sp"
             android:padding="8dp"
             android:textColor="@color/text_color" />
@@ -34,7 +33,6 @@
             android:text="@string/followers"
             android:checked="true"
             android:textSize="18sp"
-            android:textAllCaps="true"
             android:padding="8dp"
             android:textColor="@color/text_color" />
     </RadioGroup>

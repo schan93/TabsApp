@@ -49,21 +49,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="48dp"
-        android:singleLine="true"
-        android:textColorHint="#d3d3d3"
+        android:maxLines="1"
+        android:textColorHint="@color/material_color_grey_400"
         android:padding="10dp"
         android:maxLength="45"
         android:gravity="top"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:background="@drawable/edittext_bg"
         android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-        android:hint="Title"/>
+        android:hint="@string/titlePlaceholder"/>
 
     <View
         android:layout_above="@id/create_post_title"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/material_color_grey_200"/>
+        android:background="@color/material_color_grey_300"/>
 
 
     <EditText
@@ -71,9 +71,9 @@
         android:layout_below="@id/create_post_title"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textColorHint="#d3d3d3"
-        android:textSize="20sp"
-        android:hint="What do you want to say?"
+        android:textColorHint="@color/material_color_grey_400"
+        android:textSize="18sp"
+        android:hint="@string/statusPlaceholder"
         android:padding="10dp"
         android:gravity="top"
         android:backgroundTint="#ffffff"

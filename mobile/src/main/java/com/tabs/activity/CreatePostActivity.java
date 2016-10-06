@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.renderscript.Type;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -134,6 +135,7 @@ public class CreatePostActivity extends AppCompatActivity {
 
         if(privacyToggle != null && publicToggle != null && followersToggle != null) {
             privacyToggle.check(R.id.public_toggle);
+            publicToggle.setTypeface(Typeface.DEFAULT_BOLD);
             //Set listener for clicking on toggle
             privacyToggle.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
                 @Override

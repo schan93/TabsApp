@@ -30,5 +30,8 @@
         <item name="android:background">@null</item>
         <item name="android:textSize">@dimen/abc_text_size_subhead_material</item>
     </style>
+    <style name="TabLayoutIndicators" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">14sp</item>
+    </style>
 
 </resources>

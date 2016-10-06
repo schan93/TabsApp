@@ -42,5 +42,8 @@
     <string name="crash_toast_text">Tabs has crashed. Please contact an administrator for more details.</string>
     <string name="plusFollow">+ Follow</string>
     <string name="spaceComments"> Comments</string>
+    <string name="statusPlaceholder">What do you want to say?</string>
+    <string name="titlePlaceholder">Title</string>
+    <string name="findOutMessage">Find out what\'s going on in your area!</string>
 
 </resources>

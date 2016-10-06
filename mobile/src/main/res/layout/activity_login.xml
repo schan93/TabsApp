@@ -56,7 +56,6 @@
         android:paddingRight="32dp"
         android:layout_above="@id/login_button"
         android:layout_below="@id/tabs_logo"
-        android:textAllCaps="true"
-        android:text="Find out what's going on in your area. "/>
+        android:text="@string/findOutMessage"/>
 
 </RelativeLayout>

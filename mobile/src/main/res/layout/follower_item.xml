@@ -39,7 +39,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="8dp"
-            android:textSize="14sp"
+            android:textColor="@color/black"
+            android:textSize="16sp"
             android:fontFamily="sans-serif-medium"
             android:layout_centerVertical="true" />
 
@@ -49,12 +50,13 @@
             android:layout_height="32dp"
             android:focusable="false"
             android:layout_marginRight="16dp"
-            android:textSize="12sp"
+            android:textSize="14sp"
             android:paddingLeft="24dp"
             android:paddingRight="24dp"
             android:fontFamily="sans-serif-medium"
             android:background="@drawable/following_button_bg"
             android:focusableInTouchMode="false"
+            android:textAllCaps="false"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:layout_alignParentEnd="true" />

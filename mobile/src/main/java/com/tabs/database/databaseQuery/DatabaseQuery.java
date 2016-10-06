@@ -734,10 +734,10 @@ public class DatabaseQuery implements Serializable {
                 }
                 if(callingActivityName.equals("Profile")) {
                     application.setFollowerNum(count);
-                    followersbutton.setText(Html.fromHtml("<b><big>" + application.getFollowerNum() + "</big></b>" + "\nFollowers"));
+                    followersbutton.setText(Html.fromHtml("<b><big>" + application.getFollowerNum() + "</big></b>" + "<br/>Followers"));
                 } else {
                     application.setUserFollowerNum(count);
-                    followersbutton.setText(Html.fromHtml("<b><big>" + application.getUserFollowerNum() + "</big></b>" + "\nFollowers"));
+                    followersbutton.setText(Html.fromHtml("<b><big>" + application.getUserFollowerNum() + "</big></b>" + "<br/>Followers"));
                 }
                 progressOverlay.setVisibility(View.GONE);
                 followersbutton.setVisibility(View.VISIBLE);
@@ -765,10 +765,10 @@ public class DatabaseQuery implements Serializable {
                 }
                 if(callingActivityName.equals("Profile")) {
                     application.setFollowingNum(count);
-                    followingButton.setText(Html.fromHtml("<b><big>" + application.getFollowingNum() + "</big></b>" + "\nFollowing"));
+                    followingButton.setText(Html.fromHtml("<b><big>" + application.getFollowingNum() + "</big></b>" + "<br/>Following"));
                 } else {
                     application.setUserFollowingNum(count);
-                    followingButton.setText(Html.fromHtml("<b><big>" + application.getUserFollowingNum() + "</big></b>" + "\nFollowing"));
+                    followingButton.setText(Html.fromHtml("<b><big>" + application.getUserFollowingNum() + "</big></b>" + "<br/>Following"));
                 }
                 progressOverlay.setVisibility(View.GONE);
                 followingButton.setVisibility(View.VISIBLE);

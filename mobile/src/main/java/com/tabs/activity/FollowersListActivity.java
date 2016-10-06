@@ -59,11 +59,11 @@ public class FollowersListActivity extends AppCompatActivity {
 
     private void setupActionBar(){
         Toolbar toolbar = (Toolbar) findViewById(R.id.follow_toolbar);
+        toolbar.setTitle(getResources().getString(R.string.followers));
         setSupportActionBar(toolbar);
         if(getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setDisplayShowCustomEnabled(true);
         }
     }
 

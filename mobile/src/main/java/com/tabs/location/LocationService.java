@@ -34,7 +34,7 @@ public class LocationService {
 
     private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 300000;
 
-    private static final float UPDATE_DISPLACEMENT_IN_METERS = 1000;
+    private static final float UPDATE_DISPLACEMENT_IN_METERS = 10;
 
 
     public LocationService(Context context, LocationUpdateListener locationUpdateListener) {

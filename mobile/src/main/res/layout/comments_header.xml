@@ -8,7 +8,7 @@
     android:orientation="horizontal"
     android:layout_height="wrap_content"
     android:clipToPadding="false"
-    android:background="@color/material_color_grey_200"
+    android:background="@color/material_color_grey_100"
     android:minHeight="160dp">
 
     <com.facebook.drawee.view.SimpleDraweeView
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:textSize="16sp"
-        android:fontFamily="sans-serif-medium"
+        android:fontFamily="sans-serif"
         android:textColor="@color/colorPrimaryDark"
         android:id="@+id/poster_name"/>
 
@@ -41,7 +41,7 @@
         android:layout_height="wrap_content"
         android:layout_toRightOf="@id/poster_picture"
         android:id="@+id/comment_post_title"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="8dp"
         android:maxLines="2"
@@ -55,7 +55,7 @@
         android:layout_marginRight="16dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textColor="@color/material_color_grey_400"
         android:fontFamily="sans-serif"
         android:id="@+id/post_date"/>

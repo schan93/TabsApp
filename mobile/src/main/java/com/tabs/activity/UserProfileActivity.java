@@ -118,7 +118,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private void setupActionBar() {
         toolbar = (Toolbar) findViewById(R.id.comments_appbar);
         setSupportActionBar(toolbar);
-        toolbar.setTitle(posterName);
+        toolbar.setTitle(posterName + "'s Profile");
         //Back bar enabled
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -130,7 +130,6 @@ public class UserProfileActivity extends AppCompatActivity {
         profilePhoto.setController(controller);
         RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
         roundingParams.setRoundAsCircle(true);
-        roundingParams.setBorder(ContextCompat.getColor(this, R.color.white), 10f);
         profilePhoto.getHierarchy().setRoundingParams(roundingParams);
         TextView headerName = (TextView) findViewById(R.id.profile_name);
         headerName.setText(name);

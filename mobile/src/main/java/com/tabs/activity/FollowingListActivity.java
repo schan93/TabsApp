@@ -63,12 +63,12 @@ public class FollowingListActivity extends AppCompatActivity {
 
     private void setupActionBar(){
         Toolbar toolbar = (Toolbar) findViewById(R.id.follow_toolbar);
+        toolbar.setTitle(getResources().getString(R.string.following));
         setSupportActionBar(toolbar);
         //Back bar enabled
         if(getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setDisplayShowCustomEnabled(true);
         }
         //Toggle bar enabled
     }
