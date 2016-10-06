@@ -7,6 +7,7 @@
     <string name="action_logout">Logout</string>
     <string name="facebook_app_id">1649818601942342</string>
 
+    <string name="profile">Profile</string>
     <string name="comments">Comments</string>
     <string name="posts">Posts</string>
     <string name="following">Following</string>
@@ -39,4 +40,7 @@
     <string name="createTitle">Title your post</string>
     <string name="createStatus">Post a status</string>
     <string name="crash_toast_text">Tabs has crashed. Please contact an administrator for more details.</string>
+    <string name="plusFollow">+ Follow</string>
+    <string name="spaceComments"> Comments</string>
+
 </resources>

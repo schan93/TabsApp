@@ -17,10 +17,11 @@ android {
     }
     defaultConfig {
         applicationId 'com.schan.tabs'
+        multiDexEnabled true
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 6
-        versionName "6.0"
+        versionCode 7
+        versionName "7.0"
         signingConfig signingConfigs.Tabs
     }
     buildTypes {

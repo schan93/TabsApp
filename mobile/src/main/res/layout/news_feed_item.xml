@@ -5,7 +5,7 @@
     xmlns:fresco="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="100dp"
+    android:minHeight="88dp"
     card_view:cardElevation="0dp"
     android:id="@+id/cv_news_feed">
 
@@ -43,29 +43,29 @@
 
             <TextView
                 android:id="@+id/txt_name"
+                android:layout_marginLeft="8dp"
                 android:layout_toRightOf="@id/poster_profile_photo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="sans-serif"
                 android:maxWidth="125dp"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/black"
                 android:textSize="16sp"/>
 
             <TextView
                 android:layout_toRightOf="@id/poster_profile_photo"
                 android:layout_below="@id/txt_name"
                 android:id="@+id/txt_post_title"
-                android:layout_marginTop="4dp"
+                android:layout_marginLeft="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="sans-serif"
                 android:maxLines="2"
-                android:layout_marginBottom="8dp"
                 android:textColor="@color/black"
-                android:textSize="18sp"/>
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/txt_timestamp"
@@ -80,19 +80,21 @@
 
             <TextView
                 android:id="@+id/txt_statusMsg"
-                android:visibility="gone"
+                android:layout_marginLeft="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/txt_post_title"
-                android:layout_marginTop="8dp"
+                android:layout_toRightOf="@id/poster_profile_photo"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif"
                 android:maxLines="3"
-                android:textSize="16sp"/>
+                android:textSize="14sp"/>
 
             <TextView
-                android:layout_below="@id/txt_statusMsg"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
                 android:id="@+id/num_comments"
+                android:layout_below="@id/txt_statusMsg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toRightOf="@id/poster_profile_photo"
@@ -101,9 +103,11 @@
                 android:fontFamily="sans-serif" />
 
             <TextView
+                android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toRightOf="@id/num_comments"
+                android:fontFamily="sans-serif"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:visibility="gone"
@@ -114,6 +118,7 @@
                 android:id="@+id/circle" />
 
             <TextView
+                android:layout_marginTop="8dp"
                 android:id="@+id/privacy_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -7,7 +7,7 @@
     <!--android:layout_width="match_parent"-->
     <!--android:layout_height="match_parent"-->
     <!--android:id="@+id/activity_main"-->
-    <!--tools:context="com.tabs.activity.news_feed">-->
+    <!--tools:context="com.tabs.activity.MainActivityity">-->
     <!---->
     <!--<RelativeLayout-->
         <!--android:layout_width="match_parent"-->
@@ -58,7 +58,7 @@
         <!--android:layout_gravity="bottom|right"-->
         <!--app:layout_anchor="@id/pager"-->
         <!--app:layout_anchorGravity="bottom|right|end"-->
-        <!--app:layout_behavior="com.tabs.activity.ScrollingFabBehavior"-->
+        <!--app:layout_behavior="com.tabs.utils.ScrollingFabBehavior"-->
         <!--android:src="@android:drawable/ic_dialog_email" />-->
 
 <!--</android.support.design.widget.CoordinatorLayout>-->
@@ -105,5 +105,5 @@
         app:backgroundTint="@color/teal"
         android:src="@drawable/ic_create_white_24dp"
         app:borderWidth="0dp"
-        app:layout_behavior="com.tabs.activity.ScrollingFabBehavior"/>
+        app:layout_behavior="com.tabs.utils.ScrollingFabBehavior"/>
 </android.support.design.widget.CoordinatorLayout>

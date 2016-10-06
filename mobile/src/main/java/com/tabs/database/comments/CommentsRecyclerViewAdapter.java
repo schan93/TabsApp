@@ -1,30 +1,23 @@
 package com.tabs.database.comments;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.RecyclerView;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.schan.tabs.R;
-import com.tabs.activity.AndroidUtils;
-import com.tabs.activity.CommentsHeader;
+import com.tabs.activity.UserProfileActivity;
+import com.tabs.utils.AndroidUtils;
 import com.tabs.activity.FireBaseApplication;
-import com.tabs.activity.TabsUtil;
-import com.tabs.activity.UserProfile;
-import com.tabs.database.Database.DatabaseQuery;
+import com.tabs.utils.TabsUtil;
 
 import java.util.List;
 
@@ -71,7 +64,7 @@ public class CommentsRecyclerViewAdapter extends ArrayAdapter<Comment> {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         application = ((FireBaseApplication) context.getApplicationContext());
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -109,7 +102,7 @@ public class CommentsRecyclerViewAdapter extends ArrayAdapter<Comment> {
     }
 
     private void setupOnClickListener(View view, Comment comment) {
-        Intent intent = new Intent(view.getContext(), UserProfile.class);
+        Intent intent = new Intent(view.getContext(), UserProfileActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Bundle bundle = new Bundle();
         bundle.putString("postId", comment.getPostId());

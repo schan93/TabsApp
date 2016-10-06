@@ -1,4 +1,4 @@
-package com.tabs.database.Notifications;
+package com.tabs.database.notifications;
 
 /**
  * Created by schan on 10/2/16.

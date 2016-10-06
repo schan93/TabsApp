@@ -20,13 +20,13 @@ public class PagerAdapter extends FragmentStatePagerAdapter{
 
         switch (position) {
             case 0:
-                PublicTab tab1 = new PublicTab();
+                PublicTabFragment tab1 = new PublicTabFragment();
                 return tab1;
             case 1:
-                FollowersTab tab2 = new FollowersTab();
+                FollowersTabFragment tab2 = new FollowersTabFragment();
                 return tab2;
             case 2:
-                ProfileTab tab3 = new ProfileTab();
+                ProfileTabFragment tab3 = new ProfileTabFragment();
                 return tab3;
             default:
                 return null;

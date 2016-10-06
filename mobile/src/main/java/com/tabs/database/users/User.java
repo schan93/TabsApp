@@ -10,7 +10,6 @@ public class User implements Serializable{
     private String id;
     private String userId;
     private String name;
-    private String deviceId;
     /**
      * Empty default constructor, necessary for DatabaseReference to be able to deserialize Users
      */
@@ -22,7 +21,6 @@ public class User implements Serializable{
         this.id = id;
         this.userId = userId;
         this.name = name;
-        this.deviceId = deviceId;
     }
 
     public String getId() { return id; }
@@ -38,9 +36,5 @@ public class User implements Serializable{
     public String getName() { return name; }
 
     public void setName(String name) { this.name = name; }
-
-    public String getDeviceId() { return deviceId; }
-
-    public void setDeviceId(String tokenId) { this.deviceId = tokenId; }
 
 }

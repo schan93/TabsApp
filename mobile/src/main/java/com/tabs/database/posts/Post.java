@@ -1,11 +1,8 @@
 package com.tabs.database.posts;
 
-import com.google.firebase.database.Exclude;
-import com.tabs.activity.PrivacyEnum;
+import com.tabs.enums.PrivacyEnum;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

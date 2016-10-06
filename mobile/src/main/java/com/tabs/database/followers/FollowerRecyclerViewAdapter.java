@@ -1,6 +1,8 @@
 package com.tabs.database.followers;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -14,11 +16,12 @@ import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.schan.tabs.R;
-import com.tabs.activity.AndroidUtils;
+import com.tabs.activity.UserProfileActivity;
+import com.tabs.utils.AndroidUtils;
 import com.tabs.activity.FireBaseApplication;
-import com.tabs.activity.FollowerEnum;
-import com.tabs.activity.TabsUtil;
-import com.tabs.database.Database.DatabaseQuery;
+import com.tabs.enums.FollowerEnum;
+import com.tabs.utils.TabsUtil;
+import com.tabs.database.databaseQuery.DatabaseQuery;
 import com.tabs.database.users.User;
 
 import java.util.HashMap;
@@ -31,12 +34,17 @@ import java.util.Map;
 public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRecyclerViewAdapter.FollowerViewHolder>{
 
     private List<User> followers;
-    private FireBaseApplication fireBaseApplication;
     private DatabaseQuery databaseQuery;
-    Context context;
+    private Context context;
+    private FireBaseApplication fireBaseApplication;
     private Map<String, Boolean> changedFollowing;
-    private Boolean isSetup;
     private FollowerEnum followerEnum;
+    private String posterUserId;
+    private String posterName;
+    private String postStatus;
+    private Long postTimeStamp;
+    private String postTitle;
+    private String userProfileId;
 
     public Map<String, Boolean> getChangedFollowing() {
         return this.changedFollowing;
@@ -63,21 +71,24 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         return null;
     }
 
-    public FollowerRecyclerViewAdapter(List<User> followers) {
-        this.followers = followers;
-    }
-
-    public FollowerRecyclerViewAdapter(List<User> followers, Context context, FollowerEnum followerEnum) {
+    public FollowerRecyclerViewAdapter(List<User> followers, Context context, FollowerEnum followerEnum, FireBaseApplication fireBaseApplication) {
         this.followers = followers;
         this.context = context;
-        this.changedFollowing = new HashMap<String, Boolean>();
-        this.isSetup = true;
+        this.changedFollowing = new HashMap<>();
         this.followerEnum = followerEnum;
+        this.fireBaseApplication = fireBaseApplication;
     }
 
-    public void setupFollowersRecyclerView(DatabaseQuery databaseQuery, Context context) {
+    public void setupFollowersRecyclerView(DatabaseQuery databaseQuery, Context context, String posterUserId, String posterName,
+                                           String postStatus, Long postTimeStamp, String postTitle, String userProfileId) {
         this.databaseQuery = databaseQuery;
         this.context = context;
+        this.posterUserId = posterUserId;
+        this.posterName = posterName;
+        this.postStatus = postStatus;
+        this.postTimeStamp = postTimeStamp;
+        this.postTitle = postTitle;
+        this.userProfileId = userProfileId;
     }
 
     public List<User> getFollowers(){
@@ -119,32 +130,22 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         if(fireBaseApplication.getUserId().equals(currentItem.getUserId())) {
             followerViewHolder.isFollowingButton.setVisibility(View.GONE);
         }
-//        if(fireBaseApplication.getFollowingRecyclerViewAdapter().containsUserId(followers, currentItem.getUserId()) != null) {
-//            followerViewHolder.isFollowingButton.setText("Following");
-//            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.following_button_bg);
-//            followerViewHolder.isFollowingButton.setTextColor(ContextCompat.getColor(followerViewHolder.itemView.getContext(), R.color.white));
-//        } else {
-//            followerViewHolder.isFollowingButton.setText("+ Follow");
-//            followerViewHolder.isFollowingButton.setBackgroundResource(R.drawable.follow_button_bg);
-//            followerViewHolder.isFollowingButton.setTextColor(ContextCompat.getColor(followerViewHolder.itemView.getContext(), R.color.colorPrimary));
-//
-//        }
-//        if(fireBaseApplication.getFollo().containsId(fireBaseApplication.getFollowerRecyclerViewAdapter().getFollowers(), currentItem.getId()) != null){
-//            followerViewHolder.isFollowingCheckBox.setChecked(true);
-//        } else {
-//            followerViewHolder.isFollowingCheckBox.setChecked(false);
-//        }
+        if(currentItem.getUserId().equals(fireBaseApplication.getUserId())) {
+            return;
+        }
+        followerViewHolder.name.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setupOnClickListener(v, currentItem);
+            }
+        });
 
-//        followerViewHolder.isFollowingCheckBox.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (((CheckBox) v).isChecked()) {
-//                    //Do something if you check it
-//                } else {
-//                    //Do something if you uncheck it
-//                }
-//            }
-//        });
+        followerViewHolder.followerProfilePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setupOnClickListener(v, currentItem);
+            }
+        });
     }
 
     @Override
@@ -166,12 +167,6 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
             notifyItemRangeChanged(followers.size() + 1, followers.size());
         }
 
-    }
-
-    public void remove(Follower item) {
-        int position = followers.indexOf(item);
-        followers.remove(position);
-        notifyItemRemoved(position);
     }
 
     @Override
@@ -218,6 +213,22 @@ public class FollowerRecyclerViewAdapter extends RecyclerView.Adapter<FollowerRe
         button.setText("+ Follow");
     }
 
+    private void setupOnClickListener(View view, User user) {
+        Intent intent = new Intent(view.getContext(), UserProfileActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Bundle bundle = new Bundle();
+        bundle.putString("userProfileId", user.getUserId());
+        bundle.putString("posterUserId", posterUserId);
+        bundle.putString("posterName", user.getName());
+        bundle.putString("postStatus", postStatus);
+        if(postTimeStamp == null) {
+            postTimeStamp = 12345678910L;
+            bundle.putLong("postTimeStamp", postTimeStamp);
+        }
+        bundle.putString("postTitle", postTitle);
+        intent.putExtras(bundle);
+        view.getContext().startActivity(intent, bundle);
+    }
 
 
 }
