@@ -86,9 +86,9 @@ public class LoginActivity extends Activity implements Serializable, LocationLis
     private void getUserInfo(String userId, String name) {
         application.setName(name);
         application.setUserId(userId);
-        application.getPublicAdapter().setUserId(userId);
-        application.getFollowingPostAdapter().setUserId(userId);
-        application.getMyTabsAdapter().setUserId(userId);
+        application.getPublicAdapter().setAdapterOwnerId(userId);
+        application.getFollowingPostAdapter().setAdapterOwnerId(userId);
+        application.getMyTabsAdapter().setAdapterOwnerId(userId);
         databaseQuery = new DatabaseQuery(this);
         databaseQuery.getUserFromFacebook(name, currentUserId, loggedIn, LoginActivity.this);
 

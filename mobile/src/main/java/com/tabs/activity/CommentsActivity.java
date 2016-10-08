@@ -86,14 +86,14 @@ public class CommentsActivity extends AppCompatActivity {
     }
 
     private void checkIfNewUser() {
-        if(application.getUserAdapter().getUserId() != null && !application.getUserAdapter().getUserId().equals(posterUserId)) {
+        if(application.getUserAdapter().getAdapterOwnerId() != null && !application.getUserAdapter().getAdapterOwnerId().equals(posterUserId)) {
             //If the user of the user adapter is not the same as the current user, then we need to get their comments. otherwise we don't need to get their number of comments
             //Since we have a listener for htem.
-            application.getUserAdapter().setUserId(posterUserId);
+            application.getUserAdapter().setAdapterOwnerId(posterUserId);
             application.getUserAdapter().getPosts().clear();
             application.getUserAdapter().notifyDataSetChanged();
 
-            application.getPostsUserHasCommentedOnAdapter().setUserId(posterUserId);
+            application.getPostsUserHasCommentedOnAdapter().setAdapterOwnerId(posterUserId);
             application.getPostsUserHasCommentedOnAdapter().getPosts().clear();
             application.getPostsUserHasCommentedOnAdapter().notifyDataSetChanged();
         }
@@ -186,7 +186,9 @@ public class CommentsActivity extends AppCompatActivity {
     }
 
     public void populateCommentView(String postId) {
-        //Set up loading page first
+        //Set up loading page first && make sure comments recycler view has been cleared out incase someone clicks back or soemthing
+        application.getCommentsRecyclerViewAdapter().getCommentsList().clear();
+        application.getCommentsRecyclerViewAdapter().notifyDataSetChanged();
         databaseQuery.getComments(this, posterName, postTitle, postTimeStamp, posterUserId, postStatus, postId, findViewById(R.id.comments_layout), commentsView, progressOverlay, getApplicationContext());
         setupCommentsAdapter();
     }
@@ -276,6 +278,9 @@ public class CommentsActivity extends AppCompatActivity {
         bundle.putString("postStatus", postStatus);
         bundle.putLong("postTimeStamp", postTimeStamp);
         bundle.putString("postTitle", postTitle);
+        bundle.putString("userId", userId);
+        bundle.putString("name", name);
+
         intent.putExtras(bundle);
         startActivity(intent, bundle);
     }
@@ -398,8 +403,8 @@ public class CommentsActivity extends AppCompatActivity {
             posterName = AndroidUtils.getIntentString(getIntent(), "posterName");
             postTimeStamp = AndroidUtils.getIntentLong(getIntent(), "postTimeStamp");
             postStatus = AndroidUtils.getIntentString(getIntent(), "postStatus");
-            userId = application.getUserId();
-            name = application.getName();
+            userId = AndroidUtils.getIntentString(getIntent(), "userId");
+            name = AndroidUtils.getIntentString(getIntent(), "name");
             User user = application.getFollowersRecyclerViewAdapter().containsUserId(posterUserId);
             if (user != null) {
                 isFollowingPoster = true;
@@ -421,6 +426,8 @@ public class CommentsActivity extends AppCompatActivity {
                 postStatus = AndroidUtils.getIntentString(data, "postStatus");
                 postTimeStamp = AndroidUtils.getIntentLong(data, "postTimeStamp");
                 postTitle = AndroidUtils.getIntentString(data, "postTitle");
+                name = AndroidUtils.getIntentString(data, "name");
+                userId = AndroidUtils.getIntentString(data, "userId");
             }
         }
     }

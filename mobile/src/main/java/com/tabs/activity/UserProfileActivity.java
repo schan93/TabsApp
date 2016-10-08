@@ -251,19 +251,19 @@ public class UserProfileActivity extends AppCompatActivity {
         String[] intentStrings = {userProfileId, posterName, postStatus, postTimeStamp, postTitle, posterUserId};
         TabsUtil.setupProfileView(layoutView, "UserProfileActivity", application, databaseQuery, intentStrings);
         setupFollowButton(followButton);
-        if(application.getUserAdapter().getUserId() != null && !application.getUserAdapter().getUserId().equals(userProfileId)) {
+        if(application.getUserAdapter().getAdapterOwnerId() != null && !application.getUserAdapter().getAdapterOwnerId().equals(userProfileId)) {
             //We know here that there is a new user profile id so we need to reset the recycler view
             application.getUserAdapter().getPosts().clear();
             application.getUserAdapter().notifyDataSetChanged();
         }
-        if(application.getPostsUserHasCommentedOnAdapter().getUserId() != null && !application.getPostsUserHasCommentedOnAdapter().getUserId().equals(userProfileId)) {
+        if(application.getPostsUserHasCommentedOnAdapter().getAdapterOwnerId() != null && !application.getPostsUserHasCommentedOnAdapter().getAdapterOwnerId().equals(userProfileId)) {
             //We know here that there is a new user profile id so we need to reset the recycler view
             application.getPostsUserHasCommentedOnAdapter().getPosts().clear();
             application.getPostsUserHasCommentedOnAdapter().notifyDataSetChanged();
         }
         if (!application.getUserId().equals(userProfileId)) {
-            application.getUserAdapter().setUserId(userProfileId);
-            application.getPostsUserHasCommentedOnAdapter().setUserId(userProfileId);
+            application.getUserAdapter().setAdapterOwnerId(userProfileId);
+            application.getPostsUserHasCommentedOnAdapter().setAdapterOwnerId(userProfileId);
             application.getUserFollowersAdapter().initializeChangedFollowing();
             application.getUserFollowingAdapter().initializeChangedFollowing();
             //Need to clear out the user following array

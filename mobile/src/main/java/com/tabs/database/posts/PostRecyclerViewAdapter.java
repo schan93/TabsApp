@@ -30,7 +30,7 @@ import com.tabs.utils.TabsUtil;
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostViewHolder> {
     private List<Post> posts;
     private AdapterEnum tabType;
-    private String userId;
+    private String adapterOwnerId;
     private FireBaseApplication application;
 
     public List<Post> getPosts() {
@@ -43,9 +43,9 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
     public AdapterEnum getAdapterType() { return tabType; }
 
-    public String getUserId() { return userId; }
+    public String getAdapterOwnerId() { return adapterOwnerId; }
 
-    public void setUserId(String userId) {this.userId = userId; }
+    public void setAdapterOwnerId(String adapterOwnerId) {this.adapterOwnerId = adapterOwnerId; }
 
     public class PostViewHolder extends RecyclerView.ViewHolder {
         CardView cardViewPost;
@@ -83,11 +83,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
                     bundle.putString("postStatus", posts.get(getAdapterPosition()).getStatus());
                     bundle.putString("postTitle", posts.get(getAdapterPosition()).getTitle());
-                    if(getUserId() == null) {
-                        bundle.putString("userId", application.getUserId());
-                    } else {
-                        bundle.putString("userId", getUserId());
-                    }
+                    bundle.putString("userId", application.getUserId());
+                    bundle.putString("name", application.getName());
                     intent.putExtras(bundle);
                     v.getContext().startActivity(intent);
                 }
@@ -138,9 +135,10 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         }
     }
 
-    public PostRecyclerViewAdapter(List<Post> posts, AdapterEnum tab) {
+    public PostRecyclerViewAdapter(List<Post> posts, AdapterEnum tab, FireBaseApplication application) {
         this.posts = posts;
         this.tabType = tab;
+        this.application = application;
     }
 
 

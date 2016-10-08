@@ -150,34 +150,6 @@ public class DatabaseQuery implements Serializable {
             }
         });
 
-        //Also need to set this post in your displayed feed to be true
-//        firebaseRef.child("users/" + userId + "/feed/" + postsRef.getKey()).setValue(true);
-
-        //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
-        firebaseRef.child("recent-users").child(userId).setPriority(-1 * date.getTime(), new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                if (databaseError != null) {
-                    System.out.println("Data could not be saved. " + databaseError.getMessage());
-                } else {
-                    FirebaseCrash.report(databaseError.toException());
-                }
-            }
-        });
-
-        //Display the comment in a list that shows the most recent comments (what we would want by design)
-        firebaseRef.child("recent-comments").child(commentsRef.getKey()).setPriority(-1 * date.getTime(), new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                if (databaseError != null) {
-                    System.out.println("Data could not be saved. " + databaseError.getMessage());
-                } else {
-                    FirebaseCrash.report(databaseError.toException());
-                }
-            }
-
-        });
-
         //Lastly add the comment as a child to the Post! I need the KEY of the post, not its id
         //The query gets the key, then based on htis query we add taht to the user location and also
         //The post_comments list
@@ -362,27 +334,7 @@ public class DatabaseQuery implements Serializable {
                     //Also need to set this post in your displayed feed to be true
                     //firebaseRef.child("users/" + userId + "/feed/" + postsRef.getKey()).setValue(true);
 
-                    //(Not sure if this is needed but for more "recent" users, we add a priority to their post under the recent-users path
-                    firebaseRef.child("recent-users").child(userId).setPriority(-1 * date.getTime(), new DatabaseReference.CompletionListener() {
-                        @Override
-                        public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
-                            if (firebaseError != null) {
-                                FirebaseCrash.report(firebaseError.toException());
-                            }
-                        }
-                    });
-
-                    //Display the post in a list that shows the most recent posts (what we would want by design)
-                    firebaseRef.child("recent-posts").child(postsRef.getKey()).setPriority(-1 * date.getTime(), new DatabaseReference.CompletionListener() {
-                        @Override
-                        public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
-                            if (firebaseError != null) {
-                                FirebaseCrash.report(firebaseError.toException());
-                            }
-                        }
-                    });
-
-                    //Lastly add the post to everyone who follows the current user!
+                    //Lastly add the post to everyone who follows the current user! ONLY following posts get added in here in this case.
                     currentUserPath.child("followers").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -390,7 +342,9 @@ public class DatabaseQuery implements Serializable {
                                 if(snapshot.getValue() == null) {
                                     return;
                                 }
-                                firebaseRef.child("users/" + snapshot.getKey() + "/feed/" + postsRef.getKey()).setValue(true);
+                                if(post.getPrivacy().equals("Following")) {
+                                    firebaseRef.child("users/" + snapshot.getKey() + "/feed/" + postsRef.getKey()).setValue(true);
+                                }
                             }
                         }
 
@@ -469,13 +423,15 @@ public class DatabaseQuery implements Serializable {
             public void onKeyEntered(String key, GeoLocation location) {
                 //Now that we entered into a query that has the public location, we have to add it to our adapter
                 publicPostsCount[0]++;
-                postsRef.child(key).orderByChild("timeStamp").addListenerForSingleValueEvent(new ValueEventListener() {
+                postsRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Post post = dataSnapshot.getValue(Post.class);
-                        application.getPublicAdapter().add(post, application.getPublicAdapter());
-                        TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
-                        stopProgressOverlay(progressOverlay);
+                        if(post.getPrivacy().equals("Public")) {
+                            application.getPublicAdapter().add(post, application.getPublicAdapter());
+                            TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
+                            stopProgressOverlay(progressOverlay);
+                        }
 //                        //onGeoQueryReady is called after onDataChange so I need to put this here.
 //                        TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
 //                        stopProgressOverlay(progressOverlay);
@@ -613,6 +569,8 @@ public class DatabaseQuery implements Serializable {
      */
     public void setupNextActivity(Boolean loggedIn, Activity activity) {
         if (loggedIn) {
+            getCurrentUserFollow("followers", application.getFollowersRecyclerViewAdapter());
+            getCurrentUserFollow("following", application.getFollowingRecyclerViewAdapter());
             activity.findViewById(R.id.loadingPanel).setVisibility(View.GONE);
         }
         Intent intent = new Intent(activity, MainActivity.class);
@@ -621,6 +579,44 @@ public class DatabaseQuery implements Serializable {
         }
     }
 
+    /**
+     * A database call to get the followers/following for the current user this is because when we initialize the application
+     * We have to make sure that these are populated beforehand so that the user if they initialize the application and then
+     * click on a user's profile and see their followers, we have to make sure the setupFollowButton is set correctly.
+     * @param firebaseEndpoint
+     * @param adapter
+     */
+    private void getCurrentUserFollow(String firebaseEndpoint, final FollowerRecyclerViewAdapter adapter) {
+        DatabaseReference userFollowingRef = currentUserPath.child("/" + firebaseEndpoint);
+        userFollowingRef.keepSynced(true);
+        userFollowingRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(final DataSnapshot child: dataSnapshot.getChildren()) {
+                    firebaseRef.child("people/" + child.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot snapshot) {
+                            if (child.getValue() != null && child.getValue() == Boolean.TRUE) {
+                                User user = snapshot.getValue(User.class);
+                                user.setUserId(child.getKey());
+                                adapter.add(user, adapter);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError firebaseError) {
+                            FirebaseCrash.report(firebaseError.toException());
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+                FirebaseCrash.report(firebaseError.toException());
+            }
+        });
+    }
 
     /**
      *  This method is designed to get the user since he/she doesn't exist.
@@ -644,6 +640,9 @@ public class DatabaseQuery implements Serializable {
                                 String userId = jsonObject.getString("id");
                                 String fullName = jsonObject.getString("name");
                                 String id = AndroidUtils.generateId();
+                                //If the application user id and name are not set here, we need to set it in here then
+                                application.setUserId(userId);
+                                application.setName(name);
                                 //We use the full name to store into DB, but we get first name to store into poeple because
                                 //This is our "object facing" object. Token Id will be created on a separate API call when
                                 //onTokenRefresh() in NotificationInstanceService class
@@ -813,7 +812,6 @@ public class DatabaseQuery implements Serializable {
         commentsRef.orderByChild("postId").equalTo(postId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Comment comment = dataSnapshot.getValue(Comment.class);
                 stopProgressOverlay(progressOverlay);
                 TabsUtil.populateCommentsList(activity, posterName, postTitle, postTimeStamp, posterUserId, postStatus, fragmentView, commentsRecyclerView, context, application.getCommentsRecyclerViewAdapter());
             }

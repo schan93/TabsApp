@@ -98,8 +98,6 @@ public class PublicTabFragment extends Fragment {
     public void onResume() {
         super.onResume();
         databaseQuery = new DatabaseQuery(getActivity());
-        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
-        progressOverlay.setVisibility(View.VISIBLE);
         noPostsView = fragmentView.findViewById(R.id.no_posts_layout);
         setupLocation();
     }
@@ -165,7 +163,8 @@ public class PublicTabFragment extends Fragment {
                 @Override
                 public void updateLocation(Location location) {
                     if (location != null) {
-//                    noLocation = true;
+                        progressOverlay = fragmentView.findViewById(R.id.progress_overlay);
+                        progressOverlay.setVisibility(View.VISIBLE);
                         databaseQuery.getPublicPosts(location, progressOverlay, fragmentView, getContext());
                     }
                 }
