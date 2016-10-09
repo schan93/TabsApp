@@ -30,8 +30,13 @@ import com.tabs.database.databaseQuery.DatabaseQuery;
 import com.tabs.database.comments.CommentsRecyclerViewAdapter;
 import com.tabs.database.followers.FollowerRecyclerViewAdapter;
 import com.tabs.database.posts.PostRecyclerViewAdapter;
+import com.tabs.database.users.User;
 import com.tabs.enums.AdapterEnum;
 import com.tabs.enums.FollowerEnum;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by schan on 5/26/16.
@@ -91,6 +96,13 @@ public class TabsUtil {
         if (animator instanceof SimpleItemAnimator) {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
         }
+        //Need to sort adapter by name
+        Collections.sort(adapter.getFollowers(), new Comparator<User>() {
+            @Override
+            public int compare(User o1, User o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
         recyclerView.setNestedScrollingEnabled(false);
         //Assuming we refresh the followers list, we have to make sure that new followers are loaded
         adapter.notifyDataSetChanged();
