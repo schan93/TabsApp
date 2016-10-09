@@ -150,15 +150,6 @@ public class DatabaseQuery implements Serializable {
             }
         });
 
-        //Lastly add the comment as a child to the Post! I need the KEY of the post, not its id
-        //The query gets the key, then based on htis query we add taht to the user location and also
-        //The post_comments list
-        firebaseRef.child("post_comments/" + comment.getPostId() + "/" + comment.getId()).setValue(true).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                FirebaseCrash.report(e);
-            }
-        });
         //Also want to set the commented_posts for that user to be true
         currentUserPath.child("commented_posts/" + comment.getPostId()).setValue(true).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -294,7 +285,6 @@ public class DatabaseQuery implements Serializable {
         final DatabaseReference postsRef = firebaseRef.child("posts").push();
         String postId = postsRef.getKey();
         post.setId(postId);
-        final Date date = new Date();
         postsRef.setValue(post).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
@@ -315,45 +305,43 @@ public class DatabaseQuery implements Serializable {
             }
         });
 
-        //Set the location for public posts
-        geoFire.setLocation("post_locations/" + postsRef.getKey(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
-            @Override
-            public void onComplete(String key, final DatabaseError error) {
-                if (error != null) {
-                    FirebaseCrash.report(error.toException());
-                } else {
-                    //Successfully saved location data.
-                    //Next, we need to set that post in your own post's path to be true
-                    firebaseRef.child("users/" + userId + "/posts/" + postsRef.getKey()).setValue(true).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            FirebaseCrash.report(e);
-                        }
-                    });
-
-                    //Also need to set this post in your displayed feed to be true
-                    //firebaseRef.child("users/" + userId + "/feed/" + postsRef.getKey()).setValue(true);
-
-                    //Lastly add the post to everyone who follows the current user! ONLY following posts get added in here in this case.
-                    currentUserPath.child("followers").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                                if(snapshot.getValue() == null) {
-                                    return;
-                                }
-                                if(post.getPrivacy().equals("Following")) {
-                                    firebaseRef.child("users/" + snapshot.getKey() + "/feed/" + postsRef.getKey()).setValue(true);
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError firebaseError) {
-                            FirebaseCrash.report(firebaseError.toException());
-                        }
-                    });
+        if(post.getPrivacy().equals("Public")) {
+            //Set the location for public posts
+            geoFire.setLocation("post_locations/" + postsRef.getKey(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+                @Override
+                public void onComplete(String key, final DatabaseError error) {
+                    if (error != null) {
+                        FirebaseCrash.report(error.toException());
+                    }
                 }
+            });
+        }
+
+        //Next, we need to set that post in your own post's path to be true
+        firebaseRef.child("users/" + userId + "/posts/" + postsRef.getKey()).setValue(true).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                FirebaseCrash.report(e);
+            }
+        });
+
+        //Lastly add the post to everyone who follows the current user! ONLY following posts get added in here in this case.
+        currentUserPath.child("followers").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    if(snapshot.getValue() == null) {
+                        return;
+                    }
+                    if(post.getPrivacy().equals("Following")) {
+                        firebaseRef.child("users/" + snapshot.getKey() + "/feed/" + postsRef.getKey()).setValue(true);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+                FirebaseCrash.report(firebaseError.toException());
             }
         });
 
@@ -412,7 +400,6 @@ public class DatabaseQuery implements Serializable {
     public void getPublicPosts(Location location, final View progressOverlay, final View fragmentView, final Context context) {
         //Need to do order by / equal to.
         final DatabaseReference postsRef = firebaseRef.child("posts");
-        final int [] publicPostsCount = new int[1];
         //Query at a location of 15 miles
         DatabaseReference locationsRef = firebaseRef.child("/post_locations");
         geoFire = new GeoFire(locationsRef);
@@ -422,26 +409,7 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
                 //Now that we entered into a query that has the public location, we have to add it to our adapter
-                publicPostsCount[0]++;
-                postsRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Post post = dataSnapshot.getValue(Post.class);
-                        if(post.getPrivacy().equals("Public")) {
-                            application.getPublicAdapter().add(post, application.getPublicAdapter());
-                            TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
-                            stopProgressOverlay(progressOverlay);
-                        }
-//                        //onGeoQueryReady is called after onDataChange so I need to put this here.
-//                        TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
-//                        stopProgressOverlay(progressOverlay);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError firebaseError) {
-                        FirebaseCrash.report(firebaseError.toException());
-                    }
-                });
+                application.getPublicPostKeys().add(key);
             }
 
             @Override
@@ -456,16 +424,60 @@ public class DatabaseQuery implements Serializable {
 
             @Override
             public void onGeoQueryReady() {
-                //onGeoQueryReady is called after onDataChange so I need to put this here.
-                //Now we can load all the posts and listen for posts that are incoming
-                System.out.println("Ready");
+                //I'm not sure if tehre's any better way to do this right now. I will simply get all the posts,
+                //Then grab each post by their key. once that's done, then I sort them and show the loading screen. That is the best i feel like I can do.
+                postsRef.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        Post post = dataSnapshot.getValue(Post.class);
+                        if (post.getPrivacy().equals("Public") && application.getPublicPostKeys().contains(post.getId())) {
+                            if(post.getId().equals("-KTc09UMItLhKpTa99KE")) {
+                                System.out.println("Adding recent");
+                            }
+                            application.getPublicAdapter().add(post, application.getPublicAdapter());
+                        }
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError firebaseError) {
+                        FirebaseCrash.report(firebaseError.toException());
+                    }
+                });
+
+                postsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        stopProgressOverlay(progressOverlay);
+                        //Sort the public posts because they are only sorted by their location
+                        TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
             }
 
             @Override
             public void onGeoQueryError(DatabaseError error) {
                 //Still need to publish all the posts
                 FirebaseCrash.report(error.toException());
-                TabsUtil.populateNewsFeedList(fragmentView, application.getPublicAdapter(), context);
             }
         });
     }

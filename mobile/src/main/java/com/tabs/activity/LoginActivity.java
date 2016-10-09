@@ -41,7 +41,6 @@ public class LoginActivity extends Activity implements Serializable, LocationLis
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupActivity();
-        checkIsLoggedIn();
     }
 
     @Override
@@ -130,12 +129,27 @@ public class LoginActivity extends Activity implements Serializable, LocationLis
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
             Profile profile = Profile.getCurrentProfile();
-            name = profile.getFirstName();
-            loggedIn = true;
-            setContentView(R.layout.loading_panel);
-            AccessToken accessToken = AccessToken.getCurrentAccessToken();
-            currentUserId = accessToken.getUserId();
-            getUserInfo(currentUserId, name);
+            ProfileTracker profileTracker = null;
+            if(Profile.getCurrentProfile() == null){
+                final ProfileTracker finalProfileTracker = profileTracker;
+                profileTracker = new ProfileTracker() {
+                    @Override
+                    protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                        name = currentProfile.getFirstName();
+                        currentUserId = currentProfile.getId();
+                        finalProfileTracker.stopTracking();
+                        loggedIn = true;
+                        setContentView(R.layout.loading_panel);
+                        getUserInfo(currentUserId, name);
+                    }
+                };
+                profileTracker.startTracking();
+            } else {
+                name = profile.getFirstName();
+                loggedIn = true;
+                setContentView(R.layout.loading_panel);
+                getUserInfo(currentUserId, name);
+            }
         }
         else {
             loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
@@ -160,10 +174,10 @@ public class LoginActivity extends Activity implements Serializable, LocationLis
                         profileTracker.startTracking();
                     } else {
                         Profile profile = Profile.getCurrentProfile();
+                        currentUserId = profile.getId();
                         name = profile.getFirstName();
                     }
                     AccessToken accessToken = loginResult.getAccessToken();
-                    currentUserId = accessToken.getUserId();
                     getUserInfo(currentUserId, name);
                 }
 
@@ -204,5 +218,9 @@ public class LoginActivity extends Activity implements Serializable, LocationLis
     public void onResume() {
         super.onResume();
         checkIsLoggedIn();
+    }
+
+    private void trackProfile() {
+
     }
 }

@@ -102,24 +102,28 @@ public class CommentsActivity extends AppCompatActivity {
     private void createComment() {
         //Set the text of the comment to be empty
         String text = comment.getText().toString();
-        Comment createdComment = new Comment("", postId, name, text, userId, AndroidUtils.getDateTime());
-        //Scroll down to last comment
-        commentsView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                commentsView.smoothScrollToPosition(commentsView.getAdapter().getCount());
-                //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        if(userId.equals("") || name.equals("")) {
+            //Cannot create the comment because the name or user id are empty
+            Toast.makeText(CommentsActivity.this, "There was an error creating this comment. Please re-open the application and try again.", Toast.LENGTH_SHORT).show();
+        } else {
+            Comment createdComment = new Comment("", postId, name, text, userId, AndroidUtils.getDateTime());
+            //Scroll down to last comment
+            commentsView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    commentsView.smoothScrollToPosition(commentsView.getAdapter().getCount());
+                    //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
-            }
-        }, 1000);
-
-        databaseQuery.saveCommentToDatabaseReference(getApplicationContext(), createdComment);
-        updatePostDetails(createdComment);
-        //Push down the keyboard and make the cursor invisible, clear out the text
-        resetKeyboardSettings();
-        comment.setText("");
-        resetCommentListView();
-        Toast.makeText(CommentsActivity.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
+                }
+            }, 1000);
+            databaseQuery.saveCommentToDatabaseReference(getApplicationContext(), createdComment);
+            updatePostDetails(createdComment);
+            //Push down the keyboard and make the cursor invisible, clear out the text
+            resetKeyboardSettings();
+            comment.setText("");
+            resetCommentListView();
+            Toast.makeText(CommentsActivity.this, "Successfully commented.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void resetCommentListView() {

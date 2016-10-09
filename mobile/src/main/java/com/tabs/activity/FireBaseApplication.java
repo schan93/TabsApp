@@ -2,6 +2,7 @@ package com.tabs.activity;
 
 import android.app.Application;
 import android.content.Context;
+import android.location.Location;
 
 import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.common.internal.Supplier;
@@ -21,6 +22,8 @@ import com.tabs.enums.FollowerEnum;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -79,6 +82,8 @@ public class FireBaseApplication extends Application {
     private Integer followerNum;
 
     private Integer followingNum;
+
+    private HashSet<String> publicPostKeys;
 
     @Override
     public void onCreate() {
@@ -222,6 +227,14 @@ public class FireBaseApplication extends Application {
         return userFollowersAdapter;
     }
 
+    public void setPublicPostKeys(HashSet<String> publicPostKeys) {
+        this.publicPostKeys = publicPostKeys;
+    }
+
+    public HashSet<String> getPublicPostKeys() {
+        return publicPostKeys;
+    }
+
     public void initializeAdapters() {
         List<User> followers = new ArrayList<>();
         List<User> following = new ArrayList<>();
@@ -248,6 +261,7 @@ public class FireBaseApplication extends Application {
         setPostCount(0);
         setName("");
         setUserId("");
+        setPublicPostKeys(new HashSet<String>());
     }
 
     @Override
