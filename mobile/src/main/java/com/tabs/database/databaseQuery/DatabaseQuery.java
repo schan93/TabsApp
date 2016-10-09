@@ -69,7 +69,6 @@ public class DatabaseQuery implements Serializable {
     private GeoFire geoFire;
 
     public DatabaseQuery() {
-        userId = application.getUserId();
         currentUserPath = firebaseRef.child("users/" + userId);
         geoFire = new GeoFire(firebaseRef);
     }

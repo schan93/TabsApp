@@ -57,7 +57,6 @@ public class NotificationService extends FirebaseMessagingService {
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
         //Calling method to generate notification
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         showNotification(this, remoteMessage);
 //        sendNotification(this, R.mipmap.ic_launcher, remoteMessage.getNotification().getBody());
     }
@@ -72,7 +71,7 @@ public class NotificationService extends FirebaseMessagingService {
                 .setAutoCancel(true)
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(remoteMessage.getNotification().getBody()))
-                .setSmallIcon(R.drawable.ic_tabs_logo_transparent_notification);
+                .setSmallIcon(R.drawable.ic_tabs_notification_2);
 
         Intent resultIntent = new Intent(context, CommentsActivity.class);
         if(remoteMessage.getData().containsKey("postId") && remoteMessage.getData().containsKey("userId")) {
