@@ -4,33 +4,38 @@
     android:id="@+id/enable_location_layout"
     android:background="@drawable/background"
     android:layout_height="match_parent">
-    
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="20dp"
-        android:textStyle="bold"
-        android:padding="16dp"
-        android:id="@+id/enable_location_title"
-        android:gravity="center_horizontal"
-        android:text="@string/enableLocation"/>
+
+        <TextView
+            android:gravity="center_horizontal"
+            android:layout_marginTop="32dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:fontFamily="sans-serif"
+            android:id="@+id/enable_location_title"
+            android:text="@string/enableLocation"/>
+
+        <!--<ImageView-->
+            <!--android:layout_toRightOf="@id/enable_location_title"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:id="@+id/tabs_logo_picture"-->
+            <!--android:src="@drawable/ic_tabs_logo"/>-->
+
 
     <TextView
+        android:layout_below="@id/enable_location_title"
         android:layout_width="match_parent"
         android:padding="16dp"
+        android:textSize="16dp"
         android:textAlignment="center"
+        android:fontFamily="sans-serif"
+        android:textColor="@color/white"
         android:id="@+id/enable_location_details"
-        android:layout_below="@id/enable_location_title"
         android:layout_height="wrap_content"
         android:text="@string/enableLocationDetails"/>
-
-    <ImageView
-        android:layout_below="@id/enable_location_details"
-        android:padding="16dp"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:id="@+id/tabs_logo_picture"
-        android:src="@drawable/ic_tabs_logo_transparent"/>
 
     <Button
         android:fontFamily="sans-serif"

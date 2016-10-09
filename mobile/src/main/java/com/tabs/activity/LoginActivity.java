@@ -129,15 +129,13 @@ public class LoginActivity extends Activity implements Serializable, LocationLis
         if(isLoggedIn() || (!isLoggedIn() && trackAccessToken())){
             //Check if user is already logged in
             Profile profile = Profile.getCurrentProfile();
-            ProfileTracker profileTracker = null;
+            ProfileTracker profileTracker;
             if(Profile.getCurrentProfile() == null){
-                final ProfileTracker finalProfileTracker = profileTracker;
                 profileTracker = new ProfileTracker() {
                     @Override
                     protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
                         name = currentProfile.getFirstName();
                         currentUserId = currentProfile.getId();
-                        finalProfileTracker.stopTracking();
                         loggedIn = true;
                         setContentView(R.layout.loading_panel);
                         getUserInfo(currentUserId, name);

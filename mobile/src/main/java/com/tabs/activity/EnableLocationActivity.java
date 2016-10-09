@@ -3,12 +3,15 @@ package com.tabs.activity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 
 import com.schan.tabs.R;
@@ -31,16 +34,20 @@ public class EnableLocationActivity extends AppCompatActivity{
         if (isLocationPermitted) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
-            if(enableLocationButton != null) {
-                enableLocationButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ActivityCompat.requestPermissions(EnableLocationActivity.this,
-                                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                                1);
-                    }
-                });
-            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            getWindow().setStatusBarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
+        }
+        if(enableLocationButton != null) {
+            enableLocationButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ActivityCompat.requestPermissions(EnableLocationActivity.this,
+                            new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                            199);
+                }
+            });
         }
     }
 

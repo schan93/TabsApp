@@ -222,7 +222,10 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot data: dataSnapshot.getChildren()) {
-                    currentUserFeed.child(data.getKey()).setValue(true);
+                    Post post = data.getValue(Post.class);
+                    if(post.getPrivacy().equals("Following")) {
+                        currentUserFeed.child(post.getId()).setValue(true);
+                    }
                 }
             }
 
@@ -854,7 +857,13 @@ public class DatabaseQuery implements Serializable {
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
                             Post post = snapshot.getValue(Post.class);
-                            adapter.add(post, adapter);
+                            //We only ADD to the user adapter if the post is public because otherwise we would violate seeing posts designed only for the following posts for others
+                            if(!application.getUserId().equals(userId) && post.getPrivacy().equals("Public")) {
+                                adapter.add(post, adapter);
+                            }
+                            if(application.getUserId().equals(userId)) {
+                                adapter.add(post, adapter);
+                            }
                             count[0]++;
                             if(Objects.equals(count[0], childrenCount)) {
                                 //we know that we have to populate the user posts at this point
