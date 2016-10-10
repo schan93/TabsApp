@@ -57,6 +57,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Random;
 
+import static android.R.attr.name;
+
 /**
  * Created by schan on 3/9/16.
  */
@@ -80,7 +82,7 @@ public class DatabaseQuery implements Serializable {
         geoFire = new GeoFire(firebaseRef);
     }
 
-    public void getPost(final NotificationCompat.Builder notificationBuilder, final Intent resultIntent, final String postId, final String userId, final Context context) {
+    public void getPost(final NotificationCompat.Builder notificationBuilder, final Intent resultIntent, final String postId, final String userId, final String name, final Context context) {
         final DatabaseReference postsRef = firebaseRef.child("posts/" + postId);
         postsRef.keepSynced(true);
         postsRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -89,6 +91,7 @@ public class DatabaseQuery implements Serializable {
                 Post post = dataSnapshot.getValue(Post.class);
                 resultIntent.putExtra("postId", postId);
                 resultIntent.putExtra("userId", userId);
+                resultIntent.putExtra("name", name);
                 resultIntent.putExtra("postTitle", post.getTitle());
                 resultIntent.putExtra("userProfileId", post.getPosterUserId());
                 resultIntent.putExtra("posterUserId", post.getPosterUserId());
@@ -900,6 +903,7 @@ public class DatabaseQuery implements Serializable {
         notification.setPostId(comment.getPostId());
         //User id = sender of the comment
         notification.setUserId(application.getUserId());
+        notification.setName(application.getName());
         notification.setTitle("Tabs");
         notification.setIcon(comment.getCommenterUserId());
         notifications.setValue(notification).addOnFailureListener(new OnFailureListener() {
@@ -924,6 +928,7 @@ public class DatabaseQuery implements Serializable {
         notification.setPostId(post.getId());
         //User id = sender of the post
         notification.setUserId(application.getUserId());
+        notification.setName(application.getName());
         notification.setTitle("Tabs");
         notification.setIcon(post.getPosterUserId());
         notifications.setValue(notification).addOnFailureListener(new OnFailureListener() {

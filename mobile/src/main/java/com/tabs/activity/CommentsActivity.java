@@ -365,12 +365,6 @@ public class CommentsActivity extends AppCompatActivity {
             if(savedInstanceState.containsKey("postId")) {
                 postId = savedInstanceState.getString("postId");
             }
-            if(savedInstanceState.containsKey("userId")) {
-                userId = savedInstanceState.getString("userId");
-            }
-            if(savedInstanceState.containsKey("name")) {
-                name = savedInstanceState.getString("name");
-            }
             if(savedInstanceState.containsKey("postTitle")) {
                 postTitle = savedInstanceState.getString("postTitle");
             }

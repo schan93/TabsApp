@@ -77,16 +77,17 @@ public class NotificationService extends FirebaseMessagingService {
         if(remoteMessage.getData().containsKey("postId") && remoteMessage.getData().containsKey("userId")) {
             String postId = remoteMessage.getData().get("postId");
             String userId = remoteMessage.getData().get("userId");
+            String name = remoteMessage.getData().get("name");
             if(userId.equals(application.getUserId())) {
                 //Can't send the comment to yourself, but you can to everyone else that is subscribed to the topic
                 return;
             }
-            setupPostDetails(notificationBuilder, resultIntent, postId, userId, context);
+            setupPostDetails(notificationBuilder, resultIntent, postId, userId, name, context);
         }
     }
 
-    private void setupPostDetails(NotificationCompat.Builder notificationBuilder, Intent resultIntent, String postId, String userId, Context context) {
+    private void setupPostDetails(NotificationCompat.Builder notificationBuilder, Intent resultIntent, String postId, String userId, String name, Context context) {
         DatabaseQuery databaseQuery = new DatabaseQuery();
-        databaseQuery.getPost(notificationBuilder, resultIntent, postId, userId, context);
+        databaseQuery.getPost(notificationBuilder, resultIntent, postId, userId, name, context);
     }
 }

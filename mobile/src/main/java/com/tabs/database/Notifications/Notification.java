@@ -13,6 +13,7 @@ public class Notification {
     String userId;
     String icon;
     String title;
+    String name;
 
     public String getNotificationType() {
         return notificationType;
@@ -59,5 +60,13 @@ public class Notification {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

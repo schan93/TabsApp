@@ -36,8 +36,11 @@
             <TextView
                 android:textColor="@color/colorPrimaryDark"
                 android:id="@+id/commenter_name"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:layout_alignParentTop="true"
                 android:layout_toRightOf="@id/commenter_profile_photo"
+                android:paddingRight="96dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="16sp"
