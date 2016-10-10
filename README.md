@@ -1,31 +1,9 @@
-Master Database password: tabsdatabase
-
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+Simply pull the code and ensure that you have the latest up-to-date version of Android Studio running on your computer.
 
 ### What is this repository for? ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+This repository is a culmination of a personal project I wanted to create. I created an Android Application that you can post to people around about things going on within one's geographical region. You can comment on posts and follow others to keep up with them.
 
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+For more details, please contact me at stmchan8953@gmail.com.
