@@ -168,8 +168,15 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    User user = new User(id, userId, name, deviceId);
-                    usersRef.setValue(user);
+                    User user = new User(id, userId, name);
+                    usersRef.setValue(user, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            if(databaseError != null) {
+                                FirebaseCrash.report(databaseError.toException());
+                            }
+                        }
+                    });
                 }
             }
 
@@ -186,8 +193,15 @@ public class DatabaseQuery implements Serializable {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
-                    User user = new User(id, userId, name, deviceId);
-                    usersRef.setValue(user);
+                    User user = new User(id, userId, name);
+                    usersRef.setValue(user, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                            if(databaseError != null) {
+                                FirebaseCrash.report(databaseError.toException());
+                            }
+                        }
+                    });
                 }
             }
 
@@ -437,9 +451,6 @@ public class DatabaseQuery implements Serializable {
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                         Post post = dataSnapshot.getValue(Post.class);
                         if (post.getPrivacy().equals("Public") && application.getPublicPostKeys().contains(post.getId())) {
-                            if(post.getId().equals("-KTc09UMItLhKpTa99KE")) {
-                                System.out.println("Adding recent");
-                            }
                             application.getPublicAdapter().add(post, application.getPublicAdapter());
                         }
                     }

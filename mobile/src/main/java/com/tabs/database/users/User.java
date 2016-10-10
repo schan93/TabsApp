@@ -16,7 +16,7 @@ public class User implements Serializable{
     public User(){
     }
 
-    public User(String id, String userId, String name, String deviceId) {
+    public User(String id, String userId, String name) {
         super();
         this.id = id;
         this.userId = userId;
