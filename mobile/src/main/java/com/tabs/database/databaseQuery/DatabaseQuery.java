@@ -36,6 +36,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.schan.tabs.BuildConfig;
 import com.schan.tabs.R;
 import com.tabs.utils.AndroidUtils;
 import com.tabs.activity.FireBaseApplication;
@@ -64,7 +65,7 @@ import static android.R.attr.name;
  */
 public class DatabaseQuery implements Serializable {
 
-    private DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReferenceFromUrl("https://tabsapp.firebaseio.com/");
+    private DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReferenceFromUrl(BuildConfig.FIREBASE_ROOT_URL);
     private FireBaseApplication application;
     private String userId;
     private DatabaseReference currentUserPath;

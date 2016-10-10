@@ -1,0 +1,73 @@
+{
+  "project_info": {
+    "project_number": "578131640354",
+    "firebase_url": "https://tabsapp.firebaseio.com",
+    "project_id": "firebase-tabsapp",
+    "storage_bucket": "firebase-tabsapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578131640354:android:fcc8787f514a8698",
+        "android_client_info": {
+          "package_name": "com.schan.tabs"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "578131640354-n324lrg30k1h6nqgk7i4j3152kup4egf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBazCD_jGxV1OZLvaEUdSJpCDfjMVXoOFM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578131640354:android:f167ae1a246929ee",
+        "android_client_info": {
+          "package_name": "com.schan.tabs.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "578131640354-n324lrg30k1h6nqgk7i4j3152kup4egf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBazCD_jGxV1OZLvaEUdSJpCDfjMVXoOFM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

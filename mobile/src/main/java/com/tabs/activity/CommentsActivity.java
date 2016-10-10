@@ -30,6 +30,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
+import com.schan.tabs.BuildConfig;
 import com.schan.tabs.R;
 import com.tabs.database.databaseQuery.DatabaseQuery;
 import com.tabs.database.comments.Comment;
@@ -64,7 +65,7 @@ public class CommentsActivity extends AppCompatActivity {
     private String name;
     private EditText comment;
 
-    private DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReferenceFromUrl("https://tabsapp.firebaseio.com/");
+    private DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReferenceFromUrl(BuildConfig.FIREBASE_ROOT_URL);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

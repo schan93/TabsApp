@@ -20,21 +20,26 @@ android {
         multiDexEnabled true
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 7
-        versionName "7.0"
+        versionCode 9
+        versionName "9.0"
         signingConfig signingConfigs.Tabs
     }
     buildTypes {
         release {
             minifyEnabled false
-            shrinkResources true
+            shrinkResources false
+            zipAlignEnabled true
+            debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.Tabs
+            buildConfigField 'String', 'FIREBASE_ROOT_URL', FIREBASE_REF_PROD
         }
         debug {
+            applicationIdSuffix ".debug"
             debuggable true
             minifyEnabled false
             signingConfig signingConfigs.Tabs
+            buildConfigField 'String', 'FIREBASE_ROOT_URL', FIREBASE_REF_LOCAL
         }
     }
     //DatabaseReference stuff
